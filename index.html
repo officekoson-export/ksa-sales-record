@@ -1,0 +1,2149 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>KS AGRO | Sales Management System</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#0b0f18;--sb:#0e1520;--sb-w:256px;
+  --panel:#131c2b;--panel2:#182030;--panel3:#1d2840;
+  --border:#1e2d42;--border2:#263550;
+  --text:#d4e0f0;--dim:#5a738f;--dim2:#3d526a;
+  --green:#22c55e;--green-d:#16a34a;--green-bg:rgba(34,197,94,.1);--green-bd:rgba(34,197,94,.2);
+  --blue:#3b82f6;--blue-d:#1d4ed8;--blue-bg:rgba(59,130,246,.1);--blue-bd:rgba(59,130,246,.2);
+  --amber:#f59e0b;--amber-bg:rgba(245,158,11,.1);--amber-bd:rgba(245,158,11,.2);
+  --red:#ef4444;--red-bg:rgba(239,68,68,.1);--red-bd:rgba(239,68,68,.2);
+  --purple:#a855f7;--purple-bg:rgba(168,85,247,.1);--purple-bd:rgba(168,85,247,.2);
+  --cyan:#06b6d4;--cyan-bg:rgba(6,182,212,.1);
+  --orange:#f97316;--orange-bg:rgba(249,115,22,.1);
+  --r:8px;--r2:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+a{color:inherit;text-decoration:none;}
+button{cursor:pointer;font-family:inherit;}
+
+/* ─── LOGIN ─── */
+#loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 25% 40%,#0f2040 0%,#0b0f18 65%);}
+.lCard{background:var(--panel);border:1px solid var(--border2);border-radius:var(--r2);padding:40px 38px;width:390px;position:relative;box-shadow:0 24px 60px rgba(0,0,0,.5);}
+.lCard::before{content:'';position:absolute;top:0;left:24px;right:24px;height:1px;background:linear-gradient(90deg,transparent,rgba(59,130,246,.5),transparent);}
+.lLogo{display:flex;align-items:center;gap:12px;margin-bottom:30px;}
+.lLogo .sq{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--green),var(--blue));display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;color:#fff;letter-spacing:-1px;}
+.lLogo .ln{font-size:16px;font-weight:700;} .lLogo .ls{font-size:11px;color:var(--dim);margin-top:1px;}
+.lTitle{font-size:21px;font-weight:700;margin-bottom:5px;}
+.lSub{font-size:12.5px;color:var(--dim);margin-bottom:28px;}
+.lLabel{font-size:11.5px;color:var(--dim);margin-bottom:5px;font-weight:500;}
+.lInput{width:100%;padding:11px 13px;background:var(--panel2);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-size:13.5px;margin-bottom:14px;transition:border-color .15s;}
+.lInput:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-bg);}
+.lBtn{width:100%;padding:12px;background:linear-gradient(135deg,var(--green),var(--green-d));border:none;border-radius:var(--r);color:#fff;font-weight:700;font-size:14px;margin-top:6px;letter-spacing:.3px;}
+.lBtn:hover{opacity:.9;}
+#lErr{color:var(--red);font-size:12px;margin-top:8px;min-height:16px;}
+
+/* ─── SHELL ─── */
+#app{display:none;}
+.shell{display:flex;min-height:100vh;}
+
+/* ─── SIDEBAR ─── */
+.sb{width:var(--sb-w);background:var(--sb);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;height:100vh;overflow-y:auto;z-index:20;}
+.sbTop{padding:16px 16px 14px;border-bottom:1px solid var(--border);}
+.sbLogo{display:flex;align-items:center;gap:10px;}
+.sbLogo .sq{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--green),var(--blue));display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;color:#fff;flex-shrink:0;}
+.sbLogo .ln{font-size:14px;font-weight:700;line-height:1.2;}
+.sbLogo .ls{font-size:10px;color:var(--dim);}
+.sbGrp{padding:16px 10px 4px;font-size:9.5px;color:var(--dim2);text-transform:uppercase;letter-spacing:.9px;font-weight:700;}
+.sbItem{margin:1px 6px;padding:8px 10px;border-radius:var(--r);display:flex;align-items:center;gap:9px;color:var(--dim);font-size:12.5px;cursor:pointer;transition:all .14s;border:1px solid transparent;position:relative;}
+.sbItem:hover{color:var(--text);background:var(--panel);}
+.sbItem.act{color:var(--text);background:var(--panel2);border-color:var(--border2);font-weight:600;}
+.sbItem .ico{font-size:14px;width:18px;text-align:center;flex-shrink:0;}
+.sbItem .lbl{flex:1;line-height:1.3;}
+.sbItem .sub{font-size:10px;color:var(--dim);display:block;font-weight:400;margin-top:1px;}
+.sbItem .pill{font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:10px;flex-shrink:0;}
+.pill-green{background:var(--green-bg);color:var(--green);border:1px solid var(--green-bd);}
+.pill-blue{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-bd);}
+.pill-amber{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-bd);}
+.pill-dim{background:var(--panel2);color:var(--dim);border:1px solid var(--border2);}
+.sbDiv{margin:6px 16px;border-top:1px solid var(--border);}
+.sbUser{padding:12px 14px;margin-top:auto;border-top:1px solid var(--border);}
+.sbAvatar{display:flex;align-items:center;gap:9px;margin-bottom:10px;}
+.sbAvatar .av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--green));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;}
+.sbAvatar .un{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;}
+.sbAvatar .ur{font-size:10px;color:var(--dim);}
+.sbLogout{width:100%;padding:7px;background:transparent;border:1px solid var(--border2);border-radius:var(--r);color:var(--dim);font-size:11.5px;transition:all .14s;}
+.sbLogout:hover{border-color:var(--red);color:var(--red);}
+
+/* ─── TOPBAR ─── */
+.topbar{position:fixed;top:0;left:var(--sb-w);right:0;height:52px;background:rgba(11,15,24,.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);z-index:10;display:flex;align-items:center;padding:0 22px;gap:14px;}
+.tbBread{flex:1;display:flex;align-items:center;gap:8px;}
+.tbPage{font-size:14px;font-weight:700;}
+.tbSep{color:var(--dim2);}
+.tbSub{font-size:13px;color:var(--dim);}
+.tbRight{display:flex;align-items:center;gap:10px;}
+.tbDate{font-size:11.5px;color:var(--dim);}
+.tbStatus{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--green);background:var(--green-bg);border:1px solid var(--green-bd);padding:4px 10px;border-radius:20px;}
+.tbStatus .dot{width:6px;height:6px;border-radius:50%;background:var(--green);}
+
+/* ─── MAIN ─── */
+.main{margin-left:var(--sb-w);padding-top:52px;min-height:100vh;}
+.pg{padding:22px 26px;display:none;}
+.pg.show{display:block;}
+
+/* ─── PAGE HEADER ─── */
+.ph{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;gap:14px;flex-wrap:wrap;}
+.phL h2{font-size:19px;font-weight:700;}
+.phL .phS{font-size:12px;color:var(--dim);margin-top:4px;display:flex;align-items:center;gap:8px;}
+.phS .d{width:5px;height:5px;border-radius:50%;}
+.phR{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+
+/* ─── KPI ─── */
+.kGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px;margin-bottom:20px;}
+.kCard{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:15px 16px;position:relative;overflow:hidden;}
+.kCard::after{content:'';position:absolute;top:0;left:0;width:3px;height:100%;border-radius:var(--r) 0 0 var(--r);}
+.kc-g::after{background:var(--green);}
+.kc-b::after{background:var(--blue);}
+.kc-a::after{background:var(--amber);}
+.kc-r::after{background:var(--red);}
+.kc-p::after{background:var(--purple);}
+.kc-o::after{background:var(--orange);}
+.kCard .kLbl{font-size:10.5px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-bottom:8px;}
+.kCard .kVal{font-size:22px;font-weight:800;line-height:1;}
+.kc-g .kVal{color:var(--green);}
+.kc-b .kVal{color:var(--blue);}
+.kc-a .kVal{color:var(--amber);}
+.kc-r .kVal{color:var(--red);}
+.kc-p .kVal{color:var(--purple);}
+.kc-o .kVal{color:var(--orange);}
+.kCard .kSub{font-size:11px;color:var(--dim);margin-top:5px;}
+.kCard .kIco{position:absolute;right:12px;bottom:10px;font-size:26px;opacity:.1;}
+
+/* ─── YEAR PILLS ─── */
+.yPills{display:flex;gap:5px;margin-bottom:14px;flex-wrap:wrap;}
+.yPill{padding:5px 13px;font-size:12px;background:var(--panel);border:1px solid var(--border2);border-radius:20px;color:var(--dim);cursor:pointer;transition:all .14s;}
+.yPill:hover{border-color:var(--border2);color:var(--text);}
+.yPill.act{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:700;}
+
+/* ─── PACK TABS ─── */
+.pTabs{display:flex;background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:3px;gap:2px;width:fit-content;margin-bottom:14px;}
+.pTab{padding:6px 14px;font-size:12px;border-radius:6px;color:var(--dim);cursor:pointer;transition:all .14s;white-space:nowrap;}
+.pTab:hover{color:var(--text);}
+.pTab.act{background:var(--panel3);color:var(--text);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.3);}
+
+/* ─── TOOLBAR ─── */
+.tb{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;}
+.srchW{position:relative;display:flex;align-items:center;}
+.srchW::before{content:'⌕';position:absolute;left:11px;font-size:14px;color:var(--dim);pointer-events:none;}
+.srch{padding:8px 12px 8px 32px;background:var(--panel);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-size:12.5px;min-width:220px;transition:border-color .14s;}
+.srch:focus{outline:none;border-color:var(--blue);}
+.sel{padding:8px 11px;background:var(--panel);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-size:12.5px;}
+.sp{flex:1;}
+
+/* BUTTONS */
+.btn{padding:8px 15px;border-radius:var(--r);border:none;font-size:12.5px;font-weight:600;display:inline-flex;align-items:center;gap:6px;transition:all .14s;white-space:nowrap;}
+.btn:hover{opacity:.9;}
+.btn-p{background:linear-gradient(135deg,var(--green),var(--green-d));color:#fff;}
+.btn-o{background:transparent;border:1px solid var(--border2);color:var(--dim);}
+.btn-o:hover{color:var(--text);border-color:var(--text);}
+.btn-b{background:var(--blue-bg);border:1px solid var(--blue-bd);color:var(--blue);}
+.btn-sm{padding:6px 11px;font-size:11.5px;}
+
+/* ─── TABLE ─── */
+.tCard{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.tWrap{overflow-x:auto;max-height:62vh;}
+table{border-collapse:collapse;width:100%;font-size:11.5px;white-space:nowrap;table-layout:auto;}
+thead th{background:var(--panel2);color:var(--dim);text-align:left;padding:8px 10px;font-weight:600;font-size:10.5px;letter-spacing:.3px;position:sticky;top:0;border-bottom:1px solid var(--border);z-index:1;text-transform:uppercase;}
+tbody td{padding:7px 10px;border-bottom:1px solid var(--border);}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover td{background:var(--panel2);}
+.tFoot{padding:8px 14px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--dim);background:var(--panel2);}
+.td-trunc{max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* BADGES */
+.bdg{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:700;}
+.bdg-g{background:var(--green-bg);color:var(--green);border:1px solid var(--green-bd);}
+.bdg-b{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-bd);}
+.bdg-a{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-bd);}
+.bdg-r{background:var(--red-bg);color:var(--red);border:1px solid var(--red-bd);}
+.bdg-p{background:var(--purple-bg);color:var(--purple);border:1px solid var(--purple-bd);}
+.bdg-c{background:var(--cyan-bg);color:var(--cyan);border:1px solid rgba(6,182,212,.2);}
+.bdg-cancel{background:rgba(239,68,68,.2);color:var(--red);border:1px solid rgba(239,68,68,.4);font-weight:700;}
+.bdg-wait{background:rgba(245,158,11,.15);color:var(--amber);border:1px solid rgba(245,158,11,.3);}
+.bdg-ship{background:rgba(59,130,246,.15);color:var(--blue);border:1px solid rgba(59,130,246,.3);}
+.bdg-o{background:var(--orange-bg);color:var(--orange);border:1px solid rgba(249,115,22,.2);}
+
+/* ROW ACTIONS */
+.ra{display:flex;gap:3px;}
+.ib{width:26px;height:26px;border-radius:6px;background:var(--panel2);border:1px solid var(--border);color:var(--dim);display:flex;align-items:center;justify-content:center;font-size:11px;cursor:pointer;transition:all .14s;}
+.ib:hover{color:var(--text);border-color:var(--border2);}
+.ib.e:hover{color:var(--blue);border-color:var(--blue-bd);background:var(--blue-bg);}
+.ib.d:hover{color:var(--red);border-color:var(--red-bd);background:var(--red-bg);}
+
+.empty{padding:56px 20px;text-align:center;color:var(--dim);}
+.empty .ei{font-size:32px;margin-bottom:10px;}
+.loading{padding:36px;text-align:center;color:var(--dim);font-size:12.5px;}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid var(--border2);border-top-color:var(--green);border-radius:50%;animation:sp .6s linear infinite;vertical-align:middle;margin-right:8px;}
+@keyframes sp{to{transform:rotate(360deg);}}
+
+/* ─── MODAL ─── */
+.mbg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:50;overflow-y:auto;padding:24px 14px;}
+.mbg.show{display:flex;align-items:flex-start;justify-content:center;}
+.mc{background:var(--panel);border:1px solid var(--border2);border-radius:var(--r2);width:880px;max-width:96vw;margin:auto;position:relative;box-shadow:0 30px 80px rgba(0,0,0,.6);}
+.mc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--green),var(--blue),var(--purple));border-radius:var(--r2) var(--r2) 0 0;}
+.mH{padding:18px 22px 14px;border-bottom:1px solid var(--border);}
+.mH h3{font-size:15px;font-weight:700;}
+.mH .ms{font-size:11.5px;color:var(--dim);margin-top:3px;}
+.mB{padding:18px 22px;max-height:74vh;overflow-y:auto;}
+.mF{padding:12px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;}
+.sLbl{font-size:10.5px;color:var(--green);font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin:16px 0 9px;display:flex;align-items:center;gap:8px;}
+.sLbl::after{content:'';flex:1;height:1px;background:var(--border);}
+.fg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.fg .s2{grid-column:span 2;}
+.fg .s3{grid-column:1/-1;}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
+.fld label{display:block;font-size:10.5px;color:var(--dim);margin-bottom:4px;font-weight:500;}
+.fld input,.fld select{width:100%;padding:8px 10px;background:var(--panel2);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-size:12.5px;transition:border-color .14s;}
+.fld input:focus,.fld select:focus{outline:none;border-color:var(--blue);}
+.fBox{background:var(--panel2);border:1px solid var(--border);border-radius:var(--r);padding:12px;}
+.fBox h4{font-size:11px;color:var(--dim);font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:5px;}
+.fi{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.fi .s3{grid-column:1/-1;}
+
+/* ─── TOAST ─── */
+.toast{position:fixed;bottom:20px;right:20px;z-index:99;background:var(--panel);border:1px solid var(--border2);border-left:3px solid var(--green);border-radius:var(--r);padding:12px 16px;font-size:12.5px;box-shadow:0 8px 30px rgba(0,0,0,.4);display:none;max-width:320px;}
+.toast.show{display:block;animation:tIn .2s ease;}
+.toast.err{border-left-color:var(--red);}
+@keyframes tIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+
+/* ─── PLACEHOLDER ─── */
+.comingSoon{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:56px;text-align:center;color:var(--dim);}
+.comingSoon .ci{font-size:38px;margin-bottom:14px;}
+.comingSoon h3{font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px;}
+.comingSoon p{font-size:12.5px;line-height:1.8;}
+
+/* ─── DASHBOARD CHARTS ─── */
+.chNote{background:var(--amber-bg);border:1px solid var(--amber-bd);border-radius:var(--r);padding:9px 14px;font-size:11.5px;color:var(--amber);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.chGrid{display:grid;grid-template-columns:1.3fr 1fr;gap:14px;margin-bottom:14px;}
+.chGrid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.chGrid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px;}
+.chCard{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;}
+.chCard h4{font-size:12.5px;font-weight:700;color:var(--text);margin-bottom:2px;}
+.chCard .chSub{font-size:10.5px;color:var(--dim);margin-bottom:12px;}
+.chCard .chWrap{position:relative;height:230px;}
+.chCard .chWrap.sm{height:190px;}
+.rankList{list-style:none;}
+.rankList li{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.rankList li:last-child{border-bottom:none;}
+.rankList .rk{width:18px;height:18px;border-radius:5px;background:var(--panel3);color:var(--dim);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.rankList .rn{flex:1;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rankList .rv{color:var(--blue);font-weight:700;font-size:11px;flex-shrink:0;}
+@media(max-width:1100px){.chGrid,.chGrid2,.chGrid3{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+<div class="lCard">
+  <div class="lLogo">
+    <div class="sq">KS</div>
+    <div><div class="ln">KS AGRO</div><div class="ls">บจก. เคเอส อะโกร จำกัด</div></div>
+  </div>
+  <div class="lTitle">Sales Management System</div>
+  <div class="lSub">เข้าสู่ระบบด้วยบัญชีที่บริษัทออกให้เท่านั้น</div>
+  <div class="lLabel">อีเมล</div>
+  <input class="lInput" type="email" id="liE" placeholder="name@ksagro.com" autocomplete="username">
+  <div class="lLabel">รหัสผ่าน</div>
+  <input class="lInput" type="password" id="liP" placeholder="••••••••" autocomplete="current-password">
+  <button class="lBtn" onclick="doLogin()">เข้าสู่ระบบ</button>
+  <div id="lErr"></div>
+</div>
+</div>
+
+<!-- APP -->
+<div id="app">
+<div class="shell">
+
+<!-- ═══ SIDEBAR ═══ -->
+<div class="sb">
+  <div class="sbTop">
+    <div class="sbLogo">
+      <div class="sq">KS</div>
+      <div><div class="ln">KS AGRO</div><div class="ls">Sales Management</div></div>
+    </div>
+  </div>
+
+  <!-- ภาพรวม -->
+  <div class="sbGrp">ภาพรวม</div>
+  <div class="sbItem" id="sn-dash" onclick="go('dash')">
+    <span class="ico">⊞</span>
+    <div class="lbl">Dashboard
+      <span class="sub">ภาพรวมทั้งหมด</span>
+    </div>
+  </div>
+
+  <!-- บันทึกข้อมูลการขาย -->
+  <div class="sbGrp">บันทึกข้อมูลการขาย</div>
+  <div class="sbItem" id="sn-dom" onclick="go('dom')">
+    <span class="ico">🏭</span>
+    <div class="lbl">Domestic Starch
+      <span class="sub">ขายในประเทศ · THB</span>
+    </div>
+    <span class="pill pill-green">Live</span>
+  </div>
+  <div class="sbItem" id="sn-es" onclick="go('es')">
+    <span class="ico">🌾</span>
+    <div class="lbl">Export Starch
+      <span class="sub">ส่งออกแป้งมัน · USD/CNY</span>
+    </div>
+    <span class="pill pill-green">Live</span>
+  </div>
+  <div class="sbItem" id="sn-ec" onclick="go('ec')">
+    <span class="ico">🪨</span>
+    <div class="lbl">Export Chip
+      <span class="sub">ส่งออกมันเส้น · USD BULK</span>
+    </div>
+    <span class="pill pill-green">Live</span>
+  </div>
+
+  <!-- การเงิน -->
+  <div class="sbGrp">การเงิน</div>
+  <div class="sbItem" id="sn-fc" onclick="go('fc')">
+    <span class="ico">💰</span>
+    <div class="lbl">Forecast Income
+      <span class="sub">ประมาณการรายรับ 3 สัปดาห์</span>
+    </div>
+    <span class="pill pill-amber" id="fcBadge"></span>
+  </div>
+
+  <div class="sbDiv"></div>
+
+  <!-- รายงานยอดขาย -->
+  <div class="sbGrp">รายงานยอดขาย</div>
+  <div class="sbItem" id="sn-rs-es" onclick="go('rs-es')">
+    <span class="ico">↗</span>
+    <div class="lbl">Export Starch
+      <span class="sub">ยอดขายส่งออกแป้งมัน</span>
+    </div>
+    <span class="pill pill-green">Live</span>
+  </div>
+  <div class="sbItem" id="sn-rs-ec" onclick="go('rs-ec')">
+    <span class="ico">↗</span>
+    <div class="lbl">Export Chip
+      <span class="sub">ยอดขายส่งออกมันเส้น</span>
+    </div>
+    <span class="pill pill-green">Live</span>
+  </div>
+  <div class="sbItem" id="sn-rs-dom" onclick="go('rs-dom')">
+    <span class="ico">↺</span>
+    <div class="lbl">Domestic Starch
+      <span class="sub">ยอดขายในประเทศ</span>
+    </div>
+    <span class="pill pill-green">Live</span>
+  </div>
+
+  <!-- วิเคราะห์เชิงลึก -->
+  <div class="sbGrp">วิเคราะห์เชิงลึก</div>
+  <div class="sbItem" id="sn-monthly" onclick="go('monthly')">
+    <span class="ico">📅</span>
+    <div class="lbl">Monthly Breakdown
+      <span class="sub">ยอดขายรายเดือน/ไตรมาส</span>
+    </div>
+    <span class="pill pill-dim">Soon</span>
+  </div>
+  <div class="sbItem" id="sn-packing" onclick="go('packing')">
+    <span class="ico">📦</span>
+    <div class="lbl">Packing Analysis
+      <span class="sub">สัดส่วน 25/50/850 kgs · BULK</span>
+    </div>
+    <span class="pill pill-dim">Soon</span>
+  </div>
+  <div class="sbItem" id="sn-brokers" onclick="go('brokers')">
+    <span class="ico">🤝</span>
+    <div class="lbl">Brokers &amp; Buyers
+      <span class="sub">อันดับ Broker · ลูกค้า</span>
+    </div>
+    <span class="pill pill-dim">Soon</span>
+  </div>
+  <div class="sbItem" id="sn-txn" onclick="go('txn')">
+    <span class="ico">📄</span>
+    <div class="lbl">Transaction Detail
+      <span class="sub">รายการขายทั้งหมดทุกปี</span>
+    </div>
+    <span class="pill pill-green">Live</span>
+  </div>
+  <div class="sbItem" id="sn-currency" onclick="go('currency')">
+    <span class="ico">💱</span>
+    <div class="lbl">Currency: USD/CNY/THB
+      <span class="sub">แยกสกุลเงิน ไม่รวมข้ามกัน</span>
+    </div>
+    <span class="pill pill-dim">Soon</span>
+  </div>
+  <div class="sbItem" id="sn-stock" onclick="go('stock')">
+    <span class="ico">🗄</span>
+    <div class="lbl">Stock สินค้า
+      <span class="sub">คงเหลือ · มูลค่าสต๊อก</span>
+    </div>
+    <span class="pill pill-dim">Soon</span>
+  </div>
+
+  <div class="sbUser">
+    <div class="sbAvatar">
+      <div class="av" id="sbAv">K</div>
+      <div><div class="un" id="sbUn">-</div><div class="ur">5 Users · สิทธิ์เท่ากัน</div></div>
+    </div>
+    <button class="sbLogout" onclick="doLogout()">ออกจากระบบ</button>
+  </div>
+</div>
+
+<!-- ═══ TOPBAR ═══ -->
+<div class="topbar">
+  <div class="tbBread">
+    <span class="tbPage" id="tbPage">Dashboard</span>
+    <span class="tbSep" id="tbSep" style="display:none">›</span>
+    <span class="tbSub" id="tbSub"></span>
+  </div>
+  <div class="tbRight">
+    <span class="tbDate" id="tbDate"></span>
+    <div class="tbStatus"><span class="dot"></span>Online</div>
+  </div>
+</div>
+
+<!-- ═══ MAIN ═══ -->
+<div class="main">
+
+<!-- DASHBOARD -->
+<div class="pg" id="pg-dash">
+  <div class="ph">
+    <div class="phL"><h2>Dashboard ภาพรวม</h2><div class="phS"><span class="d" style="background:var(--green)"></span>KS AGRO · Sales Management System</div></div>
+  </div>
+  <div class="sLbl">🏠 ขายในประเทศ (THB)</div>
+  <div class="kGrid" id="dashKpiDom"></div>
+  <div class="sLbl">🚢 ส่งออกแป้งมันสำปะหลัง — Export Starch (USD/CNY)</div>
+  <div class="kGrid" id="dashKpiEs"></div>
+  <div class="sLbl">📦 ส่งออกมันเส้น — Export Chip (USD)</div>
+  <div class="kGrid" id="dashKpiEc"></div>
+  <div class="sLbl">⏰ Forecast Income (ทุกหมวดรวมกัน)</div>
+  <div class="kGrid" id="dashKpiFc"></div>
+
+  <div class="chNote">⚠️ กราฟมูลค่า (THB/USD/CNY) แสดงแยกสกุลเงินเสมอ ไม่มีการรวมข้ามสกุลเงินกัน</div>
+
+  <div class="chGrid">
+    <div class="chCard">
+      <h4>📦 ปริมาณขายรายปี (MTS)</h4>
+      <div class="chSub">แยกตามหมวดสินค้า · Domestic + Export Starch + Export Chip</div>
+      <div class="chWrap"><canvas id="chVolYear"></canvas></div>
+    </div>
+    <div class="chCard">
+      <h4>💱 สัดส่วนรายการตามสกุลเงิน</h4>
+      <div class="chSub">นับจำนวนรายการ (ไม่ใช่มูลค่า) ทุกปีรวมกัน</div>
+      <div class="chWrap"><canvas id="chCurMix"></canvas></div>
+    </div>
+  </div>
+
+  <div class="chGrid3">
+    <div class="chCard">
+      <h4>🟢 ยอดขายในประเทศ (THB)</h4>
+      <div class="chSub">Domestic Starch · รายปี</div>
+      <div class="chWrap sm"><canvas id="chRevThb"></canvas></div>
+    </div>
+    <div class="chCard">
+      <h4>🔵 ยอดขายส่งออก USD</h4>
+      <div class="chSub">Export Starch + Export Chip · รายปี</div>
+      <div class="chWrap sm"><canvas id="chRevUsd"></canvas></div>
+    </div>
+    <div class="chCard">
+      <h4>🟣 ยอดขายส่งออก CNY</h4>
+      <div class="chSub">Export Starch เท่านั้น · รายปี</div>
+      <div class="chWrap sm"><canvas id="chRevCny"></canvas></div>
+    </div>
+  </div>
+
+  <div class="chGrid2">
+    <div class="chCard">
+      <h4>📦 สัดส่วนขนาดบรรจุ (MTS)</h4>
+      <div class="chSub">25 / 30 / 50 / 850 kgs · Domestic + Export Starch (ไม่รวม Chip ที่เป็น BULK)</div>
+      <div class="chWrap"><canvas id="chPacking"></canvas></div>
+    </div>
+    <div class="chCard">
+      <h4>📅 เปรียบเทียบรายไตรมาส (MTS)</h4>
+      <div class="chSub" id="chQuarterSub">ปีล่าสุดที่มีข้อมูล · อิงวันที่โหลดสินค้า (Loading Date)</div>
+      <div class="chWrap"><canvas id="chQuarter"></canvas></div>
+    </div>
+  </div>
+
+  <div class="chGrid3">
+    <div class="chCard">
+      <h4>🏭 โรงแป้ง — ซื้อบ่อยสุด</h4>
+      <div class="chSub">นับจำนวนรายการที่ระบุชื่อโรงแป้ง</div>
+      <ul class="rankList" id="rkFactory"></ul>
+    </div>
+    <div class="chCard">
+      <h4>🚢 ชิปปิ้ง — ใช้บ่อยสุด</h4>
+      <div class="chSub">นับจำนวนรายการที่ใช้บริการ</div>
+      <ul class="rankList" id="rkShipping"></ul>
+    </div>
+    <div class="chCard">
+      <h4>🔍 เซอร์เวย์ / รมยา — ใช้บ่อยสุด</h4>
+      <div class="chSub">นับจำนวนรายการที่ใช้บริการ</div>
+      <ul class="rankList" id="rkSurvey"></ul>
+    </div>
+  </div>
+</div>
+
+<!-- DOMESTIC -->
+<div class="pg" id="pg-dom">
+  <div class="ph">
+    <div class="phL">
+      <h2>Domestic Starch — ขายในประเทศ</h2>
+      <div class="phS"><span class="d" style="background:var(--green)"></span>สกุลเงิน THB เท่านั้น · ข้อมูลปี 2022–ปัจจุบัน</div>
+    </div>
+    <div class="phR">
+      <button class="btn btn-o btn-sm" onclick="xDom()">⬇ Export CSV</button>
+      <button class="btn btn-p" onclick="openDom()">＋ เพิ่มรายการ</button>
+    </div>
+  </div>
+  <div class="kGrid" id="domKpi"></div>
+  <div class="yPills" id="domYP"></div>
+  <div class="pTabs" id="domPT">
+    <div class="pTab act" onclick="setPk('all',this)">ทั้งหมด</div>
+    <div class="pTab" onclick="setPk('25',this)">25 kgs</div>
+    <div class="pTab" onclick="setPk('30',this)">30 kgs</div>
+    <div class="pTab" onclick="setPk('50',this)">50 kgs</div>
+    <div class="pTab" onclick="setPk('850',this)">850 kgs</div>
+  </div>
+  <div class="tb">
+    <div class="srchW"><input class="srch" id="domSr" placeholder="ค้นหา ชื่อลูกค้า/Invoice" oninput="rDom()"></div>
+    <div class="sp"></div>
+    <button class="btn btn-o btn-sm" onclick="loadDom()">⟳ รีเฟรช</button>
+  </div>
+  <div class="tCard">
+    <div class="tWrap">
+      <table>
+        <thead><tr>
+          <th>NO.</th><th>ปี</th><th>ลูกค้า</th><th>Contract No.</th><th>Invoice No.</th>
+          <th>ขนาดบรรจุ</th><th>QTY (MTS)</th><th>Total (THB)</th>
+          <th>วันโหลด</th><th>สถานะ / หมายเหตุ</th>
+          <th>Payment Term</th>
+          <th>จัดการ</th>
+        </tr></thead>
+        <tbody id="domTb"><tr><td colspan="16"><div class="loading"><span class="spin"></span>กำลังโหลด...</div></td></tr></tbody>
+      </table>
+    </div>
+    <div class="tFoot"><span id="domCnt">—</span><span id="domTot" style="color:var(--text)">—</span></div>
+  </div>
+</div>
+
+<!-- EXPORT STARCH -->
+<div class="pg" id="pg-es">
+  <div class="ph">
+    <div class="phL">
+      <h2>Export Starch — ส่งออกแป้งมัน</h2>
+      <div class="phS"><span class="d" style="background:var(--amber)"></span>สกุลเงิน USD / CNY แยกกัน (ไม่รวมข้ามสกุล) · ข้อมูลปี 2021–ปัจจุบัน</div>
+    </div>
+    <div class="phR">
+      <button class="btn btn-o btn-sm" onclick="xEs()">⬇ Export CSV</button>
+      <button class="btn btn-p" onclick="openEs()">＋ เพิ่มรายการ</button>
+    </div>
+  </div>
+  <div class="kGrid" id="esKpi"></div>
+  <div class="yPills" id="esYP"></div>
+  <div class="pTabs" id="esPT">
+    <div class="pTab act" onclick="setEsPk('all',this)">ทั้งหมด</div>
+    <div class="pTab" onclick="setEsPk('25',this)">25 kgs</div>
+    <div class="pTab" onclick="setEsPk('50',this)">50 kgs</div>
+    <div class="pTab" onclick="setEsPk('850',this)">850 kgs</div>
+  </div>
+  <div class="pTabs" id="esCT" style="margin-top:8px;">
+    <div class="pTab act" onclick="setEsCur('all',this)">ทุกสกุลเงิน</div>
+    <div class="pTab" onclick="setEsCur('USD',this)">USD</div>
+    <div class="pTab" onclick="setEsCur('CNY',this)">CNY</div>
+  </div>
+  <div class="tb">
+    <div class="srchW"><input class="srch" id="esSr" placeholder="ค้นหา ชื่อลูกค้า/Invoice" oninput="rEs()"></div>
+    <div class="sp"></div>
+    <button class="btn btn-o btn-sm" onclick="loadEs()">⟳ รีเฟรช</button>
+  </div>
+  <div class="tCard">
+    <div class="tWrap">
+      <table>
+        <thead><tr>
+          <th>NO.</th><th>ปี</th><th>ลูกค้า</th><th>Contract No.</th><th>Invoice No.</th>
+          <th>ขนาดบรรจุ</th><th>QTY (MTS)</th><th>สกุลเงิน</th><th>Total</th>
+          <th>วันโหลด</th><th>สถานะ / หมายเหตุ</th>
+          <th>Payment Term</th>
+          <th>จัดการ</th>
+        </tr></thead>
+        <tbody id="esTb"><tr><td colspan="16"><div class="loading"><span class="spin"></span>กำลังโหลด...</div></td></tr></tbody>
+      </table>
+    </div>
+    <div class="tFoot"><span id="esCnt">—</span><span id="esTot" style="color:var(--text)">—</span></div>
+  </div>
+</div>
+
+<!-- EXPORT CHIP -->
+<div class="pg" id="pg-ec">
+  <div class="ph">
+    <div class="phL">
+      <h2>Export Chip — ส่งออกมันเส้น</h2>
+      <div class="phS"><span class="d" style="background:var(--cyan)"></span>ทั้งหมดเป็น BULK · สกุลเงิน USD · ปี 2022–ปัจจุบัน</div>
+    </div>
+    <div class="phR">
+      <button class="btn btn-o btn-sm" onclick="xEc()">⬇ Export CSV</button>
+      <button class="btn btn-p" onclick="openEc()">＋ เพิ่มรายการ</button>
+    </div>
+  </div>
+  <div class="kGrid" id="ecKpi"></div>
+  <div class="yPills" id="ecYP"></div>
+  <div class="tb">
+    <div class="srchW"><input class="srch" id="ecSr" placeholder="ค้นหา ชื่อลูกค้า/Invoice" oninput="rEc()"></div>
+    <div class="sp"></div>
+    <button class="btn btn-o btn-sm" onclick="loadEc()">⟳ รีเฟรช</button>
+  </div>
+  <div class="tCard">
+    <div class="tWrap">
+      <table>
+        <thead><tr>
+          <th>NO.</th><th>ปี</th><th>ลูกค้า</th><th>Contract No.</th><th>Invoice No.</th>
+          <th>QTY (MTS)</th><th>สกุลเงิน</th><th>Total</th>
+          <th>วันโหลด</th><th>สถานะ / หมายเหตุ</th>
+          <th>Payment Term</th>
+          <th>จัดการ</th>
+        </tr></thead>
+        <tbody id="ecTb"><tr><td colspan="12"><div class="loading"><span class="spin"></span>กำลังโหลด...</div></td></tr></tbody>
+      </table>
+    </div>
+    <div class="tFoot"><span id="ecCnt">—</span><span id="ecTot" style="color:var(--text)">—</span></div>
+  </div>
+</div>
+
+<!-- FORECAST -->
+<div class="pg" id="pg-fc">
+  <div class="ph">
+    <div class="phL"><h2>Forecast Income Receiving</h2><div class="phS"><span class="d" style="background:var(--amber)"></span>ประมาณการรายรับที่คาดจะได้รับใน 3 สัปดาห์ข้างหน้า</div></div>
+    <div class="phR">
+      <button class="btn btn-o btn-sm" onclick="xFc()">⬇ Export CSV</button>
+      <button class="btn btn-p" onclick="openFc()">＋ เพิ่มรายการ</button>
+    </div>
+  </div>
+  <div class="kGrid" id="fcKpi"></div>
+  <div style="display:flex;background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:3px;gap:2px;width:fit-content;margin-bottom:14px;" id="fcCT"></div>
+  <!-- Date range picker -->
+  <div style="background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+    <span style="font-size:12px;color:var(--dim);font-weight:600;">📅 ช่วงวันที่คาดรับเงิน:</span>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <label style="font-size:11.5px;color:var(--dim);">ตั้งแต่</label>
+      <input type="date" id="fcDateFrom" style="padding:6px 10px;background:var(--panel2);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-size:12.5px;" onchange="rFc()">
+      <label style="font-size:11.5px;color:var(--dim);">ถึง</label>
+      <input type="date" id="fcDateTo" style="padding:6px 10px;background:var(--panel2);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-size:12.5px;" onchange="rFc()">
+    </div>
+    <button class="btn btn-o btn-sm" onclick="setFcRange(0,21)">3 สัปดาห์หน้า</button>
+    <button class="btn btn-o btn-sm" onclick="setFcRange(0,7)">7 วันหน้า</button>
+    <button class="btn btn-o btn-sm" onclick="setFcRange(-30,0)">30 วันที่ผ่านมา</button>
+    <button class="btn btn-o btn-sm" onclick="clearFcRange()">ทั้งหมด</button>
+  </div>
+  <div class="tb">
+    <div class="srchW"><input class="srch" id="fcSr" placeholder="ค้นหา ลูกค้า / Invoice / Broker..." oninput="rFc()"></div>
+    <select class="sel" id="fcStF" onchange="rFc()">
+      <option value="">สถานะทั้งหมด</option>
+      <option value="received">✅ เงินเข้าแล้ว</option>
+      <option value="pending">⏳ รอรับ</option>
+      <option value="overdue">🔴 เลยกำหนดรับ</option>
+      <option value="waiting">⏳ รอคอนเฟิร์ม</option>
+      <option value="w_invoice">📋 รอวางบิล</option>
+      <option value="w_ship">🚢 รอส่งของ</option>
+      <option value="cancelled">🚫 ยกเลิก</option>
+    </select>
+    <div class="sp"></div>
+    <button class="btn btn-o btn-sm" onclick="loadFc()">⟳ รีเฟรช</button>
+  </div>
+  <div class="tCard">
+    <div class="tWrap">
+      <table>
+        <thead><tr>
+          <th>#</th><th>ลูกค้า</th><th>Sales Contract</th><th>Invoice No.</th>
+          <th>QTY MTS</th><th>สกุลเงิน</th><th>Total</th>
+          <th>คาดรับเงิน</th><th>ยอดรับจริง</th><th>ส่วนต่าง</th>
+          <th>วันรับจริง</th><th>ธนาคาร</th><th>สถานะ</th><th>หมายเหตุ</th>
+          <th>จัดการ</th>
+        </tr></thead>
+        <tbody id="fcTb"><tr><td colspan="16"><div class="loading"><span class="spin"></span>กำลังโหลด...</div></td></tr></tbody>
+      </table>
+    </div>
+    <div class="tFoot"><span id="fcCnt">—</span><span id="fcTot" style="color:var(--text)">—</span></div>
+  </div>
+</div>
+
+<!-- PLACEHOLDERS: รายงาน + วิเคราะห์เชิงลึก -->
+<div class="pg" id="pg-rs-es">
+  <div class="ph"><div class="phL"><h2>รายงานยอดขาย — Export Starch</h2><div class="phS"><span class="d" style="background:var(--blue)"></span>ส่งออกแป้งมันสำปะหลัง · USD / CNY แยกกัน · 2021–ปัจจุบัน</div></div></div>
+  <div class="yPills" id="rsEsYP"></div>
+  <div class="kGrid" id="rsEsKpi"></div>
+  <div class="chGrid">
+    <div class="chCard"><h4>📈 ยอดขายรายปี</h4><div class="chSub">แยก USD / CNY · ไม่รวมข้ามสกุลเงิน</div><div class="chWrap"><canvas id="rsEsRevChart"></canvas></div></div>
+    <div class="chCard"><h4>💱 สัดส่วนปริมาณ USD vs CNY</h4><div class="chSub">รายปี · หน่วย MTS</div><div class="chWrap"><canvas id="rsEsCurChart"></canvas></div></div>
+  </div>
+  <div class="chGrid2">
+    <div class="chCard"><h4>📅 เปรียบเทียบรายไตรมาส</h4><div class="chSub" id="rsEsQtrSub">—</div><div class="chWrap"><canvas id="rsEsQtrChart"></canvas></div></div>
+    <div class="chCard"><h4>🏆 Top ลูกค้า</h4><div class="chSub">เรียงตามปริมาณ MTS รวม</div><ul class="rankList" id="rsEsTop"></ul></div>
+  </div>
+</div>
+<div class="pg" id="pg-rs-ec">
+  <div class="ph"><div class="phL"><h2>รายงานยอดขาย — Export Chip</h2><div class="phS"><span class="d" style="background:var(--orange)"></span>ส่งออกมันเส้น · USD · BULK</div></div></div>
+  <div class="yPills" id="rsEcYP"></div>
+  <div class="kGrid" id="rsEcKpi"></div>
+  <div class="chGrid">
+    <div class="chCard"><h4>📈 ยอดขายรายปี (USD)</h4><div class="chSub">รวมทุก Sales Contract</div><div class="chWrap"><canvas id="rsEcRevChart"></canvas></div></div>
+    <div class="chCard"><h4>📅 เปรียบเทียบรายไตรมาส</h4><div class="chSub" id="rsEcQtrSub">—</div><div class="chWrap"><canvas id="rsEcQtrChart"></canvas></div></div>
+  </div>
+  <div class="chGrid2">
+    <div class="chCard"><h4>🏆 Top ลูกค้า</h4><div class="chSub">เรียงตามปริมาณ MTS รวม</div><ul class="rankList" id="rsEcTop"></ul></div>
+    <div class="chCard"><h4>🏭 โรงแป้ง — ซื้อบ่อยสุด</h4><div class="chSub">นับจำนวนรายการ</div><ul class="rankList" id="rsEcFactory"></ul></div>
+  </div>
+</div>
+<div class="pg" id="pg-rs-dom">
+  <div class="ph"><div class="phL"><h2>รายงานยอดขาย — Domestic Starch</h2><div class="phS"><span class="d" style="background:var(--green)"></span>ขายในประเทศ · THB</div></div></div>
+  <div class="yPills" id="rsDomYP"></div>
+  <div class="kGrid" id="rsDomKpi"></div>
+  <div class="chGrid">
+    <div class="chCard"><h4>📈 ยอดขายรายปี (THB)</h4><div class="chSub">รวมทุกรายการ</div><div class="chWrap"><canvas id="rsDomRevChart"></canvas></div></div>
+    <div class="chCard"><h4>📦 สัดส่วนขนาดบรรจุ</h4><div class="chSub">หน่วย MTS</div><div class="chWrap"><canvas id="rsDomPkChart"></canvas></div></div>
+  </div>
+  <div class="chGrid2">
+    <div class="chCard"><h4>📅 เปรียบเทียบรายไตรมาส</h4><div class="chSub" id="rsDomQtrSub">—</div><div class="chWrap"><canvas id="rsDomQtrChart"></canvas></div></div>
+    <div class="chCard"><h4>🏆 Top ลูกค้า</h4><div class="chSub">เรียงตามปริมาณ MTS รวม</div><ul class="rankList" id="rsDomTop"></ul></div>
+  </div>
+</div>
+<div class="pg" id="pg-monthly"><div class="ph"><div class="phL"><h2>Monthly Breakdown</h2></div></div><div class="comingSoon"><div class="ci">📅</div><h3>Monthly &amp; Quarterly Breakdown</h3><p>ยอดขายรายเดือน · เปรียบเทียบรายไตรมาส · ทุกหมวดสินค้า · Phase 5<br>ใช้ CFS Loading Date เป็นตัวแบ่งไตรมาส</p></div></div>
+<div class="pg" id="pg-packing"><div class="ph"><div class="phL"><h2>Packing Analysis</h2></div></div><div class="comingSoon"><div class="ci">📦</div><h3>สัดส่วนขนาดบรรจุภัณฑ์</h3><p>Export Starch: 25 / 50 / 850 kgs · Domestic: 25 / 30 / 50 / 850 kgs · Export Chip: BULK<br>Pie chart + ตารางสัดส่วนปริมาณ MTS ต่อขนาดบรรจุ · แยกรายปีได้ · Phase 5</p></div></div>
+<div class="pg" id="pg-brokers"><div class="ph"><div class="phL"><h2>Brokers &amp; Buyers</h2></div></div><div class="comingSoon"><div class="ci">🤝</div><h3>อันดับ Broker &amp; ลูกค้า</h3><p>Ranking Broker / ลูกค้า ตามปริมาณ MTS และมูลค่าการขาย<br>ดูรายบุคคลได้ · แยกรายปีได้ · Phase 5</p></div></div>
+<div class="pg" id="pg-txn">
+  <div class="ph">
+    <div class="phL">
+      <h2>Transaction Detail — รายการขายทั้งหมด</h2>
+      <div class="phS"><span class="d" style="background:var(--amber)"></span>รวมทุกหมวดสินค้า · ค้นหา/กรองได้ · แยกมูลค่าตามสกุลเงินเสมอ</div>
+    </div>
+    <div class="phR">
+      <button class="btn btn-o btn-sm" onclick="xTx()">⬇ Export CSV</button>
+      <button class="btn btn-o btn-sm" onclick="loadTxn()">⟳ รีเฟรช</button>
+    </div>
+  </div>
+  <div class="kGrid" id="txKpi"></div>
+  <div class="yPills" id="txYP"></div>
+  <div class="pTabs" id="txCT">
+    <div class="pTab act" onclick="setTxCat('all',this)">ทุกหมวด</div>
+    <div class="pTab" onclick="setTxCat('dom',this)">🏠 Domestic</div>
+    <div class="pTab" onclick="setTxCat('es',this)">🚢 Export Starch</div>
+    <div class="pTab" onclick="setTxCat('ec',this)">📦 Export Chip</div>
+  </div>
+  <div class="pTabs" id="txCurT" style="margin-top:8px;">
+    <div class="pTab act" onclick="setTxCur('all',this)">ทุกสกุลเงิน</div>
+    <div class="pTab" onclick="setTxCur('THB',this)">THB</div>
+    <div class="pTab" onclick="setTxCur('USD',this)">USD</div>
+    <div class="pTab" onclick="setTxCur('CNY',this)">CNY</div>
+  </div>
+  <div class="tb">
+    <div class="srchW"><input class="srch" id="txSr" placeholder="ค้นหา ชื่อลูกค้า / Contract / Invoice" oninput="rTx()"></div>
+    <div class="sp"></div>
+  </div>
+  <div class="tCard">
+    <div class="tWrap">
+      <table>
+        <thead><tr>
+          <th>หมวด</th><th>ปี</th><th>NO.</th><th>ลูกค้า</th><th>Contract / Invoice</th>
+          <th>QTY (MTS)</th><th>สกุลเงิน</th><th>Total</th>
+          <th>วันโหลด</th><th>สถานะ / หมายเหตุ</th>
+          <th>จัดการ</th>
+        </tr></thead>
+        <tbody id="txTb"><tr><td colspan="11"><div class="loading"><span class="spin"></span>กำลังโหลด...</div></td></tr></tbody>
+      </table>
+    </div>
+    <div class="tFoot"><span id="txCnt">—</span><span id="txTot" style="color:var(--text)">—</span></div>
+  </div>
+</div>
+
+<!-- EXPORT CHIP -->
+<div class="pg" id="pg-currency"><div class="ph"><div class="phL"><h2>Currency: USD / CNY / THB</h2></div></div><div class="comingSoon"><div class="ci">💱</div><h3>วิเคราะห์ตามสกุลเงิน</h3><p>ยอดขาย USD แยกจาก CNY แยกจาก THB — ไม่รวมข้ามสกุลเงิน<br>Export Starch: USD + CNY (ปี 2023 เป็นต้นมามี CNY เพิ่มขึ้น) · Phase 5</p></div></div>
+<div class="pg" id="pg-stock"><div class="ph"><div class="phL"><h2>Stock สินค้า</h2></div></div><div class="comingSoon"><div class="ci">🗄</div><h3>สินค้าคงเหลือ &amp; มูลค่าสต๊อก</h3><p>สต๊อกแป้งมันสำปะหลัง (ตัน) · สต๊อกมันเส้น (ตัน) · มูลค่าสต๊อกรวม · Phase 5</p></div></div>
+
+</div><!-- /main -->
+</div><!-- /shell -->
+</div><!-- /app -->
+
+<!-- DOMESTIC MODAL -->
+<div class="mbg" id="mDom">
+<div class="mc">
+  <div class="mH"><h3 id="mDomT">เพิ่มรายการ — Domestic Tapioca Starch</h3><div class="ms">สกุลเงิน THB · ฟิลด์ * จำเป็น</div></div>
+  <div class="mB">
+    <input type="hidden" id="d_id">
+    <div class="sLbl">ข้อมูลการขาย</div>
+    <div class="fg">
+      <div class="fld"><label>ปี *</label><input type="number" id="d_year"></div>
+      <div class="fld"><label>NO. ลำดับที่</label><input id="d_seq_no" placeholder="NO.1, NO.2..."></div>
+      <div class="fld"><label>Broker Name</label><input id="d_broker_name" placeholder="ชื่อนายหน้า"></div>
+      <div class="fld"><label>คอม (ต่อตัน)</label><input type="number" step="any" id="d_comm_rate" oninput="calcComm('d')"></div>
+      <div class="fld"><label>สกุลเงินคอม</label><select id="d_comm_currency" onchange="calcComm('d')"><option value="THB">THB</option><option value="USD">USD</option><option value="CNY">CNY</option></select></div>
+      <div class="fld"><label>Total Comm</label><input type="number" step="any" id="d_total_comm"></div>
+      <div class="fld s3"><label>ลูกค้า (Applicant Name) *</label><input id="d_applicant_name"></div>
+      <div class="fld s3"><label>เลขที่ใบเสนอราคา / Contract No.</label><input id="d_contact_no" placeholder="QUO-KSA/2025-..."></div>
+      <div class="fld"><label>ขนาดบรรจุ (kgs) *</label><select id="d_packing_kgs"><option value="">เลือก...</option><option>25</option><option>30</option><option>50</option><option>850</option></select></div>
+      <div class="fld"><label>QTY MTS</label><input type="number" step="any" id="d_qty_mts" oninput="calcComm('d')"></div>
+      <div class="fld"><label>Partial / CONTS</label><input id="d_qty_partial"></div>
+      <div class="fld"><label>PRICE FOB (THB/ตัน)</label><input type="number" step="any" id="d_price_fob"></div>
+      <div class="fld"><label>PRICE CFR</label><input type="number" step="any" id="d_price_cfr"></div>
+      <div class="fld"><label>Total (THB)</label><input type="number" step="any" id="d_total"></div>
+      <div class="fld"><label>Invoice No.</label><input id="d_invoice_no"></div>
+      <div class="fld s2"><label>Payment Term</label><input id="d_payment_term" placeholder="เช่น TT 100% BEFORE LOADING"></div>
+      <div class="fld"><label>Loading Date *</label><input type="date" id="d_loading_date"></div>
+      <div class="fld"><label>Delivery Date</label><input type="date" id="d_delivery_date"></div>
+      <div class="fld"><label>สถานที่ส่งของ</label><input id="d_delivery_place" placeholder="เช่น FREE ZONE"></div>
+      <div class="fld"><label>ชื่อเรือ / Vehicle</label><input id="d_vessel_name"></div>
+      <div class="fld"><label>Unit CONTS</label><input id="d_unit_conts"></div>
+      <div class="fld s3"><label>สถานะ / หมายเหตุ 📌</label><input id="d_dom_status_remark" placeholder="เช่น เงินเข้าแล้ว, รอวางบิล, รอส่งของ, ยกเลิก..."></div>
+    </div>
+
+    <div class="sLbl">ต้นทุนวัตถุดิบจากโรงแป้ง</div>
+    <div class="fg2">
+      <div class="fBox"><h4>🏭 โรงแป้ง #1</h4><div class="fi">
+        <div class="fld s3"><label>ชื่อโรงแป้ง</label><input id="d_factory1_name"></div>
+        <div class="fld s3"><label>PO No.</label><input id="d_factory1_po"></div>
+        <div class="fld"><label>ราคาซื้อ (บาท/กก.)</label><input type="number" step="any" id="d_factory1_price"></div>
+        <div class="fld"><label>รวมยอดเงิน (บาท)</label><input type="number" step="any" id="d_factory1_total"></div>
+        <div class="fld"><label>ก่อน VAT</label><input type="number" step="any" id="d_factory1_before_vat"></div>
+        <div class="fld"><label>VAT 7%</label><input type="number" step="any" id="d_factory1_vat"></div>
+      </div></div>
+      <div class="fBox"><h4>🏭 โรงแป้ง #2</h4><div class="fi">
+        <div class="fld s3"><label>ชื่อโรงแป้ง</label><input id="d_factory2_name"></div>
+        <div class="fld s3"><label>PO No.</label><input id="d_factory2_po"></div>
+        <div class="fld"><label>ราคาซื้อ (บาท/กก.)</label><input type="number" step="any" id="d_factory2_price"></div>
+        <div class="fld"><label>รวมยอดเงิน (บาท)</label><input type="number" step="any" id="d_factory2_total"></div>
+        <div class="fld"><label>ก่อน VAT</label><input type="number" step="any" id="d_factory2_before_vat"></div>
+        <div class="fld"><label>VAT 7%</label><input type="number" step="any" id="d_factory2_vat"></div>
+      </div></div>
+      <div class="fBox"><h4>🏭 โรงแป้ง #3</h4><div class="fi">
+        <div class="fld s3"><label>ชื่อโรงแป้ง</label><input id="d_factory3_name"></div>
+        <div class="fld s3"><label>PO No.</label><input id="d_factory3_po"></div>
+        <div class="fld"><label>ราคาซื้อ (บาท/กก.)</label><input type="number" step="any" id="d_factory3_price"></div>
+        <div class="fld"><label>รวมยอดเงิน (บาท)</label><input type="number" step="any" id="d_factory3_total"></div>
+        <div class="fld"><label>ก่อน VAT</label><input type="number" step="any" id="d_factory3_before_vat"></div>
+        <div class="fld"><label>VAT 7%</label><input type="number" step="any" id="d_factory3_vat"></div>
+      </div></div>
+      <div class="fBox"><h4>🏭 โรงแป้ง #4</h4><div class="fi">
+        <div class="fld s3"><label>ชื่อโรงแป้ง</label><input id="d_factory4_name"></div>
+        <div class="fld s3"><label>PO No.</label><input id="d_factory4_po"></div>
+        <div class="fld"><label>ราคาซื้อ (บาท/กก.)</label><input type="number" step="any" id="d_factory4_price"></div>
+        <div class="fld"><label>รวมยอดเงิน (บาท)</label><input type="number" step="any" id="d_factory4_total"></div>
+        <div class="fld"><label>ก่อน VAT</label><input type="number" step="any" id="d_factory4_before_vat"></div>
+        <div class="fld"><label>VAT 7%</label><input type="number" step="any" id="d_factory4_vat"></div>
+      </div></div>
+    </div>
+
+    <div class="sLbl">ค่าใช้จ่ายอื่นๆ</div>
+    <div class="fg">
+      <div class="fld"><label>ชิปปิ้ง</label><input id="d_shipping_name"></div>
+      <div class="fld"><label>ค่าชิปปิ้ง (บาท)</label><input type="number" step="any" id="d_shipping_cost"></div>
+      <div class="fld"><label>เซอร์เวย์ / รมยา</label><input id="d_survey_name"></div>
+      <div class="fld"><label>ค่าเซอร์เวย์/รมยา (บาท)</label><input type="number" step="any" id="d_survey_cost"></div>
+      <div class="fld"><label>Agent</label><input id="d_agent_name"></div>
+      <div class="fld"><label>ค่าเฟรท (บาท)</label><input type="number" step="any" id="d_freight_cost"></div>
+      <div class="fld"><label>วัสดุหีบห่อ</label><input id="d_packing_material_name"></div>
+      <div class="fld"><label>ค่าวัสดุหีบห่อ (บาท)</label><input type="number" step="any" id="d_packing_material_cost"></div>
+      <div class="fld"><label>พาเลท</label><input id="d_pallet"></div>
+      <div class="fld"><label>ค่าพาเลท (บาท)</label><input type="number" step="any" id="d_pallet_cost"></div>
+      <div class="fld"><label>ประกันภัย</label><input id="d_insurance_name"></div>
+      <div class="fld"><label>ค่าเบี้ยประกัน (บาท)</label><input type="number" step="any" id="d_insurance_cost"></div>
+      <div class="fld"><label>บริการบรรจุ</label><input id="d_packing_service_name"></div>
+      <div class="fld"><label>ค่าบริการบรรจุ (บาท)</label><input type="number" step="any" id="d_packing_service_cost"></div>
+      <div class="fld"><label>ส่งเอกสาร</label><input id="d_doc_delivery_name"></div>
+      <div class="fld"><label>ค่าส่งเอกสาร (บาท)</label><input type="number" step="any" id="d_doc_delivery_cost"></div>
+    </div>
+  </div>
+  <div class="mF">
+    <button class="btn btn-o" onclick="closeDom()">ยกเลิก</button>
+    <button class="btn btn-p" onclick="saveDom()">💾 บันทึก</button>
+  </div>
+</div>
+</div>
+
+<!-- EXPORT STARCH MODAL -->
+<div class="mbg" id="mEs">
+<div class="mc">
+  <div class="mH"><h3 id="mEsT">เพิ่มรายการ — Export Tapioca Starch</h3><div class="ms">สกุลเงิน USD/CNY แยกกัน · ฟิลด์ * จำเป็น</div></div>
+  <div class="mB">
+    <input type="hidden" id="e_id">
+    <div class="sLbl">ข้อมูลการขาย</div>
+    <div class="fg">
+      <div class="fld"><label>ปี *</label><input type="number" id="e_year"></div>
+      <div class="fld"><label>NO. ลำดับที่</label><input id="e_seq_no" placeholder="NO.1, NO.2..."></div>
+      <div class="fld"><label>Broker Name</label><input id="e_broker_name"></div>
+      <div class="fld"><label>คอม (ต่อตัน)</label><input type="number" step="any" id="e_comm_rate" oninput="calcComm('e')"></div>
+      <div class="fld"><label>สกุลเงินคอม</label><select id="e_comm_currency" onchange="calcComm('e')"><option value="USD" selected>USD</option><option value="CNY">CNY</option><option value="THB">THB</option></select></div>
+      <div class="fld"><label>Total Comm</label><input type="number" step="any" id="e_total_comm"></div>
+      <div class="fld s3"><label>ลูกค้า (Applicant Name) *</label><input id="e_applicant_name"></div>
+      <div class="fld s2"><label>Sales Contract No.</label><input id="e_sales_contract" placeholder="KSA/TS2026-..."></div>
+      <div class="fld"><label>ขนาดบรรจุ (kgs) *</label><select id="e_packing_kgs"><option value="">เลือก...</option><option>25</option><option>50</option><option>850</option></select></div>
+      <div class="fld"><label>QTY MTS</label><input type="number" step="any" id="e_qty_mts" oninput="calcComm('e')"></div>
+      <div class="fld"><label>Partial / CONTS</label><input id="e_qty_partial"></div>
+      <div class="fld"><label>สกุลเงิน *</label><select id="e_currency"><option value="">เลือก...</option><option>USD</option><option>CNY</option></select></div>
+      <div class="fld"><label>PRICE FOB</label><input type="number" step="any" id="e_price_fob"></div>
+      <div class="fld"><label>PRICE CFR</label><input type="number" step="any" id="e_price_cfr"></div>
+      <div class="fld"><label>PRICE CIF</label><input type="number" step="any" id="e_price_cif"></div>
+      <div class="fld"><label>Total</label><input type="number" step="any" id="e_total"></div>
+      <div class="fld"><label>Invoice No.</label><input id="e_invoice_no"></div>
+      <div class="fld s2"><label>Payment Term</label><input id="e_payment_term" placeholder="เช่น LC, TT 20% DEPOSIT..."></div>
+      <div class="fld"><label>ExChange Rate</label><input type="number" step="any" id="e_exchange_rate"></div>
+    </div>
+
+    <div class="sLbl">ข้อมูลเรือ / ท่าเรือ / วันที่</div>
+    <div class="fg">
+      <div class="fld s2"><label>M.Vessel Name</label><input id="e_vessel_name"></div>
+      <div class="fld"><label>Loading Date</label><input type="date" id="e_loading_date"></div>
+      <div class="fld"><label>Closing Date</label><input type="date" id="e_closing_date"></div>
+      <div class="fld"><label>Loading Ground</label><input id="e_loading_ground"></div>
+      <div class="fld"><label>ETD</label><input type="date" id="e_etd"></div>
+      <div class="fld"><label>ETA</label><input type="date" id="e_eta"></div>
+      <div class="fld"><label>Port</label><input id="e_port"></div>
+      <div class="fld"><label>Present Bank</label><input id="e_bank"></div>
+      <div class="fld"><label>Unit CONTS</label><input id="e_unit_conts"></div>
+      <div class="fld"><label>วันที่ส่งของ</label><input type="date" id="e_delivery_date"></div>
+      <div class="fld s3"><label>สถานะ / หมายเหตุ 📌</label><input id="e_status_remark" placeholder="เช่น เงินเข้าแล้ว, รอวางบิล, เกินกำหนด..."></div>
+    </div>
+
+    <div class="sLbl">การรับเงิน</div>
+    <div class="fg">
+      <div class="fld"><label>Expected Received Payment</label><input type="date" id="e_forecast_received_date"></div>
+      <div class="fld"><label>Received Amount</label><input type="number" step="any" id="e_received_amount"></div>
+      <div class="fld"><label>Diff Amount</label><input type="number" step="any" id="e_diff_amount"></div>
+      <div class="fld"><label>Received Date</label><input type="date" id="e_received_date"></div>
+    </div>
+
+    <div class="sLbl">ต้นทุนวัตถุดิบจากโรงแป้ง</div>
+    <div class="fg2">
+      <div class="fBox"><h4>🏭 โรงแป้ง #1</h4><div class="fi">
+        <div class="fld s3"><label>ชื่อโรงแป้ง</label><input id="e_factory1_name"></div>
+        <div class="fld s3"><label>PO No.</label><input id="e_factory1_po"></div>
+        <div class="fld"><label>ราคาซื้อ (บาท/กก.)</label><input type="number" step="any" id="e_factory1_price"></div>
+        <div class="fld"><label>รวมยอดเงิน (บาท)</label><input type="number" step="any" id="e_factory1_total"></div>
+        <div class="fld"><label>ก่อน VAT</label><input type="number" step="any" id="e_factory1_before_vat"></div>
+        <div class="fld"><label>VAT 7%</label><input type="number" step="any" id="e_factory1_vat"></div>
+      </div></div>
+      <div class="fBox"><h4>🏭 โรงแป้ง #2</h4><div class="fi">
+        <div class="fld s3"><label>ชื่อโรงแป้ง</label><input id="e_factory2_name"></div>
+        <div class="fld s3"><label>PO No.</label><input id="e_factory2_po"></div>
+        <div class="fld"><label>ราคาซื้อ (บาท/กก.)</label><input type="number" step="any" id="e_factory2_price"></div>
+        <div class="fld"><label>รวมยอดเงิน (บาท)</label><input type="number" step="any" id="e_factory2_total"></div>
+        <div class="fld"><label>ก่อน VAT</label><input type="number" step="any" id="e_factory2_before_vat"></div>
+        <div class="fld"><label>VAT 7%</label><input type="number" step="any" id="e_factory2_vat"></div>
+      </div></div>
+      <div class="fBox"><h4>🏭 โรงแป้ง #3</h4><div class="fi">
+        <div class="fld s3"><label>ชื่อโรงแป้ง</label><input id="e_factory3_name"></div>
+        <div class="fld s3"><label>PO No.</label><input id="e_factory3_po"></div>
+        <div class="fld"><label>ราคาซื้อ (บาท/กก.)</label><input type="number" step="any" id="e_factory3_price"></div>
+        <div class="fld"><label>รวมยอดเงิน (บาท)</label><input type="number" step="any" id="e_factory3_total"></div>
+        <div class="fld"><label>ก่อน VAT</label><input type="number" step="any" id="e_factory3_before_vat"></div>
+        <div class="fld"><label>VAT 7%</label><input type="number" step="any" id="e_factory3_vat"></div>
+      </div></div>
+      <div class="fBox"><h4>🏭 โรงแป้ง #4</h4><div class="fi">
+        <div class="fld s3"><label>ชื่อโรงแป้ง</label><input id="e_factory4_name"></div>
+        <div class="fld s3"><label>PO No.</label><input id="e_factory4_po"></div>
+        <div class="fld"><label>ราคาซื้อ (บาท/กก.)</label><input type="number" step="any" id="e_factory4_price"></div>
+        <div class="fld"><label>รวมยอดเงิน (บาท)</label><input type="number" step="any" id="e_factory4_total"></div>
+        <div class="fld"><label>ก่อน VAT</label><input type="number" step="any" id="e_factory4_before_vat"></div>
+        <div class="fld"><label>VAT 7%</label><input type="number" step="any" id="e_factory4_vat"></div>
+      </div></div>
+    </div>
+
+    <div class="sLbl">ค่าใช้จ่ายอื่นๆ</div>
+    <div class="fg">
+      <div class="fld"><label>ชิปปิ้ง</label><input id="e_shipping_name"></div>
+      <div class="fld"><label>ค่าชิปปิ้ง (บาท)</label><input type="number" step="any" id="e_shipping_cost"></div>
+      <div class="fld"><label>เซอร์เวย์</label><input id="e_survey_name"></div>
+      <div class="fld"><label>รมยา</label><input id="e_fumigation_name"></div>
+      <div class="fld"><label>ค่าเซอร์เวย์/รมยา (บาท)</label><input type="number" step="any" id="e_survey_cost"></div>
+      <div class="fld"><label>Agent</label><input id="e_agent_name"></div>
+      <div class="fld"><label>ค่าเฟรท (บาท)</label><input type="number" step="any" id="e_freight_cost"></div>
+      <div class="fld"><label>วัสดุหีบห่อ</label><input id="e_packing_material_name"></div>
+      <div class="fld"><label>ค่าวัสดุหีบห่อ (บาท)</label><input type="number" step="any" id="e_packing_material_cost"></div>
+      <div class="fld"><label>พาเลท</label><input id="e_pallet"></div>
+      <div class="fld"><label>ค่าพาเลท (บาท)</label><input type="number" step="any" id="e_pallet_cost"></div>
+      <div class="fld"><label>ประกันภัย</label><input id="e_insurance_name"></div>
+      <div class="fld"><label>ค่าเบี้ยประกัน (บาท)</label><input type="number" step="any" id="e_insurance_cost"></div>
+      <div class="fld"><label>บริการบรรจุ</label><input id="e_packing_service_name"></div>
+      <div class="fld"><label>ค่าบริการบรรจุ (บาท)</label><input type="number" step="any" id="e_packing_service_cost"></div>
+      <div class="fld"><label>ส่งเอกสาร</label><input id="e_doc_delivery_name"></div>
+      <div class="fld"><label>ค่าส่งเอกสาร (บาท)</label><input type="number" step="any" id="e_doc_delivery_cost"></div>
+      <div class="fld"><label>DHL No.</label><input id="e_dhl_no"></div>
+      <div class="fld"><label>ใบขนฯ เลขที่</label><input id="e_customs_no"></div>
+      <div class="fld"><label>Booking No.</label><input id="e_booking_no"></div>
+      <div class="fld"><label>Bill of Lading No.</label><input id="e_bl_no"></div>
+    </div>
+  </div>
+  <div class="mF">
+    <button class="btn btn-o" onclick="closeEs()">ยกเลิก</button>
+    <button class="btn btn-p" onclick="saveEs()">💾 บันทึก</button>
+  </div>
+</div>
+</div>
+
+<!-- EXPORT CHIP MODAL -->
+<div class="mbg" id="mEc">
+<div class="mc">
+  <div class="mH"><h3 id="mEcT">เพิ่มรายการ — Export Tapioca Chip</h3><div class="ms">ทั้งหมดเป็น BULK · สกุลเงิน USD · ฟิลด์ * จำเป็น</div></div>
+  <div class="mB">
+    <input type="hidden" id="c_id">
+    <div class="sLbl">ข้อมูลการขาย</div>
+    <div class="fg">
+      <div class="fld"><label>ปี *</label><input type="number" id="c_year"></div>
+      <div class="fld"><label>NO. ลำดับที่</label><input id="c_seq_no" placeholder="NO.1, NO.2..."></div>
+      <div class="fld"><label>Broker Name</label><input id="c_broker_name"></div>
+      <div class="fld"><label>คอม (ต่อตัน)</label><input type="number" step="any" id="c_comm_rate" oninput="calcComm('c')"></div>
+      <div class="fld"><label>สกุลเงินคอม</label><select id="c_comm_currency" onchange="calcComm('c')"><option value="USD" selected>USD</option><option value="CNY">CNY</option><option value="THB">THB</option></select></div>
+      <div class="fld"><label>Total Comm</label><input type="number" step="any" id="c_total_comm"></div>
+      <div class="fld s3"><label>ลูกค้า (Applicant Name) *</label><input id="c_applicant_name"></div>
+      <div class="fld s2"><label>Sales Contract No.</label><input id="c_sales_contract" placeholder="KSA/TP2026-..."></div>
+      <div class="fld"><label>QTY MTS</label><input type="number" step="any" id="c_qty_mts" oninput="calcComm('c')"></div>
+      <div class="fld"><label>สกุลเงิน</label><select id="c_currency"><option value="USD">USD</option></select></div>
+      <div class="fld"><label>PRICE FOB</label><input type="number" step="any" id="c_price_fob"></div>
+      <div class="fld"><label>PRICE CFR</label><input type="number" step="any" id="c_price_cfr"></div>
+      <div class="fld"><label>PRICE CIF</label><input type="number" step="any" id="c_price_cif"></div>
+      <div class="fld"><label>Total</label><input type="number" step="any" id="c_total"></div>
+      <div class="fld"><label>Invoice No.</label><input id="c_invoice_no"></div>
+      <div class="fld s2"><label>Payment Term</label><input id="c_payment_term"></div>
+      <div class="fld"><label>ExChange Rate</label><input type="number" step="any" id="c_exchange_rate"></div>
+    </div>
+
+    <div class="sLbl">ข้อมูลเรือ / ท่าเรือ / วันที่</div>
+    <div class="fg">
+      <div class="fld s2"><label>M.Vessel Name</label><input id="c_vessel_name"></div>
+      <div class="fld"><label>Loading Date</label><input type="date" id="c_loading_date"></div>
+      <div class="fld"><label>Closing Date</label><input type="date" id="c_closing_date"></div>
+      <div class="fld"><label>Loading Ground</label><input id="c_loading_ground"></div>
+      <div class="fld"><label>ETD</label><input type="date" id="c_etd"></div>
+      <div class="fld"><label>ETA</label><input type="date" id="c_eta"></div>
+      <div class="fld"><label>Port</label><input id="c_port"></div>
+      <div class="fld"><label>Present Bank</label><input id="c_bank"></div>
+      <div class="fld"><label>วันที่ส่งของ</label><input type="date" id="c_delivery_date"></div>
+      <div class="fld s3"><label>สถานะ / หมายเหตุ 📌</label><input id="c_status_remark" placeholder="เช่น เงินเข้าแล้ว, รอวางบิล..."></div>
+    </div>
+
+    <div class="sLbl">การรับเงิน</div>
+    <div class="fg">
+      <div class="fld"><label>Expected Received Payment</label><input type="date" id="c_forecast_received_date"></div>
+      <div class="fld"><label>Received Amount</label><input type="number" step="any" id="c_received_amount"></div>
+      <div class="fld"><label>Diff Amount</label><input type="number" step="any" id="c_diff_amount"></div>
+      <div class="fld"><label>Received Date</label><input type="date" id="c_received_date"></div>
+    </div>
+
+    <div class="sLbl">ต้นทุนวัตถุดิบจากโรงแป้ง</div>
+    <div class="fg2">
+      <div class="fBox"><h4>🏭 โรงแป้ง #1</h4><div class="fi">
+        <div class="fld s3"><label>ชื่อโรงแป้ง</label><input id="c_factory1_name"></div>
+        <div class="fld s3"><label>PO No.</label><input id="c_factory1_po"></div>
+        <div class="fld"><label>ราคาซื้อ (บาท/กก.)</label><input type="number" step="any" id="c_factory1_price"></div>
+        <div class="fld"><label>รวมยอดเงิน (บาท)</label><input type="number" step="any" id="c_factory1_total"></div>
+        <div class="fld"><label>ก่อน VAT</label><input type="number" step="any" id="c_factory1_before_vat"></div>
+        <div class="fld"><label>VAT 7%</label><input type="number" step="any" id="c_factory1_vat"></div>
+      </div></div>
+      <div class="fBox"><h4>🏭 โรงแป้ง #2</h4><div class="fi">
+        <div class="fld s3"><label>ชื่อโรงแป้ง</label><input id="c_factory2_name"></div>
+        <div class="fld s3"><label>PO No.</label><input id="c_factory2_po"></div>
+        <div class="fld"><label>ราคาซื้อ (บาท/กก.)</label><input type="number" step="any" id="c_factory2_price"></div>
+        <div class="fld"><label>รวมยอดเงิน (บาท)</label><input type="number" step="any" id="c_factory2_total"></div>
+        <div class="fld"><label>ก่อน VAT</label><input type="number" step="any" id="c_factory2_before_vat"></div>
+        <div class="fld"><label>VAT 7%</label><input type="number" step="any" id="c_factory2_vat"></div>
+      </div></div>
+      <div class="fBox"><h4>🏭 โรงแป้ง #3</h4><div class="fi">
+        <div class="fld s3"><label>ชื่อโรงแป้ง</label><input id="c_factory3_name"></div>
+        <div class="fld s3"><label>PO No.</label><input id="c_factory3_po"></div>
+        <div class="fld"><label>ราคาซื้อ (บาท/กก.)</label><input type="number" step="any" id="c_factory3_price"></div>
+        <div class="fld"><label>รวมยอดเงิน (บาท)</label><input type="number" step="any" id="c_factory3_total"></div>
+        <div class="fld"><label>ก่อน VAT</label><input type="number" step="any" id="c_factory3_before_vat"></div>
+        <div class="fld"><label>VAT 7%</label><input type="number" step="any" id="c_factory3_vat"></div>
+      </div></div>
+      <div class="fBox"><h4>🏭 โรงแป้ง #4</h4><div class="fi">
+        <div class="fld s3"><label>ชื่อโรงแป้ง</label><input id="c_factory4_name"></div>
+        <div class="fld s3"><label>PO No.</label><input id="c_factory4_po"></div>
+        <div class="fld"><label>ราคาซื้อ (บาท/กก.)</label><input type="number" step="any" id="c_factory4_price"></div>
+        <div class="fld"><label>รวมยอดเงิน (บาท)</label><input type="number" step="any" id="c_factory4_total"></div>
+        <div class="fld"><label>ก่อน VAT</label><input type="number" step="any" id="c_factory4_before_vat"></div>
+        <div class="fld"><label>VAT 7%</label><input type="number" step="any" id="c_factory4_vat"></div>
+      </div></div>
+    </div>
+
+    <div class="sLbl">ค่าใช้จ่ายอื่นๆ (ชื่อผู้ให้บริการ)</div>
+    <div class="fg">
+      <div class="fld"><label>ชิปปิ้ง</label><input id="c_shipping_name"></div>
+      <div class="fld"><label>เซอร์เวย์</label><input id="c_survey_name"></div>
+      <div class="fld"><label>รมยา</label><input id="c_fumigation_name"></div>
+      <div class="fld"><label>Agent</label><input id="c_agent_name"></div>
+      <div class="fld"><label>วัสดุหีบห่อ</label><input id="c_packing_material_name"></div>
+      <div class="fld"><label>พาเลท</label><input id="c_pallet"></div>
+      <div class="fld"><label>ประกันภัย</label><input id="c_insurance_name"></div>
+      <div class="fld"><label>บริการบรรจุ</label><input id="c_packing_service_name"></div>
+      <div class="fld"><label>ส่งเอกสาร</label><input id="c_doc_delivery_name"></div>
+      <div class="fld"><label>DHL No.</label><input id="c_dhl_no"></div>
+      <div class="fld"><label>ใบขนฯ เลขที่</label><input id="c_customs_no"></div>
+      <div class="fld"><label>Booking No.</label><input id="c_booking_no"></div>
+      <div class="fld"><label>Bill of Lading No.</label><input id="c_bl_no"></div>
+    </div>
+  </div>
+  <div class="mF">
+    <button class="btn btn-o" onclick="closeEc()">ยกเลิก</button>
+    <button class="btn btn-p" onclick="saveEc()">💾 บันทึก</button>
+  </div>
+</div>
+</div>
+
+<!-- FORECAST MODAL -->
+<div class="mbg" id="mFc">
+<div class="mc">
+  <div class="mH"><h3 id="mFcT">เพิ่มรายการ Forecast Income</h3><div class="ms">ฟิลด์ * จำเป็นต้องกรอก</div></div>
+  <div class="mB">
+    <input type="hidden" id="f_id">
+    <div class="sLbl">ข้อมูลทั่วไป</div>
+    <div class="fg">
+      <div class="fld"><label>หมวดหมู่ *</label><select id="f_category"><option value="export_starch">ขายแป้งมันส่งออก</option><option value="export_chip">ขายมันเส้นส่งออก</option><option value="domestic">ขายแป้งมันในประเทศ</option></select></div>
+      <div class="fld"><label>Broker</label><input id="f_broker_name"></div>
+      <div class="fld"><label>ลูกค้า *</label><input id="f_applicant_name"></div>
+      <div class="fld"><label>Sales Contract</label><input id="f_sales_contract"></div>
+      <div class="fld"><label>Invoice No.</label><input id="f_invoice_no"></div>
+      <div class="fld"><label>Packing (kgs)</label><input id="f_packing_kgs"></div>
+    </div>
+    <div class="sLbl">ปริมาณ / ราคา</div>
+    <div class="fg">
+      <div class="fld"><label>QTY MTS</label><input type="number" step="any" id="f_qty_mts"></div>
+      <div class="fld"><label>Price FOB</label><input type="number" step="any" id="f_price_fob"></div>
+      <div class="fld"><label>Price CFR</label><input type="number" step="any" id="f_price_cfr"></div>
+      <div class="fld"><label>Price CIF</label><input type="number" step="any" id="f_price_cif"></div>
+      <div class="fld"><label>สกุลเงิน</label><select id="f_currency"><option>THB</option><option>USD</option><option>CNY</option></select></div>
+      <div class="fld"><label>Total</label><input type="number" step="any" id="f_total"></div>
+    </div>
+    <div class="sLbl">Shipment</div>
+    <div class="fg">
+      <div class="fld"><label>CFS Loading Date</label><input type="date" id="f_cfs_loading_date"></div>
+      <div class="fld"><label>ETD</label><input type="date" id="f_etd"></div>
+      <div class="fld"><label>ETA</label><input type="date" id="f_eta"></div>
+    </div>
+    <div class="sLbl">การรับเงิน</div>
+    <div class="fg">
+      <div class="fld"><label>วันที่คาดว่าจะได้รับเงิน *</label><input type="date" id="f_forecast_received_date"></div>
+      <div class="fld"><label>ยอดที่ได้รับจริง</label><input type="number" step="any" id="f_received_amount"></div>
+      <div class="fld"><label>ส่วนต่าง (Diff)</label><input type="number" step="any" id="f_diff_amount"></div>
+      <div class="fld"><label>วันที่ได้รับเงินจริง</label><input type="date" id="f_received_date"></div>
+      <div class="fld"><label>Exchange Rate</label><input type="number" step="any" id="f_exchange_rate"></div>
+      <div class="fld"><label>ธนาคาร</label><input id="f_bank" placeholder="เช่น TT:SCB / LC:TTB"></div>
+      <div class="fld"><label>สถานะ</label>
+        <select id="f_status">
+          <option value="">-- เลือกสถานะ --</option>
+          <option value="pending">⏳ รอรับเงิน</option>
+          <option value="waiting_confirm">⏳ รอคอนเฟิร์ม</option>
+          <option value="waiting_invoice">📋 รอวางบิล</option>
+          <option value="waiting_ship">🚢 รอส่งของ</option>
+          <option value="confirmed">✅ ยืนยันแล้ว / เงินเข้า</option>
+          <option value="overdue_manual">🔴 เกินกำหนด / รอเงิน (ชำระบางส่วน)</option>
+          <option value="cancelled">🚫 ยกเลิก</option>
+        </select></div>
+      <div class="fld s2"><label>หมายเหตุ</label><input id="f_remark" placeholder="เช่น รอวางบิล, ยกเลิก ลูกค้าไม่คอนเฟิร์ม"></div>
+    </div>
+  </div>
+  <div class="mF">
+    <button class="btn btn-o" onclick="closeFc()">ยกเลิก</button>
+    <button class="btn btn-p" onclick="saveFc()">💾 บันทึก</button>
+  </div>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══ CONFIG — แก้ 2 บรรทัดนี้ ═══
+const SURL = 'https://jatsfhakldgipkikomch.supabase.co';
+const SKEY = 'sb_publishable_GvpWyQ-UhjdkEOe1HfKsRQ_nOwShiof';
+const sb = supabase.createClient(SURL, SKEY);
+
+let U=null, DR=[], FR=[];
+let DY='all', DK='all', FCT='export_starch';
+let ES=[], EY='all', EK='all', EC='all';
+let ECD=[], ECY='all';
+const FCL={export_starch:'ขายแป้งมันส่งออก',export_chip:'ขายมันเส้นส่งออก',domestic:'ขายแป้งมันในประเทศ'};
+
+// ─── INIT ───
+document.getElementById('tbDate').textContent=new Date().toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDom();closeFc();}});
+
+// ─── AUTH ───
+async function doLogin(){
+  const e=document.getElementById('liE').value.trim(),p=document.getElementById('liP').value;
+  const er=document.getElementById('lErr');er.textContent='';
+  if(!e||!p){er.textContent='กรุณากรอกอีเมลและรหัสผ่าน';return;}
+  const{data,error}=await sb.auth.signInWithPassword({email:e,password:p});
+  if(error){er.textContent='เข้าสู่ระบบไม่สำเร็จ: '+error.message;return;}
+  U=data.user;boot();
+}
+async function doLogout(){await sb.auth.signOut();location.reload();}
+async function initAuth(){
+  const{data}=await sb.auth.getSession();
+  if(data.session){U=data.session.user;boot();}
+}
+function boot(){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('sbUn').textContent=U.email;
+  document.getElementById('sbAv').textContent=U.email[0].toUpperCase();
+  go('dom');
+  loadFcBadge();
+}
+
+// ─── NAV ───
+const PAGE_META={
+  dash:{label:'Dashboard',sub:''},
+  dom:{label:'บันทึกข้อมูล',sub:'Domestic Starch'},
+  es:{label:'บันทึกข้อมูล',sub:'Export Starch'},
+  ec:{label:'บันทึกข้อมูล',sub:'Export Chip'},
+  fc:{label:'การเงิน',sub:'Forecast Income Receiving'},
+  'rs-es':{label:'รายงานยอดขาย',sub:'Export Starch'},
+  'rs-ec':{label:'รายงานยอดขาย',sub:'Export Chip'},
+  'rs-dom':{label:'รายงานยอดขาย',sub:'Domestic Starch'},
+  monthly:{label:'วิเคราะห์เชิงลึก',sub:'Monthly Breakdown'},
+  packing:{label:'วิเคราะห์เชิงลึก',sub:'Packing Analysis'},
+  brokers:{label:'วิเคราะห์เชิงลึก',sub:'Brokers & Buyers'},
+  txn:{label:'วิเคราะห์เชิงลึก',sub:'Transaction Detail'},
+  currency:{label:'วิเคราะห์เชิงลึก',sub:'Currency USD/CNY/THB'},
+  stock:{label:'วิเคราะห์เชิงลึก',sub:'Stock สินค้า'},
+};
+function go(p){
+  document.querySelectorAll('.pg').forEach(el=>el.classList.remove('show'));
+  document.querySelectorAll('.sbItem,.sbSub').forEach(el=>el.classList.remove('act'));
+  document.getElementById('pg-'+p)?.classList.add('show');
+  document.getElementById('sn-'+p)?.classList.add('act');
+  const m=PAGE_META[p]||{label:p,sub:''};
+  document.getElementById('tbPage').textContent=m.label;
+  const sep=document.getElementById('tbSep'),sub=document.getElementById('tbSub');
+  if(m.sub){sep.style.display='';sub.textContent=m.sub;}
+  else{sep.style.display='none';sub.textContent='';}
+  if(p==='dom')loadDom();
+  else if(p==='es')loadEs();
+  else if(p==='ec')loadEc();
+  else if(p==='fc')loadFc();
+  else if(p==='dash')loadDash();
+  else if(p==='txn')loadTxn();
+  else if(p==='rs-es')loadRsEs();
+  else if(p==='rs-ec')loadRsEc();
+  else if(p==='rs-dom')loadRsDom();
+}
+
+// ─── HELPERS ───
+function N(n,d=2){if(n==null||n==='')return'—';return Number(n).toLocaleString('th-TH',{minimumFractionDigits:d,maximumFractionDigits:d});}
+function R2(n){if(n==null||n==='')return n;const v=Math.round((Number(n)+Number.EPSILON)*100)/100;return isNaN(v)?null:v;}
+function calcComm(p){
+  const rate=parseFloat(document.getElementById(p+'_comm_rate').value);
+  const qty=parseFloat(document.getElementById(p+'_qty_mts').value);
+  if(!isNaN(rate)&&!isNaN(qty))document.getElementById(p+'_total_comm').value=R2(rate*qty);
+}
+function D(s){if(!s)return'—';return new Date(s).toLocaleDateString('th-TH',{day:'2-digit',month:'short',year:'2-digit'});}
+function E(s){if(!s&&s!==0)return'<span style="color:var(--dim2)">—</span>';return String(s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));}
+function toast(m,err=false){const t=document.getElementById('toast');t.textContent=m;t.className='toast show'+(err?' err':'');setTimeout(()=>t.className='toast',3200);}
+
+// ═══════════ DOMESTIC ═══════════
+// ดึงข้อมูลทุกแถวแบบแบ่งหน้า เพราะ Supabase/PostgREST จำกัดค่าเริ่มต้นไว้ที่ 1000 แถวต่อ request
+async function fetchAllRows(table){
+  let all=[],from=0;const PAGE=1000;
+  while(true){
+    const{data,error}=await sb.from(table).select('*').order('year',{ascending:true}).order('seq_no',{ascending:true,nullsFirst:false}).range(from,from+PAGE-1);
+    if(error)return{data:null,error};
+    all=all.concat(data||[]);
+    if(!data||data.length<PAGE)break;
+    from+=PAGE;
+  }
+  return{data:all,error:null};
+}
+async function loadDom(){
+  document.getElementById('domTb').innerHTML='<tr><td colspan="16"><div class="loading"><span class="spin"></span>กำลังโหลดข้อมูล...</div></td></tr>';
+  const{data,error}=await fetchAllRows('sales_domestic');
+  if(error){toast('โหลดไม่สำเร็จ: '+error.message,true);return;}
+  DR=(data||[]).sort((a,b)=>{const ya=Number(a.year||0),yb=Number(b.year||0);if(ya!==yb)return ya-yb;return seqNum(a.seq_no)-seqNum(b.seq_no);});buildDomY();rDomKpi();rDom();
+}
+function seqNum(s){
+  if(!s)return 9999;
+  const m=String(s).match(/(\d+)/);
+  return m?parseInt(m[1]):9999;
+}
+function buildDomY(){
+  const yrs=[...new Set(DR.map(r=>r.year).filter(Boolean))].sort((a,b)=>b-a);
+  const w=document.getElementById('domYP');
+  w.innerHTML=`<div class="yPill ${DY==='all'?'act':''}" onclick="setDY('all',this)">ทุกปี (${DR.length})</div>`;
+  yrs.forEach(y=>{const c=DR.filter(r=>String(r.year)===String(y)).length;const d=document.createElement('div');d.className='yPill'+(String(DY)===String(y)?' act':'');d.innerHTML=`${y} <span style="opacity:.55;font-size:10.5px">(${c})</span>`;d.onclick=function(){setDY(y,this);};w.appendChild(d);});
+}
+function setDY(y,el){DY=y;document.querySelectorAll('#domYP .yPill').forEach(e=>e.classList.remove('act'));el.classList.add('act');rDomKpi();rDom();}
+function setPk(p,el){DK=p;document.querySelectorAll('#domPT .pTab').forEach(e=>e.classList.remove('act'));el.classList.add('act');rDomKpi();rDom();}
+function gDom(){
+  let r=DR;
+  if(DY!=='all')r=r.filter(x=>String(x.year)===String(DY));
+  if(DK!=='all')r=r.filter(x=>String(x.packing_kgs||'').trim()===DK);
+  const s=(document.getElementById('domSr')?.value||'').toLowerCase();
+  if(s)r=r.filter(x=>(x.applicant_name||'').toLowerCase().includes(s)||(x.invoice_no||'').toLowerCase().includes(s));
+  return r;
+}
+function rDomKpi(){
+  const r=gDom();
+  const mts=r.reduce((s,x)=>s+(+x.qty_mts||0),0);
+  const thb=r.reduce((s,x)=>s+(+x.total||0),0);
+  const bp={};r.forEach(x=>{const p=String(x.packing_kgs||'').trim()||'?';bp[p]=(bp[p]||0)+(+x.qty_mts||0);});
+  const VALID_PACK=['25','30','50','850'];
+  const ps=VALID_PACK.filter(k=>bp[k]).map(k=>`<span style="display:block">${k} kgs = <strong>${N(bp[k],2)}</strong> MTS</span>`).join('')||'—';
+  document.getElementById('domKpi').innerHTML=`
+    <div class="kCard kc-b"><div class="kLbl">รายการทั้งหมด</div><div class="kVal">${r.length}</div><div class="kSub">รายการ</div><div class="kIco">📋</div></div>
+    <div class="kCard kc-g"><div class="kLbl">ปริมาณรวม</div><div class="kVal">${N(mts,2)}</div><div class="kSub">เมตริกตัน (MTS)</div><div class="kIco">⚖️</div></div>
+    <div class="kCard kc-b"><div class="kLbl">มูลค่ารวม (THB)</div><div class="kVal">${N(thb,0)}</div><div class="kSub">บาท</div><div class="kIco">💵</div></div>
+    <div class="kCard kc-p"><div class="kLbl">สถิติขนาดบรรจุ (MTS)</div><div class="kVal" style="font-size:12.5px;line-height:2.0">${ps}</div><div class="kIco">📦</div></div>
+  `;
+}
+function rDom(){
+  const rows=gDom(),body=document.getElementById('domTb');
+  if(!rows.length){body.innerHTML='<tr><td colspan="16"><div class="empty"><div class="ei">📭</div><p>ไม่พบรายการ</p></div></td></tr>';document.getElementById('domCnt').textContent='ไม่พบรายการ';document.getElementById('domTot').textContent='';return;}
+  const mts=rows.reduce((s,r)=>s+(+r.qty_mts||0),0),thb=rows.reduce((s,r)=>s+(+r.total||0),0);
+  document.getElementById('domCnt').textContent=`แสดง ${rows.length} รายการ`;
+  document.getElementById('domTot').textContent=`รวม ${N(mts,2)} MTS · ${N(thb,0)} THB`;
+  const PK_CLS={'25':'bdg-b','30':'bdg-p','50':'bdg-a','850':'bdg-r'};
+  body.innerHTML=rows.map((r,i)=>{
+    const pk=String(r.packing_kgs||'').trim();
+    const sr=r.dom_status_remark||'';
+    const inv=r.invoice_no||'';
+    // สีสถานะ: แดง = ยกเลิก/เกินกำหนด/รอเงินเข้า, เขียว = เงินเข้าแล้ว, เหลือง = รอ..., เทา = อื่นๆ
+    const isCancel=sr.includes('ยกเลิก')||inv.includes('ยกเลิก');
+    const isOverdue=sr.includes('เกินกำหนด')||sr.includes('รอเงินเข้า');
+    const isDone=sr.includes('เงินเข้าแล้ว')||sr.includes('เงินเข้าแล้ว');
+    const isPending=sr.includes('รอ')||sr.includes('วางบิล')||sr.includes('ส่งของ')||sr.includes('รอวางบิล')||sr.includes('รอส่ง');
+    const srColor=isCancel||isOverdue?'var(--red)':isDone?'var(--green)':isPending?'var(--amber)':'var(--dim)';
+    const invColor=inv.includes('ยกเลิก')?'var(--red)':'inherit';
+    return`<tr>
+    <td style="color:var(--blue);width:44px;font-size:11px;font-weight:700">${E(r.seq_no)||String(i+1)}</td>
+    <td style="width:44px"><strong style="color:var(--blue)">${r.year||'—'}</strong></td>
+    <td class="td-trunc" style="font-weight:600;max-width:140px">${E(r.applicant_name)}</td>
+    <td class="td-trunc" style="min-width:130px;max-width:160px;font-size:11px;color:var(--dim)">${E(r.contact_no)}</td>
+    <td class="td-trunc" style="min-width:110px;max-width:140px;font-size:11px;color:${invColor};font-weight:${inv.includes('ยกเลิก')?700:400}">${E(inv)}</td>
+    <td style="width:64px"><span class="bdg ${PK_CLS[pk]||'bdg-b'}">${pk||'—'} kgs</span></td>
+    <td style="font-weight:700;width:68px">${N(r.qty_mts,3)}</td>
+    <td style="font-weight:700;color:var(--green);width:88px">${N(r.total,0)}</td>
+    <td style="width:78px">${D(r.loading_date)}</td>
+    <td class="td-trunc" style="min-width:150px;max-width:200px;font-size:11px;color:${srColor};font-weight:${isCancel||isOverdue||isDone?600:400}">${E(sr)||E(r.delivery_place)}</td>
+    <td class="td-trunc" style="max-width:130px;color:var(--dim);font-size:10.5px">${E(r.payment_term)}</td>
+    <td style="width:56px"><div class="ra"><button class="ib e" onclick="editDom('${r.id}')">✏</button><button class="ib d" onclick="delDom('${r.id}')">🗑</button></div></td>
+  </tr>`;}).join('');
+}
+
+const DF=['year','seq_no','broker_name','comm_rate','comm_currency','total_comm','applicant_name','contact_no','packing_kgs','qty_partial','qty_mts','price_fob','price_cfr','price_cif','total','invoice_no','payment_term','vessel_name','loading_date','delivery_date','delivery_place','unit_conts','dom_status_remark','factory1_name','factory1_po','factory1_price','factory1_total','factory1_before_vat','factory1_vat','factory2_name','factory2_po','factory2_price','factory2_total','factory2_before_vat','factory2_vat','factory3_name','factory3_po','factory3_price','factory3_total','factory3_before_vat','factory3_vat','factory4_name','factory4_po','factory4_price','factory4_total','factory4_before_vat','factory4_vat','packing_material_name','packing_material_cost','pallet','pallet_cost','agent_name','freight_cost','survey_name','fumigation_name','survey_cost','shipping_name','shipping_cost','insurance_name','insurance_cost','packing_service_name','packing_service_cost','doc_delivery_name','doc_delivery_cost'];
+const DN=['qty_mts','price_fob','price_cfr','price_cif','total','comm_rate','total_comm','factory1_price','factory1_total','factory1_before_vat','factory1_vat','factory2_price','factory2_total','factory2_before_vat','factory2_vat','factory3_price','factory3_total','factory3_before_vat','factory3_vat','factory4_price','factory4_total','factory4_before_vat','factory4_vat','packing_material_cost','pallet_cost','freight_cost','survey_cost','shipping_cost','insurance_cost','packing_service_cost','doc_delivery_cost'];
+
+function openDom(){
+  document.getElementById('mDomT').textContent='เพิ่มรายการ — Domestic Tapioca Starch';
+  document.getElementById('d_id').value='';
+  DF.forEach(f=>{const el=document.getElementById('d_'+f);if(el)el.value='';});
+  document.getElementById('d_year').value=new Date().getFullYear();
+  document.getElementById('d_comm_currency').value='THB';
+  document.getElementById('mDom').classList.add('show');
+}
+function closeDom(){document.getElementById('mDom').classList.remove('show');}
+function editDom(id){
+  const r=DR.find(x=>x.id===id);if(!r)return;
+  document.getElementById('mDomT').textContent='แก้ไขรายการ — Domestic Tapioca Starch';
+  document.getElementById('d_id').value=r.id;
+  DF.forEach(f=>{const el=document.getElementById('d_'+f);if(el)el.value=(DN.includes(f)?R2(r[f]):r[f])??'';});
+  document.getElementById('d_comm_currency').value=r.comm_currency||'THB';
+  document.getElementById('mDom').classList.add('show');
+}
+async function saveDom(){
+  const id=document.getElementById('d_id').value;
+  if(!document.getElementById('d_applicant_name').value.trim()){toast('กรุณากรอกชื่อลูกค้า',true);return;}
+  const p={currency:'THB'};
+  DF.forEach(f=>{const el=document.getElementById('d_'+f);if(!el)return;let v=el.value===''?null:el.value;if(DN.includes(f)&&v!==null)v=R2(parseFloat(v));if(f==='year'&&v)v=parseInt(v);p[f]=v;});
+  p.updated_by=U.id;p.updated_by_email=U.email;
+  let err;
+  if(id){({error:err}=await sb.from('sales_domestic').update(p).eq('id',id));}
+  else{p.created_by=U.id;p.created_by_email=U.email;({error:err}=await sb.from('sales_domestic').insert(p));}
+  if(err){toast('บันทึกไม่สำเร็จ: '+err.message,true);return;}
+  toast('✅ บันทึกเรียบร้อย');closeDom();loadDom();refreshTxnIfActive();
+}
+async function delDom(id){
+  if(!confirm('ยืนยันลบรายการนี้? ไม่สามารถย้อนกลับได้'))return;
+  const{error}=await sb.from('sales_domestic').delete().eq('id',id);
+  if(error){toast('ลบไม่สำเร็จ',true);return;}
+  toast('ลบรายการเรียบร้อย');loadDom();refreshTxnIfActive();
+}
+function xDom(){
+  const rows=gDom();if(!rows.length){toast('ไม่มีข้อมูล',true);return;}
+  const h=['year','applicant_name','invoice_no','packing_kgs','qty_mts','price_fob','total','loading_date','delivery_place','factory1_name','factory1_total','factory2_name','factory2_total','shipping_name','shipping_cost','payment_term'];
+  const csv=[h.join(',')].concat(rows.map(r=>h.map(k=>`"${(r[k]??'').toString().replace(/"/g,'""')}"`).join(','))).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv'}));
+  a.download=`domestic_${DY}_${new Date().toISOString().slice(0,10)}.csv`;a.click();
+}
+
+// ═══════════ EXPORT STARCH ═══════════
+async function loadEs(){
+  document.getElementById('esTb').innerHTML='<tr><td colspan="16"><div class="loading"><span class="spin"></span>กำลังโหลดข้อมูล...</div></td></tr>';
+  const{data,error}=await fetchAllRows('export_tapioca_starch');
+  if(error){toast('โหลดไม่สำเร็จ: '+error.message,true);return;}
+  ES=(data||[]).sort((a,b)=>{const ya=Number(a.year||0),yb=Number(b.year||0);if(ya!==yb)return ya-yb;return seqNum(a.seq_no)-seqNum(b.seq_no);});buildEsY();rEsKpi();rEs();
+}
+function buildEsY(){
+  const yrs=[...new Set(ES.map(r=>r.year).filter(Boolean))].sort((a,b)=>b-a);
+  const w=document.getElementById('esYP');
+  w.innerHTML=`<div class="yPill ${EY==='all'?'act':''}" onclick="setEY('all',this)">ทุกปี (${ES.length})</div>`;
+  yrs.forEach(y=>{const c=ES.filter(r=>String(r.year)===String(y)).length;const d=document.createElement('div');d.className='yPill'+(String(EY)===String(y)?' act':'');d.innerHTML=`${y} <span style="opacity:.55;font-size:10.5px">(${c})</span>`;d.onclick=function(){setEY(y,this);};w.appendChild(d);});
+}
+function setEY(y,el){EY=y;document.querySelectorAll('#esYP .yPill').forEach(e=>e.classList.remove('act'));el.classList.add('act');rEsKpi();rEs();}
+function setEsPk(p,el){EK=p;document.querySelectorAll('#esPT .pTab').forEach(e=>e.classList.remove('act'));el.classList.add('act');rEsKpi();rEs();}
+function setEsCur(c,el){EC=c;document.querySelectorAll('#esCT .pTab').forEach(e=>e.classList.remove('act'));el.classList.add('act');rEsKpi();rEs();}
+function gEs(){
+  let r=ES;
+  if(EY!=='all')r=r.filter(x=>String(x.year)===String(EY));
+  if(EK!=='all')r=r.filter(x=>String(x.packing_kgs||'').trim()===EK);
+  if(EC!=='all')r=r.filter(x=>(x.currency||'').trim().toUpperCase()===EC);
+  const s=(document.getElementById('esSr')?.value||'').toLowerCase();
+  if(s)r=r.filter(x=>(x.applicant_name||'').toLowerCase().includes(s)||(x.invoice_no||'').toLowerCase().includes(s));
+  return r;
+}
+function rEsKpi(){
+  const r=gEs();
+  const mts=r.reduce((s,x)=>s+(+x.qty_mts||0),0);
+  // ห้ามรวม USD กับ CNY เข้าด้วยกัน — แยกยอดตามสกุลเงินเสมอ
+  const usdTot=r.filter(x=>(x.currency||'').toUpperCase()==='USD').reduce((s,x)=>s+(+x.total||0),0);
+  const cnyTot=r.filter(x=>(x.currency||'').toUpperCase()==='CNY').reduce((s,x)=>s+(+x.total||0),0);
+  const bp={};r.forEach(x=>{const p=String(x.packing_kgs||'').trim()||'?';bp[p]=(bp[p]||0)+(+x.qty_mts||0);});
+  const VALID_PACK=['25','50','850'];
+  const ps=VALID_PACK.filter(k=>bp[k]).map(k=>`<span style="display:block">${k} kgs = <strong>${N(bp[k],2)}</strong> MTS</span>`).join('')||'—';
+  let curValHtml;
+  if(EC==='USD')curValHtml=`${N(usdTot,2)} <span style="font-size:11px;opacity:.6">USD</span>`;
+  else if(EC==='CNY')curValHtml=`${N(cnyTot,2)} <span style="font-size:11px;opacity:.6">CNY</span>`;
+  else curValHtml=`<span style="display:block">${N(usdTot,2)} <span style="font-size:11px;opacity:.6">USD</span></span><span style="display:block">${N(cnyTot,2)} <span style="font-size:11px;opacity:.6">CNY</span></span>`;
+  document.getElementById('esKpi').innerHTML=`
+    <div class="kCard kc-b"><div class="kLbl">รายการทั้งหมด</div><div class="kVal">${r.length}</div><div class="kSub">รายการ</div><div class="kIco">📋</div></div>
+    <div class="kCard kc-g"><div class="kLbl">ปริมาณรวม</div><div class="kVal">${N(mts,2)}</div><div class="kSub">เมตริกตัน (MTS)</div><div class="kIco">⚖️</div></div>
+    <div class="kCard kc-b"><div class="kLbl">มูลค่ารวม (แยกสกุลเงิน)</div><div class="kVal" style="font-size:15px;line-height:1.6">${curValHtml}</div><div class="kIco">💵</div></div>
+    <div class="kCard kc-p"><div class="kLbl">สถิติขนาดบรรจุ (MTS)</div><div class="kVal" style="font-size:12.5px;line-height:2.0">${ps}</div><div class="kIco">📦</div></div>
+  `;
+}
+function rEs(){
+  const rows=gEs(),body=document.getElementById('esTb');
+  if(!rows.length){body.innerHTML='<tr><td colspan="16"><div class="empty"><div class="ei">📭</div><p>ไม่พบรายการ</p></div></td></tr>';document.getElementById('esCnt').textContent='ไม่พบรายการ';document.getElementById('esTot').textContent='';return;}
+  const usdTot=rows.filter(x=>(x.currency||'').toUpperCase()==='USD').reduce((s,x)=>s+(+x.total||0),0);
+  const cnyTot=rows.filter(x=>(x.currency||'').toUpperCase()==='CNY').reduce((s,x)=>s+(+x.total||0),0);
+  document.getElementById('esCnt').textContent=`แสดง ${rows.length} รายการ`;
+  const totParts=[];if(usdTot)totParts.push(N(usdTot,2)+' USD');if(cnyTot)totParts.push(N(cnyTot,2)+' CNY');
+  document.getElementById('esTot').textContent=`รวม ${totParts.join(' · ')||'—'}`;
+  // ขนาดบรรจุ: ใช้ชุดสีเดียวกับ Domestic (25=น้ำเงิน, 50=เหลือง, 850=แดง)
+  const PK_CLS={'25':'bdg-b','50':'bdg-a','850':'bdg-r'};
+  // สกุลเงิน: USD กับ CNY แยกสีชัดเจน ไม่ปนกัน
+  const CUR_CLS={'USD':'bdg-g','CNY':'bdg-p'};
+  body.innerHTML=rows.map((r,i)=>{
+    const pk=String(r.packing_kgs||'').trim();
+    const cur=(r.currency||'').trim().toUpperCase();
+    const sr=r.status_remark||'';
+    const inv=r.invoice_no||'';
+    // สีสถานะ: แดง = ยกเลิก/เกินกำหนด/รอเงินเข้า, เขียว = เงินเข้าแล้ว, เหลือง = รอ..., เทา = อื่นๆ (ตามแบบ Domestic)
+    const isCancel=sr.includes('ยกเลิก')||inv.includes('ยกเลิก');
+    const isOverdue=sr.includes('เกินกำหนด')||sr.includes('รอเงินเข้า');
+    const isDone=sr.includes('เงินเข้าแล้ว');
+    const isPending=sr.includes('รอ')||sr.includes('วางบิล')||sr.includes('ส่งของ');
+    const srColor=isCancel||isOverdue?'var(--red)':isDone?'var(--green)':isPending?'var(--amber)':'var(--dim)';
+    return`<tr>
+      <td style="color:var(--blue);width:44px;font-size:11px;font-weight:700">${E(r.seq_no)||String(i+1)}</td>
+      <td style="width:52px">${E(r.year)}</td>
+      <td class="td-trunc" style="max-width:170px;font-weight:600">${E(r.applicant_name)}</td>
+      <td class="td-trunc" style="max-width:120px;font-size:10.5px">${E(r.sales_contract)}</td>
+      <td style="font-size:11px">${E(r.invoice_no)}</td>
+      <td style="width:70px"><span class="bdg ${PK_CLS[pk]||'bdg-b'}">${pk||'—'} kgs</span></td>
+      <td style="width:70px">${N(r.qty_mts,2)}</td>
+      <td style="width:56px"><span class="bdg ${CUR_CLS[cur]||'bdg-b'}">${E(r.currency)}</span></td>
+      <td style="font-weight:700">${N(r.total,2)}</td>
+      <td style="width:80px">${D(r.loading_date)}</td>
+      <td class="td-trunc" style="max-width:160px;font-size:11px;color:${srColor};font-weight:${isCancel||isOverdue||isDone?600:400}">${E(sr)}</td>
+      <td style="font-size:11px">${E(r.payment_term)}</td>
+      <td style="width:56px"><div class="ra"><button class="ib e" onclick="editEs('${r.id}')">✏</button><button class="ib d" onclick="delEs('${r.id}')">🗑</button></div></td>
+    </tr>`;}).join('');
+}
+const EF=['year','seq_no','broker_name','comm_rate','comm_currency','total_comm','applicant_name','sales_contract','packing_kgs','qty_partial','qty_mts','currency','price_fob','price_cfr','price_cif','total','invoice_no','payment_term','exchange_rate','vessel_name','loading_date','closing_date','loading_ground','etd','eta','port','bank','unit_conts','delivery_date','status_remark','forecast_received_date','received_amount','diff_amount','received_date','factory1_name','factory1_po','factory1_price','factory1_total','factory1_before_vat','factory1_vat','factory2_name','factory2_po','factory2_price','factory2_total','factory2_before_vat','factory2_vat','factory3_name','factory3_po','factory3_price','factory3_total','factory3_before_vat','factory3_vat','factory4_name','factory4_po','factory4_price','factory4_total','factory4_before_vat','factory4_vat','shipping_name','shipping_cost','survey_name','fumigation_name','survey_cost','agent_name','freight_cost','packing_material_name','packing_material_cost','pallet','pallet_cost','insurance_name','insurance_cost','packing_service_name','packing_service_cost','doc_delivery_name','doc_delivery_cost','dhl_no','customs_no','booking_no','bl_no'];
+const EN=['qty_mts','price_fob','price_cfr','price_cif','total','comm_rate','total_comm','exchange_rate','received_amount','diff_amount','factory1_price','factory1_total','factory1_before_vat','factory1_vat','factory2_price','factory2_total','factory2_before_vat','factory2_vat','factory3_price','factory3_total','factory3_before_vat','factory3_vat','factory4_price','factory4_total','factory4_before_vat','factory4_vat','packing_material_cost','pallet_cost','freight_cost','survey_cost','shipping_cost','insurance_cost','packing_service_cost','doc_delivery_cost'];
+function openEs(){
+  document.getElementById('mEsT').textContent='เพิ่มรายการ — Export Tapioca Starch';
+  document.getElementById('e_id').value='';
+  EF.forEach(f=>{const el=document.getElementById('e_'+f);if(el)el.value='';});
+  document.getElementById('e_year').value=new Date().getFullYear();
+  document.getElementById('e_comm_currency').value='USD';
+  document.getElementById('mEs').classList.add('show');
+}
+function closeEs(){document.getElementById('mEs').classList.remove('show');}
+function editEs(id){
+  const r=ES.find(x=>x.id===id);if(!r)return;
+  document.getElementById('mEsT').textContent='แก้ไขรายการ — Export Tapioca Starch';
+  document.getElementById('e_id').value=r.id;
+  EF.forEach(f=>{const el=document.getElementById('e_'+f);if(el)el.value=(EN.includes(f)?R2(r[f]):r[f])??'';});
+  document.getElementById('e_comm_currency').value=r.comm_currency||'USD';
+  document.getElementById('mEs').classList.add('show');
+}
+async function saveEs(){
+  const id=document.getElementById('e_id').value;
+  if(!document.getElementById('e_applicant_name').value.trim()){toast('กรุณากรอกชื่อลูกค้า',true);return;}
+  if(!document.getElementById('e_currency').value){toast('กรุณาเลือกสกุลเงิน (USD/CNY)',true);return;}
+  const p={};
+  EF.forEach(f=>{const el=document.getElementById('e_'+f);if(!el)return;let v=el.value===''?null:el.value;if(EN.includes(f)&&v!==null)v=R2(parseFloat(v));if(f==='year'&&v)v=parseInt(v);p[f]=v;});
+  p.updated_by=U.id;p.updated_by_email=U.email;
+  let err;
+  if(id){({error:err}=await sb.from('export_tapioca_starch').update(p).eq('id',id));}
+  else{p.created_by=U.id;p.created_by_email=U.email;({error:err}=await sb.from('export_tapioca_starch').insert(p));}
+  if(err){toast('บันทึกไม่สำเร็จ: '+err.message,true);return;}
+  toast('✅ บันทึกเรียบร้อย');closeEs();loadEs();refreshTxnIfActive();
+}
+async function delEs(id){
+  if(!confirm('ยืนยันลบรายการนี้? ไม่สามารถย้อนกลับได้'))return;
+  const{error}=await sb.from('export_tapioca_starch').delete().eq('id',id);
+  if(error){toast('ลบไม่สำเร็จ',true);return;}
+  toast('ลบรายการเรียบร้อย');loadEs();refreshTxnIfActive();
+}
+function xEs(){
+  const rows=gEs();if(!rows.length){toast('ไม่มีข้อมูล',true);return;}
+  const h=['year','applicant_name','invoice_no','packing_kgs','qty_mts','currency','price_fob','total','loading_date','port','vessel_name','factory1_name','factory1_total','shipping_name','shipping_cost','payment_term'];
+  const csv=[h.join(',')].concat(rows.map(r=>h.map(k=>`"${(r[k]??'').toString().replace(/"/g,'""')}"`).join(','))).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv'}));
+  a.download=`export_starch_${EY}_${new Date().toISOString().slice(0,10)}.csv`;a.click();
+}
+
+// ═══════════ EXPORT CHIP ═══════════
+async function loadEc(){
+  document.getElementById('ecTb').innerHTML='<tr><td colspan="12"><div class="loading"><span class="spin"></span>กำลังโหลดข้อมูล...</div></td></tr>';
+  const{data,error}=await fetchAllRows('export_tapioca_chip');
+  if(error){toast('โหลดไม่สำเร็จ: '+error.message,true);return;}
+  ECD=(data||[]).sort((a,b)=>{const ya=Number(a.year||0),yb=Number(b.year||0);if(ya!==yb)return ya-yb;return seqNum(a.seq_no)-seqNum(b.seq_no);});buildEcY();rEcKpi();rEc();
+}
+function buildEcY(){
+  const yrs=[...new Set(ECD.map(r=>r.year).filter(Boolean))].sort((a,b)=>b-a);
+  const w=document.getElementById('ecYP');
+  w.innerHTML=`<div class="yPill ${ECY==='all'?'act':''}" onclick="setECY('all',this)">ทุกปี (${ECD.length})</div>`;
+  yrs.forEach(y=>{const c=ECD.filter(r=>String(r.year)===String(y)).length;const d=document.createElement('div');d.className='yPill'+(String(ECY)===String(y)?' act':'');d.innerHTML=`${y} <span style="opacity:.55;font-size:10.5px">(${c})</span>`;d.onclick=function(){setECY(y,this);};w.appendChild(d);});
+}
+function setECY(y,el){ECY=y;document.querySelectorAll('#ecYP .yPill').forEach(e=>e.classList.remove('act'));el.classList.add('act');rEcKpi();rEc();}
+function gEc(){
+  let r=ECD;
+  if(ECY!=='all')r=r.filter(x=>String(x.year)===String(ECY));
+  const s=(document.getElementById('ecSr')?.value||'').toLowerCase();
+  if(s)r=r.filter(x=>(x.applicant_name||'').toLowerCase().includes(s)||(x.invoice_no||'').toLowerCase().includes(s));
+  return r;
+}
+function rEcKpi(){
+  const r=gEc();
+  const mts=r.reduce((s,x)=>s+(+x.qty_mts||0),0);
+  const usdTot=r.reduce((s,x)=>s+(+x.total||0),0);
+  document.getElementById('ecKpi').innerHTML=`
+    <div class="kCard kc-b"><div class="kLbl">รายการทั้งหมด</div><div class="kVal">${r.length}</div><div class="kSub">รายการ</div><div class="kIco">📋</div></div>
+    <div class="kCard kc-g"><div class="kLbl">ปริมาณรวม</div><div class="kVal">${N(mts,2)}</div><div class="kSub">เมตริกตัน (MTS) · BULK</div><div class="kIco">⚖️</div></div>
+    <div class="kCard kc-b"><div class="kLbl">มูลค่ารวม</div><div class="kVal">${N(usdTot,2)}</div><div class="kSub">USD</div><div class="kIco">💵</div></div>
+    <div class="kCard kc-p"><div class="kLbl">เฉลี่ยต่อรายการ</div><div class="kVal">${N(r.length?usdTot/r.length:0,2)}</div><div class="kSub">USD / รายการ</div><div class="kIco">📊</div></div>
+  `;
+}
+function rEc(){
+  const rows=gEc(),body=document.getElementById('ecTb');
+  if(!rows.length){body.innerHTML='<tr><td colspan="12"><div class="empty"><div class="ei">📭</div><p>ไม่พบรายการ</p></div></td></tr>';document.getElementById('ecCnt').textContent='ไม่พบรายการ';document.getElementById('ecTot').textContent='';return;}
+  const usdTot=rows.reduce((s,x)=>s+(+x.total||0),0);
+  document.getElementById('ecCnt').textContent=`แสดง ${rows.length} รายการ`;
+  document.getElementById('ecTot').textContent=`รวม ${N(usdTot,2)} USD`;
+  body.innerHTML=rows.map((r,i)=>{
+    const sr=r.status_remark||'';
+    const inv=r.invoice_no||'';
+    const isCancel=sr.includes('ยกเลิก')||inv.includes('ยกเลิก');
+    const isOverdue=sr.includes('เกินกำหนด')||sr.includes('รอเงินเข้า');
+    const isDone=sr.includes('เงินเข้าแล้ว');
+    const isPending=sr.includes('รอ')||sr.includes('วางบิล')||sr.includes('ส่งของ');
+    const srColor=isCancel||isOverdue?'var(--red)':isDone?'var(--green)':isPending?'var(--amber)':'var(--dim)';
+    return`<tr>
+      <td style="color:var(--blue);width:44px;font-size:11px;font-weight:700">${E(r.seq_no)||String(i+1)}</td>
+      <td style="width:52px">${E(r.year)}</td>
+      <td class="td-trunc" style="max-width:190px;font-weight:600">${E(r.applicant_name)}</td>
+      <td class="td-trunc" style="max-width:130px;font-size:10.5px">${E(r.sales_contract)}</td>
+      <td style="font-size:11px">${E(r.invoice_no)}</td>
+      <td style="width:80px">${N(r.qty_mts,2)}</td>
+      <td style="width:56px"><span class="bdg bdg-g">${E(r.currency)}</span></td>
+      <td style="font-weight:700">${N(r.total,2)}</td>
+      <td style="width:80px">${D(r.loading_date)}</td>
+      <td class="td-trunc" style="max-width:160px;font-size:11px;color:${srColor};font-weight:${isCancel||isOverdue||isDone?600:400}">${E(sr)}</td>
+      <td style="font-size:11px">${E(r.payment_term)}</td>
+      <td style="width:56px"><div class="ra"><button class="ib e" onclick="editEc('${r.id}')">✏</button><button class="ib d" onclick="delEc('${r.id}')">🗑</button></div></td>
+    </tr>`;}).join('');
+}
+const CF=['year','seq_no','broker_name','comm_rate','comm_currency','total_comm','applicant_name','sales_contract','qty_mts','currency','price_fob','price_cfr','price_cif','total','invoice_no','payment_term','exchange_rate','vessel_name','loading_date','closing_date','loading_ground','etd','eta','port','bank','delivery_date','status_remark','forecast_received_date','received_amount','diff_amount','received_date','factory1_name','factory1_po','factory1_price','factory1_total','factory1_before_vat','factory1_vat','factory2_name','factory2_po','factory2_price','factory2_total','factory2_before_vat','factory2_vat','factory3_name','factory3_po','factory3_price','factory3_total','factory3_before_vat','factory3_vat','factory4_name','factory4_po','factory4_price','factory4_total','factory4_before_vat','factory4_vat','shipping_name','survey_name','fumigation_name','agent_name','packing_material_name','pallet','insurance_name','packing_service_name','doc_delivery_name','dhl_no','customs_no','booking_no','bl_no'];
+const CN=['qty_mts','price_fob','price_cfr','price_cif','total','comm_rate','total_comm','exchange_rate','received_amount','diff_amount','factory1_price','factory1_total','factory1_before_vat','factory1_vat','factory2_price','factory2_total','factory2_before_vat','factory2_vat','factory3_price','factory3_total','factory3_before_vat','factory3_vat','factory4_price','factory4_total','factory4_before_vat','factory4_vat'];
+function openEc(){
+  document.getElementById('mEcT').textContent='เพิ่มรายการ — Export Tapioca Chip';
+  document.getElementById('c_id').value='';
+  CF.forEach(f=>{const el=document.getElementById('c_'+f);if(el)el.value='';});
+  document.getElementById('c_year').value=new Date().getFullYear();
+  document.getElementById('c_currency').value='USD';
+  document.getElementById('c_comm_currency').value='USD';
+  document.getElementById('mEc').classList.add('show');
+}
+function closeEc(){document.getElementById('mEc').classList.remove('show');}
+function editEc(id){
+  const r=ECD.find(x=>x.id===id);if(!r)return;
+  document.getElementById('mEcT').textContent='แก้ไขรายการ — Export Tapioca Chip';
+  document.getElementById('c_id').value=r.id;
+  CF.forEach(f=>{const el=document.getElementById('c_'+f);if(el)el.value=(CN.includes(f)?R2(r[f]):r[f])??'';});
+  document.getElementById('c_comm_currency').value=r.comm_currency||'USD';
+  document.getElementById('mEc').classList.add('show');
+}
+async function saveEc(){
+  const id=document.getElementById('c_id').value;
+  if(!document.getElementById('c_applicant_name').value.trim()){toast('กรุณากรอกชื่อลูกค้า',true);return;}
+  const p={packing_kgs:'BULK'};
+  CF.forEach(f=>{const el=document.getElementById('c_'+f);if(!el)return;let v=el.value===''?null:el.value;if(CN.includes(f)&&v!==null)v=R2(parseFloat(v));if(f==='year'&&v)v=parseInt(v);p[f]=v;});
+  p.updated_by=U.id;p.updated_by_email=U.email;
+  let err;
+  if(id){({error:err}=await sb.from('export_tapioca_chip').update(p).eq('id',id));}
+  else{p.created_by=U.id;p.created_by_email=U.email;({error:err}=await sb.from('export_tapioca_chip').insert(p));}
+  if(err){toast('บันทึกไม่สำเร็จ: '+err.message,true);return;}
+  toast('✅ บันทึกเรียบร้อย');closeEc();loadEc();refreshTxnIfActive();
+}
+async function delEc(id){
+  if(!confirm('ยืนยันลบรายการนี้? ไม่สามารถย้อนกลับได้'))return;
+  const{error}=await sb.from('export_tapioca_chip').delete().eq('id',id);
+  if(error){toast('ลบไม่สำเร็จ',true);return;}
+  toast('ลบรายการเรียบร้อย');loadEc();refreshTxnIfActive();
+}
+function xEc(){
+  const rows=gEc();if(!rows.length){toast('ไม่มีข้อมูล',true);return;}
+  const h=['year','applicant_name','invoice_no','qty_mts','currency','price_fob','total','loading_date','port','vessel_name','factory1_name','factory1_total','shipping_name','payment_term'];
+  const csv=[h.join(',')].concat(rows.map(r=>h.map(k=>`"${(r[k]??'').toString().replace(/"/g,'""')}"`).join(','))).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv'}));
+  a.download=`export_chip_${ECY}_${new Date().toISOString().slice(0,10)}.csv`;a.click();
+}
+
+// ═══════════ FORECAST ═══════════
+async function loadFc(){
+  document.getElementById('fcTb').innerHTML='<tr><td colspan="16"><div class="loading"><span class="spin"></span>กำลังโหลด...</div></td></tr>';
+  const{data,error}=await sb.from('forecast_income').select('*').order('category').order('seq_no');
+  if(error){toast('โหลดไม่สำเร็จ',true);return;}
+  FR=(data||[]).sort((a,b)=>{const na=seqNum(a.seq_no),nb=seqNum(b.seq_no);return na-nb;});buildFcCT();rFcKpi();rFc();
+}
+async function loadFcBadge(){
+  const{data}=await sb.from('forecast_income').select('forecast_received_date,received_date');
+  if(!data)return;
+  const today=new Date();today.setHours(0,0,0,0);
+  const lim=new Date();lim.setDate(lim.getDate()+21);
+  const over=data.filter(r=>!r.received_date&&r.forecast_received_date&&new Date(r.forecast_received_date)<today).length;
+  const el=document.getElementById('fcBadge');
+  if(over>0){el.textContent=over+'!';el.style.display='';}else el.style.display='none';
+}
+function setFcRange(fromDays, toDays){
+  const today = new Date();
+  const from = new Date(); from.setDate(today.getDate()+fromDays);
+  const to = new Date(); to.setDate(today.getDate()+toDays);
+  document.getElementById('fcDateFrom').value = from.toISOString().slice(0,10);
+  document.getElementById('fcDateTo').value = to.toISOString().slice(0,10);
+  rFc();
+}
+function clearFcRange(){
+  document.getElementById('fcDateFrom').value='';
+  document.getElementById('fcDateTo').value='';
+  document.getElementById('fcStF').value='';
+  rFc();
+}
+function buildFcCT(){
+  const w=document.getElementById('fcCT');w.innerHTML='';
+  Object.entries(FCL).forEach(([k,v])=>{const d=document.createElement('div');d.className='pTab'+(k===FCT?' act':'');d.textContent=v;d.onclick=function(){FCT=k;buildFcCT();rFcKpi();rFc();};w.appendChild(d);});
+}
+function fcSt(r){
+  if(r.status==='cancelled')return'cancelled';
+  const rmk=(r.remark||'')+(r.invoice_no||'');
+  if(rmk.includes('ยกเลิก'))return'cancelled';
+  // เกินกำหนดจาก Excel โดยตรง (overdue_manual)
+  if(r.status==='overdue_manual')return'overdue';
+  // รับเงินครบแล้ว (ไม่ใช่บางส่วน)
+  const total=Number(r.total||0);
+  const recv=Number(r.received_amount||0);
+  const fullPaid=(r.status==='confirmed')||(r.received_date&&(total===0||recv>=total-1));
+  if(fullPaid)return'received';
+  // รับบางส่วนแต่ยังค้างอยู่ → ดูวันที่
+  if(r.status==='waiting_confirm')return'waiting';
+  if(r.status==='waiting_invoice')return'w_invoice';
+  if(r.status==='waiting_ship')return'w_ship';
+  const t=new Date();t.setHours(0,0,0,0);
+  const fd=r.forecast_received_date?new Date(r.forecast_received_date):null;
+  if(fd&&fd<t)return'overdue';
+  return'pending';
+}
+function rFcKpi(){
+  const rows=FR.filter(r=>r.category===FCT);
+  const tot=rows.reduce((s,r)=>s+(+r.total||0),0);
+  const rcv=rows.reduce((s,r)=>s+(+r.received_amount||0),0);
+  const today=new Date();const lim=new Date();lim.setDate(lim.getDate()+21);
+  const pend=rows.filter(r=>{if(!r.forecast_received_date||r.received_date)return false;const d=new Date(r.forecast_received_date);return d>=today&&d<=lim;});
+  const over=rows.filter(r=>fcSt(r)==='overdue');
+  const cur=rows[0]?.currency||'';
+  // ยอดค้างรับ = total - received_amount (กรณีชำระบางส่วน)
+  const overdueSum=over.reduce((s,r)=>{
+    const total=Number(r.total||0);
+    const recv=Number(r.received_amount||0);
+    return s+(total>0?total-recv:0);
+  },0);
+  // ยอดที่รับบางส่วนมาแล้วจากรายการที่ยังเกินกำหนด (คำนวณอัตโนมัติ ไม่ hardcode)
+  const overduePartialRecv=over.reduce((s,r)=>s+(Number(r.received_amount||0)),0);
+  const pendSum=pend.reduce((s,r)=>s+(+r.total||0),0);
+  const overdueSub=overdueSum>0
+    ?`${cur} — ต้องติดตามด่วน!${overduePartialRecv>0?' · หักยอดรับบางส่วนแล้ว '+N(overduePartialRecv,2):''}`
+    :'ไม่มีรายการเลยกำหนด';
+  document.getElementById('fcKpi').innerHTML=`
+    <div class="kCard kc-b"><div class="kLbl">รายการทั้งหมด</div><div class="kVal">${rows.length}</div><div class="kSub">รายการ</div></div>
+    <div class="kCard kc-g"><div class="kLbl">รับเงินแล้ว</div><div class="kVal">${N(rcv,2)}</div><div class="kSub">${cur}</div></div>
+    <div class="kCard kc-a"><div class="kLbl">คาดรับใน 3 สัปดาห์ (${pend.length} รายการ)</div><div class="kVal">${N(pendSum,2)}</div><div class="kSub">${cur}</div></div>
+    <div class="kCard kc-r"><div class="kLbl">⚠️ เลยกำหนดรับ (${over.length} รายการ)</div><div class="kVal">${N(overdueSum,2)}</div><div class="kSub">${overdueSub}</div></div>
+  `;
+}
+function rFc(){
+  const s=(document.getElementById('fcSr')?.value||'').toLowerCase();
+  const sf=document.getElementById('fcStF')?.value||'';
+  const dfrom=document.getElementById('fcDateFrom')?.value||'';
+  const dto=document.getElementById('fcDateTo')?.value||'';
+  let rows=FR.filter(r=>r.category===FCT);
+  if(s)rows=rows.filter(r=>(r.applicant_name||'').toLowerCase().includes(s)||(r.invoice_no||'').toLowerCase().includes(s)||(r.broker_name||'').toLowerCase().includes(s));
+  if(sf)rows=rows.filter(r=>fcSt(r)===sf);
+  if(dfrom)rows=rows.filter(r=>r.forecast_received_date&&r.forecast_received_date>=dfrom);
+  if(dto)rows=rows.filter(r=>r.forecast_received_date&&r.forecast_received_date<=dto);
+  const body=document.getElementById('fcTb');
+  if(!rows.length){body.innerHTML='<tr><td colspan="16"><div class="empty"><div class="ei">💼</div><p>ไม่พบรายการ</p></div></td></tr>';document.getElementById('fcCnt').textContent='ไม่พบรายการ';document.getElementById('fcTot').textContent='';return;}
+  const tot=rows.reduce((s,r)=>s+(+r.total||0),0);
+  document.getElementById('fcCnt').textContent=`แสดง ${rows.length} รายการ`;
+  document.getElementById('fcTot').textContent=`รวม ${N(tot,2)} ${rows[0]?.currency||''}`;
+  body.innerHTML=rows.map((r,i)=>{
+    const st=fcSt(r);
+    const bdgMap={
+      received:'<span class="bdg bdg-g">✅ เงินเข้าแล้ว</span>',
+      overdue:'<span class="bdg bdg-r">🔴 เลยกำหนด</span>',
+      cancelled:'<span class="bdg bdg-cancel">🚫 ยกเลิก</span>',
+      overdue_manual:'<span class="bdg bdg-r">🔴 เกินกำหนด / รอเงิน</span>',
+      waiting:'<span class="bdg bdg-wait">⏳ รอคอนเฟิร์ม</span>',
+      w_invoice:'<span class="bdg bdg-wait">📋 รอวางบิล</span>',
+      w_ship:'<span class="bdg bdg-ship">🚢 รอส่งของ</span>',
+      pending:'<span class="bdg bdg-a">⏳ รอรับ</span>',
+    };
+    const bdg=bdgMap[st]||bdgMap.pending;
+    return`<tr>
+      <td style="color:var(--blue);width:44px;font-size:11px;font-weight:700">${E(r.seq_no)||String(i+1)}</td>
+      <td class="td-trunc" style="max-width:150px;font-weight:600">${E(r.applicant_name)}</td>
+      <td class="td-trunc" style="max-width:120px;font-size:10.5px">${E(r.sales_contract)}</td>
+      <td style="font-size:11px">${E(r.invoice_no)}</td>
+      <td style="width:60px">${N(r.qty_mts,2)}</td>
+      <td style="width:48px"><span class="bdg bdg-b">${E(r.currency)}</span></td>
+      <td style="font-weight:700;color:var(--blue);width:90px">${N(r.total,2)}</td>
+      <td style="width:80px">${D(r.forecast_received_date)}</td>
+      <td style="color:var(--green);font-weight:600;width:90px">${r.received_amount?N(r.received_amount,2):E('')}</td>
+      <td style="width:80px;color:${(r.diff_amount||0)<0?'var(--red)':'var(--green)'}">${r.diff_amount?N(r.diff_amount,2):E('')}</td>
+      <td style="width:80px">${D(r.received_date)}</td>
+      <td style="font-size:11px;width:80px">${E(r.bank)}</td>
+      <td style="width:110px">${bdg}</td>
+      <td class="td-trunc" style="max-width:140px;font-size:11px;color:var(--dim)">${E(r.remark)}</td>
+      <td style="width:56px"><div class="ra"><button class="ib e" onclick="editFc('${r.id}')">✏</button><button class="ib d" onclick="delFc('${r.id}')">🗑</button></div></td>
+    </tr>`;
+  }).join('');
+}
+const FF=['category','broker_name','applicant_name','sales_contract','invoice_no','packing_kgs','qty_mts','price_fob','price_cfr','price_cif','currency','total','cfs_loading_date','etd','eta','forecast_received_date','received_amount','diff_amount','received_date','exchange_rate','bank','remark','status'];
+const FN=['qty_mts','price_fob','price_cfr','price_cif','total','received_amount','diff_amount','exchange_rate'];
+function openFc(){
+  document.getElementById('mFcT').textContent='เพิ่มรายการ Forecast Income';
+  document.getElementById('f_id').value='';
+  FF.forEach(f=>{const el=document.getElementById('f_'+f);if(el)el.value='';});
+  document.getElementById('f_category').value=FCT;document.getElementById('f_currency').value='THB';
+  document.getElementById('mFc').classList.add('show');
+}
+function closeFc(){document.getElementById('mFc').classList.remove('show');}
+function editFc(id){
+  const r=FR.find(x=>x.id===id);if(!r)return;
+  document.getElementById('mFcT').textContent='แก้ไขรายการ Forecast Income';
+  document.getElementById('f_id').value=r.id;
+  FF.forEach(f=>{const el=document.getElementById('f_'+f);if(el)el.value=r[f]??'';});
+  document.getElementById('mFc').classList.add('show');
+}
+async function saveFc(){
+  const id=document.getElementById('f_id').value;
+  if(!document.getElementById('f_applicant_name').value.trim()){toast('กรุณากรอกชื่อลูกค้า',true);return;}
+  // forecast_received_date is optional
+  const p={};
+  FF.forEach(f=>{const el=document.getElementById('f_'+f);if(!el)return;let v=el.value===''?null:el.value;if(FN.includes(f)&&v!==null)v=parseFloat(v)||null;p[f]=v;});
+  p.updated_by=U.id;p.updated_by_email=U.email;
+  let err;
+  if(id){({error:err}=await sb.from('forecast_income').update(p).eq('id',id));}
+  else{p.created_by=U.id;p.created_by_email=U.email;({error:err}=await sb.from('forecast_income').insert(p));}
+  if(err){toast('บันทึกไม่สำเร็จ: '+err.message,true);return;}
+  toast('✅ บันทึกเรียบร้อย');closeFc();loadFc();loadFcBadge();
+}
+async function delFc(id){
+  if(!confirm('ยืนยันลบรายการนี้?'))return;
+  const{error}=await sb.from('forecast_income').delete().eq('id',id);
+  if(error){toast('ลบไม่สำเร็จ',true);return;}
+  toast('ลบเรียบร้อย');loadFc();loadFcBadge();
+}
+function xFc(){
+  const rows=FR.filter(r=>r.category===FCT);if(!rows.length){toast('ไม่มีข้อมูล',true);return;}
+  const h=['broker_name','applicant_name','invoice_no','qty_mts','currency','total','forecast_received_date','received_amount','diff_amount','received_date','bank','remark'];
+  const csv=[h.join(',')].concat(rows.map(r=>h.map(k=>`"${(r[k]??'').toString().replace(/"/g,'""')}"`).join(','))).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv'}));
+  a.download=`forecast_${FCT}_${new Date().toISOString().slice(0,10)}.csv`;a.click();
+}
+
+// ═══════════ DASHBOARD ═══════════
+let CH={};
+function killChart(id){if(CH[id]){CH[id].destroy();delete CH[id];}}
+const CHCOLORS={thb:'#22c55e',usd:'#3b82f6',cny:'#a855f7',cyan:'#06b6d4',amber:'#f59e0b',orange:'#f97316',dim:'#5a738f'};
+Chart.defaults.color='#5a738f';Chart.defaults.font.family="'Segoe UI',system-ui,sans-serif";Chart.defaults.font.size=11;
+Chart.defaults.plugins.legend.labels.boxWidth=11;Chart.defaults.plugins.legend.labels.padding=10;
+
+async function loadDash(){
+  const[{data:dom},{data:fc},{data:es},{data:ec}]=await Promise.all([
+    sb.from('sales_domestic').select('year,total,qty_mts,packing_kgs,loading_date,factory1_name,factory2_name,factory3_name,factory4_name,shipping_name,survey_name,fumigation_name'),
+    sb.from('forecast_income').select('category,total,received_amount,received_date,forecast_received_date'),
+    sb.from('export_tapioca_starch').select('year,total,currency,qty_mts,packing_kgs,loading_date,factory1_name,factory2_name,factory3_name,factory4_name,shipping_name,survey_name,fumigation_name'),
+    sb.from('export_tapioca_chip').select('year,total,currency,qty_mts,loading_date,factory1_name,factory2_name,factory3_name,factory4_name,shipping_name,survey_name,fumigation_name')
+  ]);
+  const D=dom||[],F=fc||[],E=es||[],C=ec||[];
+
+  // ── KPI (เดิม) ──
+  const dT=D.reduce((s,r)=>s+(+r.total||0),0);
+  const dM=D.reduce((s,r)=>s+(+r.qty_mts||0),0);
+  const today=new Date();const lim=new Date();lim.setDate(lim.getDate()+21);
+  const pend=F.filter(r=>!r.received_date&&r.forecast_received_date&&new Date(r.forecast_received_date)>=today&&new Date(r.forecast_received_date)<=lim);
+  const over=F.filter(r=>!r.received_date&&r.forecast_received_date&&new Date(r.forecast_received_date)<today);
+  document.getElementById('dashKpiDom').innerHTML=`
+    <div class="kCard kc-g"><div class="kLbl">ยอดขายในประเทศรวม</div><div class="kVal">${N(dT,0)}</div><div class="kSub">THB · ทุกปีรวมกัน</div><div class="kIco">🏭</div></div>
+    <div class="kCard kc-g"><div class="kLbl">ปริมาณขายในประเทศ</div><div class="kVal">${N(dM,2)}</div><div class="kSub">MTS รวมทุกปี</div><div class="kIco">⚖️</div></div>
+  `;
+
+  const esUsdT=E.filter(r=>r.currency==='USD').reduce((s,r)=>s+(+r.total||0),0);
+  const esCnyT=E.filter(r=>r.currency==='CNY').reduce((s,r)=>s+(+r.total||0),0);
+  const esM=E.reduce((s,r)=>s+(+r.qty_mts||0),0);
+  document.getElementById('dashKpiEs').innerHTML=`
+    <div class="kCard kc-b"><div class="kLbl">ยอดขายส่งออก USD</div><div class="kVal">${N(esUsdT,0)}</div><div class="kSub">USD · ทุกปีรวมกัน</div><div class="kIco">💵</div></div>
+    <div class="kCard kc-p"><div class="kLbl">ยอดขายส่งออก CNY</div><div class="kVal">${N(esCnyT,0)}</div><div class="kSub">CNY · ทุกปีรวมกัน</div><div class="kIco">💴</div></div>
+    <div class="kCard kc-b"><div class="kLbl">ปริมาณขายส่งออก Starch</div><div class="kVal">${N(esM,2)}</div><div class="kSub">MTS รวมทุกปี</div><div class="kIco">⚖️</div></div>
+  `;
+
+  const ecUsdT=C.filter(r=>r.currency==='USD').reduce((s,r)=>s+(+r.total||0),0);
+  const ecM=C.reduce((s,r)=>s+(+r.qty_mts||0),0);
+  document.getElementById('dashKpiEc').innerHTML=`
+    <div class="kCard kc-o"><div class="kLbl">ยอดขายมันเส้น USD</div><div class="kVal">${N(ecUsdT,0)}</div><div class="kSub">USD · ทุกปีรวมกัน</div><div class="kIco">💵</div></div>
+    <div class="kCard kc-o"><div class="kLbl">ปริมาณขายมันเส้น</div><div class="kVal">${N(ecM,2)}</div><div class="kSub">MTS รวมทุกปี · BULK</div><div class="kIco">⚖️</div></div>
+  `;
+
+  document.getElementById('dashKpiFc').innerHTML=`
+    <div class="kCard kc-a"><div class="kLbl">Forecast — คาดรับ 3 สัปดาห์</div><div class="kVal">${pend.length}</div><div class="kSub">รายการรอรับเงิน · ทุกหมวด</div><div class="kIco">📅</div></div>
+    <div class="kCard kc-r"><div class="kLbl">Forecast — เลยกำหนดรับ</div><div class="kVal">${over.length}</div><div class="kSub">รายการ ต้องติดตามด่วน!</div><div class="kIco">⚠️</div></div>
+  `;
+
+  const years=[...new Set([...D,...E,...C].map(r=>r.year).filter(Boolean))].sort((a,b)=>a-b);
+
+  // ── 1) ปริมาณขายรายปี (MTS) แยกหมวด ──
+  const volD=years.map(y=>D.filter(r=>r.year===y).reduce((s,r)=>s+(+r.qty_mts||0),0));
+  const volE=years.map(y=>E.filter(r=>r.year===y).reduce((s,r)=>s+(+r.qty_mts||0),0));
+  const volC=years.map(y=>C.filter(r=>r.year===y).reduce((s,r)=>s+(+r.qty_mts||0),0));
+  killChart('vy');
+  CH.vy=new Chart(document.getElementById('chVolYear'),{type:'bar',data:{labels:years,datasets:[
+    {label:'Domestic',data:volD,backgroundColor:CHCOLORS.thb},
+    {label:'Export Starch',data:volE,backgroundColor:CHCOLORS.usd},
+    {label:'Export Chip',data:volC,backgroundColor:CHCOLORS.orange}
+  ]},options:{responsive:true,maintainAspectRatio:false,scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:'#1e2d42'}}},plugins:{legend:{position:'bottom'}}}});
+
+  // ── 2) สัดส่วนรายการตามสกุลเงิน (นับจำนวน) ──
+  const cntThb=D.length,cntUsd=E.filter(r=>r.currency==='USD').length+C.filter(r=>r.currency==='USD').length,cntCny=E.filter(r=>r.currency==='CNY').length+C.filter(r=>r.currency==='CNY').length;
+  killChart('cm');
+  CH.cm=new Chart(document.getElementById('chCurMix'),{type:'doughnut',data:{labels:['THB','USD','CNY'],datasets:[{data:[cntThb,cntUsd,cntCny],backgroundColor:[CHCOLORS.thb,CHCOLORS.usd,CHCOLORS.cny],borderColor:'#131c2b',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}});
+
+  // ── 3) ยอดขายในประเทศ THB รายปี ──
+  const revThb=years.map(y=>D.filter(r=>r.year===y).reduce((s,r)=>s+(+r.total||0),0));
+  killChart('rt');
+  CH.rt=new Chart(document.getElementById('chRevThb'),{type:'bar',data:{labels:years,datasets:[{label:'THB',data:revThb,backgroundColor:CHCOLORS.thb,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:'#1e2d42'}}}}});
+
+  // ── 4) ยอดขายส่งออก USD รายปี (Starch+Chip) ──
+  const revUsd=years.map(y=>E.filter(r=>r.year===y&&r.currency==='USD').reduce((s,r)=>s+(+r.total||0),0)+C.filter(r=>r.year===y&&r.currency==='USD').reduce((s,r)=>s+(+r.total||0),0));
+  killChart('ru');
+  CH.ru=new Chart(document.getElementById('chRevUsd'),{type:'bar',data:{labels:years,datasets:[{label:'USD',data:revUsd,backgroundColor:CHCOLORS.usd,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:'#1e2d42'}}}}});
+
+  // ── 5) ยอดขายส่งออก CNY รายปี (Starch เท่านั้น) ──
+  const revCny=years.map(y=>E.filter(r=>r.year===y&&r.currency==='CNY').reduce((s,r)=>s+(+r.total||0),0));
+  killChart('rc');
+  CH.rc=new Chart(document.getElementById('chRevCny'),{type:'bar',data:{labels:years,datasets:[{label:'CNY',data:revCny,backgroundColor:CHCOLORS.cny,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:'#1e2d42'}}}}});
+
+  // ── 6) สัดส่วนขนาดบรรจุ (MTS) — Domestic + Export Starch ──
+  const pkMap={};
+  [...D,...E].forEach(r=>{const k=(r.packing_kgs||'อื่นๆ').toString().replace(/[^0-9A-Zก-๙]/gi,'')||'อื่นๆ';pkMap[k]=(pkMap[k]||0)+(+r.qty_mts||0);});
+  const pkLabels=Object.keys(pkMap);const pkVals=Object.values(pkMap);
+  killChart('pk');
+  CH.pk=new Chart(document.getElementById('chPacking'),{type:'pie',data:{labels:pkLabels.map(l=>l+' kgs'),datasets:[{data:pkVals,backgroundColor:[CHCOLORS.thb,CHCOLORS.usd,CHCOLORS.amber,CHCOLORS.cny,CHCOLORS.orange,CHCOLORS.cyan],borderColor:'#131c2b',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}});
+
+  // ── 7) เปรียบเทียบรายไตรมาส (ปีล่าสุดที่มีข้อมูล, อิง Loading Date) ──
+  const latestY=years[years.length-1];
+  document.getElementById('chQuarterSub').textContent=`ปี ${latestY} · อิงวันที่โหลดสินค้า (Loading Date)`;
+  const qtyOf=r=>+r.qty_mts||0;
+  const qOf=dt=>{if(!dt)return null;const m=new Date(dt).getMonth();return Math.floor(m/3);};
+  const qVol={dom:[0,0,0,0],es:[0,0,0,0],ec:[0,0,0,0]};
+  D.filter(r=>r.year===latestY).forEach(r=>{const q=qOf(r.loading_date);if(q!=null)qVol.dom[q]+=qtyOf(r);});
+  E.filter(r=>r.year===latestY).forEach(r=>{const q=qOf(r.loading_date);if(q!=null)qVol.es[q]+=qtyOf(r);});
+  C.filter(r=>r.year===latestY).forEach(r=>{const q=qOf(r.loading_date);if(q!=null)qVol.ec[q]+=qtyOf(r);});
+  killChart('qt');
+  CH.qt=new Chart(document.getElementById('chQuarter'),{type:'bar',data:{labels:['Q1','Q2','Q3','Q4'],datasets:[
+    {label:'Domestic',data:qVol.dom,backgroundColor:CHCOLORS.thb},
+    {label:'Export Starch',data:qVol.es,backgroundColor:CHCOLORS.usd},
+    {label:'Export Chip',data:qVol.ec,backgroundColor:CHCOLORS.orange}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{x:{grid:{display:false}},y:{grid:{color:'#1e2d42'}}}}});
+
+  // ── 8) โรงแป้ง / ชิปปิ้ง / เซอร์เวย์ — top ranking ──
+  const freq=(arr,keys)=>{const m={};arr.forEach(r=>keys.forEach(k=>{const v=(r[k]||'').toString().trim();if(v&&v!=='-')m[v]=(m[v]||0)+1;}));return Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,6);};
+  const renderRank=(id,list)=>{
+    document.getElementById(id).innerHTML=list.length?list.map(([name,cnt],i)=>`<li><span class="rk">${i+1}</span><span class="rn">${name}</span><span class="rv">${cnt} รายการ</span></li>`).join(''):'<li style="color:var(--dim);border:none;">ยังไม่มีข้อมูล</li>';
+  };
+  const all=[...D,...E,...C];
+  renderRank('rkFactory',freq(all,['factory1_name','factory2_name','factory3_name','factory4_name']));
+  renderRank('rkShipping',freq(all,['shipping_name']));
+  renderRank('rkSurvey',freq(all,['survey_name','fumigation_name']));
+}
+
+// ═══════════ TRANSACTION DETAIL ═══════════
+let TX=[], TXY='all', TXC='all', TXCUR='all';
+function refreshTxnIfActive(){if(document.getElementById('pg-txn')?.classList.contains('show'))loadTxn();}
+async function loadTxn(){
+  document.getElementById('txTb').innerHTML='<tr><td colspan="11"><div class="loading"><span class="spin"></span>กำลังโหลดข้อมูล...</div></td></tr>';
+  const[{data:dom,error:e1},{data:es,error:e2},{data:ec,error:e3}]=await Promise.all([
+    fetchAllRows('sales_domestic'),
+    fetchAllRows('export_tapioca_starch'),
+    fetchAllRows('export_tapioca_chip')
+  ]);
+  if(e1||e2||e3){toast('โหลดไม่สำเร็จ: '+(e1||e2||e3).message,true);return;}
+  DR=dom||[];ES=es||[];ECD=ec||[]; // sync ให้เปิดหน้าแก้ไขจาก Transaction Detail ได้โดยตรง
+  const tag=(arr,cat)=>arr.map(r=>({...r,_cat:cat,_cur:cat==='dom'?'THB':(r.currency||'').toUpperCase()}));
+  TX=[...tag(DR,'dom'),...tag(ES,'es'),...tag(ECD,'ec')]
+    .sort((a,b)=>{const ya=Number(a.year||0),yb=Number(b.year||0);if(ya!==yb)return yb-ya;return seqNum(b.seq_no)-seqNum(a.seq_no);});
+  buildTxY();rTx();
+}
+function buildTxY(){
+  const yrs=[...new Set(TX.map(r=>r.year).filter(Boolean))].sort((a,b)=>b-a);
+  const w=document.getElementById('txYP');
+  w.innerHTML=`<div class="yPill ${TXY==='all'?'act':''}" onclick="setTxY('all',this)">ทุกปี (${TX.length})</div>`;
+  yrs.forEach(y=>{const c=TX.filter(r=>String(r.year)===String(y)).length;const d=document.createElement('div');d.className='yPill'+(String(TXY)===String(y)?' act':'');d.innerHTML=`${y} <span style="opacity:.55;font-size:10.5px">(${c})</span>`;d.onclick=function(){setTxY(y,this);};w.appendChild(d);});
+}
+function setTxY(y,el){TXY=y;document.querySelectorAll('#txYP .yPill').forEach(e=>e.classList.remove('act'));el.classList.add('act');rTx();}
+function setTxCat(c,el){TXC=c;document.querySelectorAll('#txCT .pTab').forEach(e=>e.classList.remove('act'));el.classList.add('act');rTx();}
+function setTxCur(c,el){TXCUR=c;document.querySelectorAll('#txCurT .pTab').forEach(e=>e.classList.remove('act'));el.classList.add('act');rTx();}
+function gTx(){
+  let r=TX;
+  if(TXY!=='all')r=r.filter(x=>String(x.year)===String(TXY));
+  if(TXC!=='all')r=r.filter(x=>x._cat===TXC);
+  if(TXCUR!=='all')r=r.filter(x=>x._cur===TXCUR);
+  const s=(document.getElementById('txSr')?.value||'').toLowerCase();
+  if(s)r=r.filter(x=>(x.applicant_name||'').toLowerCase().includes(s)||(x.invoice_no||'').toLowerCase().includes(s)||(x.sales_contract||'').toLowerCase().includes(s));
+  return r;
+}
+const TX_CAT_LBL={dom:'🏠 Domestic',es:'🚢 Ex.Starch',ec:'📦 Ex.Chip'};
+const TX_CAT_CLS={dom:'bdg-g',es:'bdg-b',ec:'bdg-o'};
+const TX_CUR_CLS={THB:'bdg-g',USD:'bdg-b',CNY:'bdg-p'};
+function rTxKpi(){
+  const r=gTx();
+  const mts=r.reduce((s,x)=>s+(+x.qty_mts||0),0);
+  const thbTot=r.filter(x=>x._cur==='THB').reduce((s,x)=>s+(+x.total||0),0);
+  const usdTot=r.filter(x=>x._cur==='USD').reduce((s,x)=>s+(+x.total||0),0);
+  const cnyTot=r.filter(x=>x._cur==='CNY').reduce((s,x)=>s+(+x.total||0),0);
+  document.getElementById('txKpi').innerHTML=`
+    <div class="kCard kc-b"><div class="kLbl">รายการทั้งหมด</div><div class="kVal">${r.length}</div><div class="kSub">รายการ (ทุกหมวด)</div><div class="kIco">📋</div></div>
+    <div class="kCard kc-g"><div class="kLbl">ปริมาณรวม</div><div class="kVal">${N(mts,2)}</div><div class="kSub">เมตริกตัน (MTS)</div><div class="kIco">⚖️</div></div>
+    <div class="kCard kc-a"><div class="kLbl">มูลค่ารวม (แยกสกุลเงิน)</div><div class="kVal" style="font-size:13px;line-height:1.8">
+      <span style="display:block">${N(thbTot,0)} <span style="font-size:10.5px;opacity:.6">THB</span></span>
+      <span style="display:block">${N(usdTot,0)} <span style="font-size:10.5px;opacity:.6">USD</span></span>
+      <span style="display:block">${N(cnyTot,0)} <span style="font-size:10.5px;opacity:.6">CNY</span></span>
+    </div><div class="kIco">💵</div></div>
+  `;
+}
+function rTx(){
+  rTxKpi();
+  const rows=gTx(),body=document.getElementById('txTb');
+  if(!rows.length){body.innerHTML='<tr><td colspan="11"><div class="empty"><div class="ei">📭</div><p>ไม่พบรายการ</p></div></td></tr>';document.getElementById('txCnt').textContent='ไม่พบรายการ';document.getElementById('txTot').textContent='';return;}
+  const thbTot=rows.filter(x=>x._cur==='THB').reduce((s,x)=>s+(+x.total||0),0);
+  const usdTot=rows.filter(x=>x._cur==='USD').reduce((s,x)=>s+(+x.total||0),0);
+  const cnyTot=rows.filter(x=>x._cur==='CNY').reduce((s,x)=>s+(+x.total||0),0);
+  document.getElementById('txCnt').textContent=`แสดง ${rows.length} รายการ`;
+  const totParts=[];if(thbTot)totParts.push(N(thbTot,2)+' THB');if(usdTot)totParts.push(N(usdTot,2)+' USD');if(cnyTot)totParts.push(N(cnyTot,2)+' CNY');
+  document.getElementById('txTot').textContent=`รวม ${totParts.join(' · ')||'—'}`;
+  body.innerHTML=rows.map(r=>{
+    const sr=r.status_remark||r.dom_status_remark||'';
+    const inv=r.invoice_no||'';
+    const isCancel=sr.includes('ยกเลิก')||inv.includes('ยกเลิก');
+    const isOverdue=sr.includes('เกินกำหนด')||sr.includes('รอเงินเข้า');
+    const isDone=sr.includes('เงินเข้าแล้ว');
+    const isPending=sr.includes('รอ')||sr.includes('วางบิล')||sr.includes('ส่งของ');
+    const srColor=isCancel||isOverdue?'var(--red)':isDone?'var(--green)':isPending?'var(--amber)':'var(--dim)';
+    const ref=r._cat==='dom'?(r.invoice_no||r.contact_no||'—'):(r.sales_contract||r.invoice_no||'—');
+    const editFn=r._cat==='dom'?'editDom':r._cat==='es'?'editEs':'editEc';
+    const delFn=r._cat==='dom'?'delDom':r._cat==='es'?'delEs':'delEc';
+    return`<tr>
+      <td style="width:96px"><span class="bdg ${TX_CAT_CLS[r._cat]}">${TX_CAT_LBL[r._cat]}</span></td>
+      <td style="width:52px">${E(r.year)}</td>
+      <td style="width:52px;color:var(--blue);font-weight:700;font-size:11px">${E(r.seq_no)||'—'}</td>
+      <td class="td-trunc" style="max-width:170px;font-weight:600">${E(r.applicant_name)}</td>
+      <td class="td-trunc" style="max-width:150px;font-size:10.5px">${E(ref)}</td>
+      <td style="width:70px">${N(r.qty_mts,2)}</td>
+      <td style="width:56px"><span class="bdg ${TX_CUR_CLS[r._cur]||'bdg-b'}">${E(r._cur)}</span></td>
+      <td style="font-weight:700">${N(r.total,2)}</td>
+      <td style="width:80px">${D(r.loading_date)}</td>
+      <td class="td-trunc" style="max-width:160px;font-size:11px;color:${srColor};font-weight:${isCancel||isOverdue||isDone?600:400}">${E(sr)}</td>
+      <td style="width:56px"><div class="ra"><button class="ib e" onclick="${editFn}('${r.id}')">✏</button><button class="ib d" onclick="${delFn}('${r.id}')">🗑</button></div></td>
+    </tr>`;
+  }).join('');
+}
+function xTx(){
+  const rows=gTx();if(!rows.length){toast('ไม่มีข้อมูล',true);return;}
+  const h=['_cat','year','seq_no','applicant_name','sales_contract','invoice_no','qty_mts','_cur','total','loading_date','status_remark'];
+  const csv=[h.join(',')].concat(rows.map(r=>h.map(k=>`"${(r[k]??'').toString().replace(/"/g,'""')}"`).join(','))).join('\n');
+  const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`transaction_detail_${Date.now()}.csv`;a.click();
+}
+
+// ═══════════ SALES REPORTS (Export Starch / Chip / Domestic) ═══════════
+let RSY_ES='all', RSY_EC='all', RSY_DOM='all';
+function topByVolume(rows,key,n=8){
+  const m={};rows.forEach(r=>{const k=(r[key]||'').toString().trim();if(!k)return;m[k]=(m[k]||0)+(+r.qty_mts||0);});
+  return Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,n);
+}
+function freqCount(arr,keys){
+  const m={};arr.forEach(r=>keys.forEach(k=>{const v=(r[k]||'').toString().trim();if(v&&v!=='-')m[v]=(m[v]||0)+1;}));
+  return Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,6);
+}
+function renderTopList(id,list,unit='MTS'){
+  document.getElementById(id).innerHTML=list.length?list.map(([name,val],i)=>`<li><span class="rk">${i+1}</span><span class="rn">${name}</span><span class="rv">${N(val,2)} ${unit}</span></li>`).join(''):'<li style="color:var(--dim);border:none;">ยังไม่มีข้อมูล</li>';
+}
+function buildRsYP(elId,cat,rows){
+  const cur=cat==='ES'?RSY_ES:cat==='EC'?RSY_EC:RSY_DOM;
+  const yrs=[...new Set(rows.map(r=>r.year).filter(Boolean))].sort((a,b)=>b-a);
+  const w=document.getElementById(elId);
+  w.innerHTML=`<div class="yPill ${cur==='all'?'act':''}" onclick="setRsY('${cat}','all',this)">ทุกปี (${rows.length})</div>`;
+  yrs.forEach(y=>{const c=rows.filter(r=>String(r.year)===String(y)).length;const d=document.createElement('div');d.className='yPill'+(String(cur)===String(y)?' act':'');d.innerHTML=`${y} <span style="opacity:.55;font-size:10.5px">(${c})</span>`;d.onclick=function(){setRsY(cat,y,this);};w.appendChild(d);});
+}
+function setRsY(cat,y,el){
+  if(cat==='ES')RSY_ES=y;else if(cat==='EC')RSY_EC=y;else RSY_DOM=y;
+  el.parentElement.querySelectorAll('.yPill').forEach(e=>e.classList.remove('act'));el.classList.add('act');
+  if(cat==='ES')rRsEs();else if(cat==='EC')rRsEc();else rRsDom();
+}
+const RS_QOF=dt=>{if(!dt)return null;return Math.floor(new Date(dt).getMonth()/3);};
+
+// ── Export Starch ──
+async function loadRsEs(){
+  const{data,error}=await fetchAllRows('export_tapioca_starch');
+  if(error){toast('โหลดไม่สำเร็จ: '+error.message,true);return;}
+  window.__rsEsData=data||[];
+  buildRsYP('rsEsYP','ES',window.__rsEsData);
+  rRsEs();
+}
+function rRsEs(){
+  const all=window.__rsEsData||[];
+  const scoped=RSY_ES==='all'?all:all.filter(r=>String(r.year)===String(RSY_ES));
+  const usdT=scoped.filter(r=>r.currency==='USD').reduce((s,r)=>s+(+r.total||0),0);
+  const cnyT=scoped.filter(r=>r.currency==='CNY').reduce((s,r)=>s+(+r.total||0),0);
+  const mts=scoped.reduce((s,r)=>s+(+r.qty_mts||0),0);
+  document.getElementById('rsEsKpi').innerHTML=`
+    <div class="kCard kc-b"><div class="kLbl">รายการทั้งหมด</div><div class="kVal">${scoped.length}</div><div class="kSub">รายการ</div><div class="kIco">📋</div></div>
+    <div class="kCard kc-g"><div class="kLbl">ปริมาณรวม</div><div class="kVal">${N(mts,2)}</div><div class="kSub">MTS</div><div class="kIco">⚖️</div></div>
+    <div class="kCard kc-b"><div class="kLbl">ยอดขาย USD</div><div class="kVal">${N(usdT,0)}</div><div class="kSub">USD</div><div class="kIco">💵</div></div>
+    <div class="kCard kc-p"><div class="kLbl">ยอดขาย CNY</div><div class="kVal">${N(cnyT,0)}</div><div class="kSub">CNY</div><div class="kIco">💴</div></div>
+  `;
+  const years=[...new Set(all.map(r=>r.year).filter(Boolean))].sort((a,b)=>a-b);
+  const usdByY=years.map(y=>all.filter(r=>String(r.year)===String(y)&&r.currency==='USD').reduce((s,r)=>s+(+r.total||0),0));
+  const cnyByY=years.map(y=>all.filter(r=>String(r.year)===String(y)&&r.currency==='CNY').reduce((s,r)=>s+(+r.total||0),0));
+  killChart('rsEsRev');
+  CH.rsEsRev=new Chart(document.getElementById('rsEsRevChart'),{type:'line',data:{labels:years,datasets:[
+    {label:'USD',data:usdByY,borderColor:CHCOLORS.usd,backgroundColor:CHCOLORS.usd+'33',tension:.3,fill:true},
+    {label:'CNY',data:cnyByY,borderColor:CHCOLORS.cny,backgroundColor:CHCOLORS.cny+'33',tension:.3,fill:true}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{x:{grid:{display:false}},y:{grid:{color:'#1e2d42'}}}}});
+  const usdMtsByY=years.map(y=>all.filter(r=>String(r.year)===String(y)&&r.currency==='USD').reduce((s,r)=>s+(+r.qty_mts||0),0));
+  const cnyMtsByY=years.map(y=>all.filter(r=>String(r.year)===String(y)&&r.currency==='CNY').reduce((s,r)=>s+(+r.qty_mts||0),0));
+  killChart('rsEsCur');
+  CH.rsEsCur=new Chart(document.getElementById('rsEsCurChart'),{type:'bar',data:{labels:years,datasets:[
+    {label:'USD (MTS)',data:usdMtsByY,backgroundColor:CHCOLORS.usd},
+    {label:'CNY (MTS)',data:cnyMtsByY,backgroundColor:CHCOLORS.cny}
+  ]},options:{responsive:true,maintainAspectRatio:false,scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:'#1e2d42'}}},plugins:{legend:{position:'bottom'}}}});
+  const qy=RSY_ES==='all'?years[years.length-1]:RSY_ES;
+  document.getElementById('rsEsQtrSub').textContent=`ปี ${qy||'—'} · อิงวันที่โหลดสินค้า (Loading Date)`;
+  const qUsd=[0,0,0,0],qCny=[0,0,0,0];
+  all.filter(r=>String(r.year)===String(qy)).forEach(r=>{const q=RS_QOF(r.loading_date);if(q==null)return;if(r.currency==='USD')qUsd[q]+=(+r.qty_mts||0);else if(r.currency==='CNY')qCny[q]+=(+r.qty_mts||0);});
+  killChart('rsEsQtr');
+  CH.rsEsQtr=new Chart(document.getElementById('rsEsQtrChart'),{type:'bar',data:{labels:['Q1','Q2','Q3','Q4'],datasets:[
+    {label:'USD (MTS)',data:qUsd,backgroundColor:CHCOLORS.usd},
+    {label:'CNY (MTS)',data:qCny,backgroundColor:CHCOLORS.cny}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{x:{grid:{display:false}},y:{grid:{color:'#1e2d42'}}}}});
+  renderTopList('rsEsTop',topByVolume(scoped,'applicant_name'));
+}
+
+// ── Export Chip ──
+async function loadRsEc(){
+  const{data,error}=await fetchAllRows('export_tapioca_chip');
+  if(error){toast('โหลดไม่สำเร็จ: '+error.message,true);return;}
+  window.__rsEcData=data||[];
+  buildRsYP('rsEcYP','EC',window.__rsEcData);
+  rRsEc();
+}
+function rRsEc(){
+  const all=window.__rsEcData||[];
+  const scoped=RSY_EC==='all'?all:all.filter(r=>String(r.year)===String(RSY_EC));
+  const usdT=scoped.reduce((s,r)=>s+(+r.total||0),0);
+  const mts=scoped.reduce((s,r)=>s+(+r.qty_mts||0),0);
+  document.getElementById('rsEcKpi').innerHTML=`
+    <div class="kCard kc-o"><div class="kLbl">รายการทั้งหมด</div><div class="kVal">${scoped.length}</div><div class="kSub">รายการ</div><div class="kIco">📋</div></div>
+    <div class="kCard kc-o"><div class="kLbl">ปริมาณรวม</div><div class="kVal">${N(mts,2)}</div><div class="kSub">MTS · BULK</div><div class="kIco">⚖️</div></div>
+    <div class="kCard kc-o"><div class="kLbl">ยอดขายรวม</div><div class="kVal">${N(usdT,0)}</div><div class="kSub">USD</div><div class="kIco">💵</div></div>
+  `;
+  const years=[...new Set(all.map(r=>r.year).filter(Boolean))].sort((a,b)=>a-b);
+  const revByY=years.map(y=>all.filter(r=>String(r.year)===String(y)).reduce((s,r)=>s+(+r.total||0),0));
+  killChart('rsEcRev');
+  CH.rsEcRev=new Chart(document.getElementById('rsEcRevChart'),{type:'bar',data:{labels:years,datasets:[{label:'USD',data:revByY,backgroundColor:CHCOLORS.orange,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:'#1e2d42'}}}}});
+  const qy=RSY_EC==='all'?years[years.length-1]:RSY_EC;
+  document.getElementById('rsEcQtrSub').textContent=`ปี ${qy||'—'} · อิงวันที่โหลดสินค้า (Loading Date)`;
+  const qMts=[0,0,0,0];
+  all.filter(r=>String(r.year)===String(qy)).forEach(r=>{const q=RS_QOF(r.loading_date);if(q!=null)qMts[q]+=(+r.qty_mts||0);});
+  killChart('rsEcQtr');
+  CH.rsEcQtr=new Chart(document.getElementById('rsEcQtrChart'),{type:'bar',data:{labels:['Q1','Q2','Q3','Q4'],datasets:[{label:'MTS',data:qMts,backgroundColor:CHCOLORS.orange,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:'#1e2d42'}}}}});
+  renderTopList('rsEcTop',topByVolume(scoped,'applicant_name'));
+  renderTopList('rsEcFactory',freqCount(scoped,['factory1_name','factory2_name','factory3_name','factory4_name']),'รายการ');
+}
+
+// ── Domestic ──
+async function loadRsDom(){
+  const{data,error}=await fetchAllRows('sales_domestic');
+  if(error){toast('โหลดไม่สำเร็จ: '+error.message,true);return;}
+  window.__rsDomData=data||[];
+  buildRsYP('rsDomYP','DOM',window.__rsDomData);
+  rRsDom();
+}
+function rRsDom(){
+  const all=window.__rsDomData||[];
+  const scoped=RSY_DOM==='all'?all:all.filter(r=>String(r.year)===String(RSY_DOM));
+  const thbT=scoped.reduce((s,r)=>s+(+r.total||0),0);
+  const mts=scoped.reduce((s,r)=>s+(+r.qty_mts||0),0);
+  document.getElementById('rsDomKpi').innerHTML=`
+    <div class="kCard kc-g"><div class="kLbl">รายการทั้งหมด</div><div class="kVal">${scoped.length}</div><div class="kSub">รายการ</div><div class="kIco">📋</div></div>
+    <div class="kCard kc-g"><div class="kLbl">ปริมาณรวม</div><div class="kVal">${N(mts,2)}</div><div class="kSub">MTS</div><div class="kIco">⚖️</div></div>
+    <div class="kCard kc-g"><div class="kLbl">ยอดขายรวม</div><div class="kVal">${N(thbT,0)}</div><div class="kSub">THB</div><div class="kIco">💵</div></div>
+  `;
+  const years=[...new Set(all.map(r=>r.year).filter(Boolean))].sort((a,b)=>a-b);
+  const revByY=years.map(y=>all.filter(r=>String(r.year)===String(y)).reduce((s,r)=>s+(+r.total||0),0));
+  killChart('rsDomRev');
+  CH.rsDomRev=new Chart(document.getElementById('rsDomRevChart'),{type:'bar',data:{labels:years,datasets:[{label:'THB',data:revByY,backgroundColor:CHCOLORS.thb,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:'#1e2d42'}}}}});
+  const pkMap={};scoped.forEach(r=>{const k=(r.packing_kgs||'อื่นๆ').toString().replace(/[^0-9A-Zก-๙]/gi,'')||'อื่นๆ';pkMap[k]=(pkMap[k]||0)+(+r.qty_mts||0);});
+  const pkLabels=Object.keys(pkMap),pkVals=Object.values(pkMap);
+  killChart('rsDomPk');
+  CH.rsDomPk=new Chart(document.getElementById('rsDomPkChart'),{type:'doughnut',data:{labels:pkLabels.map(l=>l+' kgs'),datasets:[{data:pkVals,backgroundColor:[CHCOLORS.thb,CHCOLORS.usd,CHCOLORS.amber,CHCOLORS.cny,CHCOLORS.orange,CHCOLORS.cyan],borderColor:'#131c2b',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}});
+  const qy=RSY_DOM==='all'?years[years.length-1]:RSY_DOM;
+  document.getElementById('rsDomQtrSub').textContent=`ปี ${qy||'—'} · อิงวันที่โหลดสินค้า (Loading Date)`;
+  const qMts=[0,0,0,0];
+  all.filter(r=>String(r.year)===String(qy)).forEach(r=>{const q=RS_QOF(r.loading_date);if(q!=null)qMts[q]+=(+r.qty_mts||0);});
+  killChart('rsDomQtr');
+  CH.rsDomQtr=new Chart(document.getElementById('rsDomQtrChart'),{type:'bar',data:{labels:['Q1','Q2','Q3','Q4'],datasets:[{label:'MTS',data:qMts,backgroundColor:CHCOLORS.thb,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:'#1e2d42'}}}}});
+  renderTopList('rsDomTop',topByVolume(scoped,'applicant_name'));
+}
+
+initAuth();
+</script>
+</body>
+</html>
