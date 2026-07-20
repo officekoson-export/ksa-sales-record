@@ -240,7 +240,31 @@ tbody tr:hover td{background:var(--panel2);}
 .rankList .rk{width:18px;height:18px;border-radius:5px;background:var(--panel3);color:var(--dim);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .rankList .rn{flex:1;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .rankList .rv{color:var(--blue);font-weight:700;font-size:11px;flex-shrink:0;}
-@media(max-width:1100px){.chGrid,.chGrid2,.chGrid3{grid-template-columns:1fr;}}
+.sbToggle{display:none;background:none;border:none;color:var(--text);font-size:19px;cursor:pointer;padding:4px 10px 4px 0;line-height:1;}
+.sbOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:19;}
+.sbOverlay.show{display:block;}
+@media(max-width:900px){
+  .sb{transform:translateX(-100%);transition:transform .25s ease;}
+  .sb.open{transform:translateX(0);}
+  .topbar{left:0;padding:0 14px;}
+  .main{margin-left:0;padding:64px 14px 24px;}
+  .sbToggle{display:inline-flex;align-items:center;}
+  .fg{grid-template-columns:repeat(2,1fr);}
+  .chGrid,.chGrid2,.chGrid3{grid-template-columns:1fr;}
+  .kGrid{grid-template-columns:repeat(auto-fit,minmax(140px,1fr));}
+  .lCard{width:92vw;max-width:390px;padding:30px 24px;}
+}
+@media(max-width:560px){
+  .fg{grid-template-columns:1fr;}
+  .topbar{padding:0 10px;gap:8px;}
+  .ph{flex-direction:column;align-items:flex-start;}
+  .kGrid{grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;}
+  .kCard{padding:12px 14px;}
+  .kVal{font-size:19px;}
+  table{font-size:11px;}
+  .mB{padding:14px;}
+  .tbPage{font-size:13px;}
+}
 </style>
 </head>
 <body>
@@ -366,7 +390,7 @@ tbody tr:hover td{background:var(--panel2);}
     <div class="lbl">Brokers &amp; Buyers
       <span class="sub">อันดับ Broker · ลูกค้า</span>
     </div>
-    <span class="pill pill-dim">Soon</span>
+    <span class="pill pill-green">Live</span>
   </div>
   <div class="sbItem" id="sn-txn" onclick="go('txn')">
     <span class="ico">📄</span>
@@ -398,9 +422,11 @@ tbody tr:hover td{background:var(--panel2);}
     <button class="sbLogout" onclick="doLogout()">ออกจากระบบ</button>
   </div>
 </div>
+<div class="sbOverlay" id="sbOverlay" onclick="toggleSidebar()"></div>
 
 <!-- ═══ TOPBAR ═══ -->
 <div class="topbar">
+  <button class="sbToggle" onclick="toggleSidebar()" aria-label="เมนู">☰</button>
   <div class="tbBread">
     <span class="tbPage" id="tbPage">Dashboard</span>
     <span class="tbSep" id="tbSep" style="display:none">›</span>
@@ -719,7 +745,36 @@ tbody tr:hover td{background:var(--panel2);}
 </div>
 <div class="pg" id="pg-monthly"><div class="ph"><div class="phL"><h2>Monthly Breakdown</h2></div></div><div class="comingSoon"><div class="ci">📅</div><h3>Monthly &amp; Quarterly Breakdown</h3><p>ยอดขายรายเดือน · เปรียบเทียบรายไตรมาส · ทุกหมวดสินค้า · Phase 5<br>ใช้ CFS Loading Date เป็นตัวแบ่งไตรมาส</p></div></div>
 <div class="pg" id="pg-packing"><div class="ph"><div class="phL"><h2>Packing Analysis</h2></div></div><div class="comingSoon"><div class="ci">📦</div><h3>สัดส่วนขนาดบรรจุภัณฑ์</h3><p>Export Starch: 25 / 50 / 850 kgs · Domestic: 25 / 30 / 50 / 850 kgs · Export Chip: BULK<br>Pie chart + ตารางสัดส่วนปริมาณ MTS ต่อขนาดบรรจุ · แยกรายปีได้ · Phase 5</p></div></div>
-<div class="pg" id="pg-brokers"><div class="ph"><div class="phL"><h2>Brokers &amp; Buyers</h2></div></div><div class="comingSoon"><div class="ci">🤝</div><h3>อันดับ Broker &amp; ลูกค้า</h3><p>Ranking Broker / ลูกค้า ตามปริมาณ MTS และมูลค่าการขาย<br>ดูรายบุคคลได้ · แยกรายปีได้ · Phase 5</p></div></div>
+<div class="pg" id="pg-brokers">
+  <div class="ph">
+    <div class="phL"><h2>Brokers &amp; Buyers</h2><div class="phS"><span class="d" style="background:var(--amber)"></span>อันดับนายหน้า/ลูกค้า · รวมทุกหมวดสินค้า · แยกมูลค่าตามสกุลเงินเสมอ</div></div>
+    <div class="phR"><button class="btn btn-o btn-sm" onclick="loadBrk()">⟳ รีเฟรช</button></div>
+  </div>
+  <div class="pTabs" id="brkTabs">
+    <div class="pTab act" onclick="setBrkMode('broker',this)">🤝 นายหน้า (Broker)</div>
+    <div class="pTab" onclick="setBrkMode('buyer',this)">🏢 ลูกค้า (Buyer)</div>
+  </div>
+  <div class="yPills" id="brkYP" style="margin-top:10px;"></div>
+  <div class="kGrid" id="brkKpi"></div>
+  <div class="tb">
+    <div class="srchW"><input class="srch" id="brkSr" placeholder="ค้นหาชื่อ" oninput="rBrk()"></div>
+    <div class="sp"></div>
+  </div>
+  <div class="tCard">
+    <div class="tWrap">
+      <table>
+        <thead><tr>
+          <th style="width:40px">#</th><th id="brkNameHead">ชื่อนายหน้า</th>
+          <th>จำนวนรายการ</th><th>ปริมาณรวม (MTS)</th>
+          <th>มูลค่า THB</th><th>มูลค่า USD</th><th>มูลค่า CNY</th>
+          <th>หมวดสินค้าที่เกี่ยวข้อง</th><th>ปีล่าสุด</th>
+        </tr></thead>
+        <tbody id="brkTb"><tr><td colspan="9"><div class="loading"><span class="spin"></span>กำลังโหลด...</div></td></tr></tbody>
+      </table>
+    </div>
+    <div class="tFoot"><span id="brkCnt">—</span></div>
+  </div>
+</div>
 <div class="pg" id="pg-txn">
   <div class="ph">
     <div class="phL">
@@ -1214,7 +1269,13 @@ const PAGE_META={
   currency:{label:'วิเคราะห์เชิงลึก',sub:'Currency USD/CNY/THB'},
   stock:{label:'วิเคราะห์เชิงลึก',sub:'Stock สินค้า'},
 };
+function toggleSidebar(){
+  document.querySelector('.sb').classList.toggle('open');
+  document.getElementById('sbOverlay').classList.toggle('show');
+}
 function go(p){
+  document.querySelector('.sb').classList.remove('open');
+  document.getElementById('sbOverlay').classList.remove('show');
   document.querySelectorAll('.pg').forEach(el=>el.classList.remove('show'));
   document.querySelectorAll('.sbItem,.sbSub').forEach(el=>el.classList.remove('act'));
   document.getElementById('pg-'+p)?.classList.add('show');
@@ -1233,6 +1294,7 @@ function go(p){
   else if(p==='rs-es')loadRsEs();
   else if(p==='rs-ec')loadRsEc();
   else if(p==='rs-dom')loadRsDom();
+  else if(p==='brokers')loadBrk();
 }
 
 // ─── HELPERS ───
@@ -2142,6 +2204,73 @@ function rRsDom(){
   killChart('rsDomQtr');
   CH.rsDomQtr=new Chart(document.getElementById('rsDomQtrChart'),{type:'bar',data:{labels:['Q1','Q2','Q3','Q4'],datasets:[{label:'MTS',data:qMts,backgroundColor:CHCOLORS.thb,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:'#1e2d42'}}}}});
   renderTopList('rsDomTop',topByVolume(scoped,'applicant_name'));
+}
+
+// ═══════════ BROKERS & BUYERS ═══════════
+let BRK_MODE='broker', BRK_Y='all';
+const CAT_ICO={dom:'🏠',es:'🚢',ec:'📦'};
+async function loadBrk(){
+  document.getElementById('brkTb').innerHTML='<tr><td colspan="9"><div class="loading"><span class="spin"></span>กำลังโหลดข้อมูล...</div></td></tr>';
+  const[{data:dom,error:e1},{data:es,error:e2},{data:ec,error:e3}]=await Promise.all([
+    fetchAllRows('sales_domestic'),
+    fetchAllRows('export_tapioca_starch'),
+    fetchAllRows('export_tapioca_chip')
+  ]);
+  if(e1||e2||e3){toast('โหลดไม่สำเร็จ: '+(e1||e2||e3).message,true);return;}
+  const tag=(arr,cat,curDefault)=>arr.map(r=>({...r,_cat:cat,_cur:curDefault||(r.currency||'').toUpperCase()}));
+  window.__brkData=[...tag(dom,'dom','THB'),...tag(es,'es'),...tag(ec,'ec')];
+  buildBrkYP();
+  rBrk();
+}
+function buildBrkYP(){
+  const all=window.__brkData||[];
+  const yrs=[...new Set(all.map(r=>r.year).filter(Boolean))].sort((a,b)=>b-a);
+  const w=document.getElementById('brkYP');
+  w.innerHTML=`<div class="yPill ${BRK_Y==='all'?'act':''}" onclick="setBrkY('all',this)">ทุกปี</div>`;
+  yrs.forEach(y=>{const d=document.createElement('div');d.className='yPill'+(String(BRK_Y)===String(y)?' act':'');d.textContent=y;d.onclick=function(){setBrkY(y,this);};w.appendChild(d);});
+}
+function setBrkY(y,el){BRK_Y=y;document.querySelectorAll('#brkYP .yPill').forEach(e=>e.classList.remove('act'));el.classList.add('act');rBrk();}
+function setBrkMode(m,el){BRK_MODE=m;document.querySelectorAll('#brkTabs .pTab').forEach(e=>e.classList.remove('act'));el.classList.add('act');rBrk();}
+function rBrk(){
+  let rows=window.__brkData||[];
+  if(BRK_Y!=='all')rows=rows.filter(r=>String(r.year)===String(BRK_Y));
+  const key=BRK_MODE==='broker'?'broker_name':'applicant_name';
+  const m={};
+  rows.forEach(r=>{
+    const name=(r[key]||'').toString().trim();
+    if(!name||name==='-')return;
+    if(!m[name])m[name]={cnt:0,mts:0,thb:0,usd:0,cny:0,cats:new Set(),latestY:0};
+    const o=m[name];
+    o.cnt++;o.mts+=(+r.qty_mts||0);o.cats.add(r._cat);
+    if(r.year&&+r.year>o.latestY)o.latestY=+r.year;
+    if(r._cur==='THB')o.thb+=(+r.total||0);
+    else if(r._cur==='USD')o.usd+=(+r.total||0);
+    else if(r._cur==='CNY')o.cny+=(+r.total||0);
+  });
+  const s=(document.getElementById('brkSr')?.value||'').toLowerCase();
+  let list=Object.entries(m);
+  if(s)list=list.filter(([name])=>name.toLowerCase().includes(s));
+  list.sort((a,b)=>b[1].mts-a[1].mts);
+  document.getElementById('brkKpi').innerHTML=`
+    <div class="kCard kc-a"><div class="kLbl">จำนวน${BRK_MODE==='broker'?'นายหน้า':'ลูกค้า'}</div><div class="kVal">${list.length}</div><div class="kSub">รายชื่อทั้งหมด</div><div class="kIco">${BRK_MODE==='broker'?'🤝':'🏢'}</div></div>
+    <div class="kCard kc-g"><div class="kLbl">ปริมาณรวม</div><div class="kVal">${N(list.reduce((s,[,v])=>s+v.mts,0),2)}</div><div class="kSub">MTS</div><div class="kIco">⚖️</div></div>
+    <div class="kCard kc-b"><div class="kLbl">รายการรวม</div><div class="kVal">${rows.length}</div><div class="kSub">ธุรกรรมทั้งหมด</div><div class="kIco">📋</div></div>
+  `;
+  document.getElementById('brkNameHead').textContent=BRK_MODE==='broker'?'ชื่อนายหน้า':'ชื่อลูกค้า';
+  const body=document.getElementById('brkTb');
+  if(!list.length){body.innerHTML='<tr><td colspan="9"><div class="empty"><div class="ei">📭</div><p>ไม่พบข้อมูล</p></div></td></tr>';document.getElementById('brkCnt').textContent='ไม่พบข้อมูล';return;}
+  document.getElementById('brkCnt').textContent=`แสดง ${list.length} รายชื่อ`;
+  body.innerHTML=list.map(([name,v],i)=>`<tr>
+    <td style="color:var(--dim)">${i+1}</td>
+    <td style="font-weight:600">${E(name)}</td>
+    <td>${v.cnt}</td>
+    <td>${N(v.mts,2)}</td>
+    <td>${v.thb?N(v.thb,0):'—'}</td>
+    <td>${v.usd?N(v.usd,0):'—'}</td>
+    <td>${v.cny?N(v.cny,0):'—'}</td>
+    <td>${[...v.cats].map(c=>CAT_ICO[c]).join(' ')}</td>
+    <td>${v.latestY||'—'}</td>
+  </tr>`).join('');
 }
 
 initAuth();
