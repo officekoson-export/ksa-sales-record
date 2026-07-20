@@ -342,6 +342,13 @@ tbody tr:hover td{background:var(--panel2);}
     </div>
     <span class="pill pill-amber" id="fcBadge"></span>
   </div>
+  <div class="sbItem" id="sn-pofin" onclick="go('pofin')">
+    <span class="ico">🏦</span>
+    <div class="lbl">PO Financing
+      <span class="sub">ภาระหนี้ SCB / TTB</span>
+    </div>
+    <span class="pill pill-green">Live</span>
+  </div>
 
   <div class="sbDiv"></div>
 
@@ -703,6 +710,47 @@ tbody tr:hover td{background:var(--panel2);}
   </div>
 </div>
 
+<!-- PO FINANCING -->
+<div class="pg" id="pg-pofin">
+  <div class="ph">
+    <div class="phL"><h2>ภาระหนี้ PO Financing · SCB / TTB</h2><div class="phS"><span class="d" style="background:var(--amber)"></span>รายการ PO ที่นำไปขึ้นเงินกับธนาคาร · ตัวเลขแยก USD/THB/CNY · ตรวจครบกำหนด + หมดอายุ 60 วัน</div></div>
+    <div class="phR"><button class="btn btn-o btn-sm" onclick="loadPoFin()">⟳ รีเฟรช</button><button class="btn btn-p btn-sm" onclick="openPoFin()">+ เพิ่มรายการภาระหนี้</button></div>
+  </div>
+  <div class="phS" style="margin:-10px 0 14px;font-weight:600;">ภาระหนี้เงินสด — แยกยอด KS AGRO บันทึก กับ ยอดธนาคารแจ้ง (ไม่รวมข้ามสกุลเงิน)</div>
+  <div class="kGrid" id="pofinKpi"></div>
+  <div class="chNote" id="pofinNote" style="display:none;"></div>
+  <div class="pTabs" id="pofinBankT">
+    <div class="pTab act" onclick="setPofinBank('all',this)">ทั้งหมด</div>
+    <div class="pTab" onclick="setPofinBank('SCB',this)">SCB</div>
+    <div class="pTab" onclick="setPofinBank('TTB',this)">TTB</div>
+    <div class="pTab" onclick="setPofinBank('อื่นๆ',this)">อื่นๆ</div>
+  </div>
+  <div class="tb" style="margin-top:12px;">
+    <div class="srchW"><input class="srch" id="pofinSr" placeholder="ค้นหา PO No. / สัญญา" oninput="rPofin()"></div>
+    <select class="sel" id="pofinStF" onchange="rPofin()">
+      <option value="">สถานะทั้งหมด</option>
+      <option value="outstanding">🔴 ลงค้าง</option>
+      <option value="pending_update">🟡 รออัพเดท</option>
+      <option value="paid">🟢 ชำระแล้ว / ปิดยอด</option>
+    </select>
+    <div class="sp"></div>
+  </div>
+  <div class="tCard">
+    <div class="tWrap">
+      <table>
+        <thead><tr>
+          <th>No.</th><th>PO No. / สัญญา</th><th>สินค้า</th><th>ธนาคาร</th>
+          <th>ตัน</th><th>ราคา (USD)</th><th>ยอด 70% ($)</th><th>ยอดภูจิง (฿)</th>
+          <th>ค้างชำระ $</th><th>ค้างชำระ ฿</th><th>ครบกำหนดตั๋ว</th><th>หมดอายุ 60 วัน</th>
+          <th>สถานะ</th><th>จัดการ</th>
+        </tr></thead>
+        <tbody id="pofinTb"><tr><td colspan="14"><div class="loading"><span class="spin"></span>กำลังโหลด...</div></td></tr></tbody>
+      </table>
+    </div>
+    <div class="tFoot"><span id="pofinCnt">—</span></div>
+  </div>
+</div>
+
 <!-- PLACEHOLDERS: รายงาน + วิเคราะห์เชิงลึก -->
 <div class="pg" id="pg-rs-es">
   <div class="ph"><div class="phL"><h2>รายงานยอดขาย — Export Starch</h2><div class="phS"><span class="d" style="background:var(--blue)"></span>ส่งออกแป้งมันสำปะหลัง · USD / CNY แยกกัน · 2021–ปัจจุบัน</div></div></div>
@@ -919,6 +967,45 @@ tbody tr:hover td{background:var(--panel2);}
   <div class="mF">
     <button class="btn btn-o" onclick="closeDom()">ยกเลิก</button>
     <button class="btn btn-p" onclick="saveDom()">💾 บันทึก</button>
+  </div>
+</div>
+</div>
+
+<!-- PO FINANCING MODAL -->
+<div class="mbg" id="mPofin">
+<div class="mc">
+  <div class="mH"><h3 id="mPofinT">เพิ่มรายการภาระหนี้ใหม่ (PO Financing)</h3><div class="ms">ฟิลด์ * จำเป็น</div></div>
+  <div class="mB">
+    <input type="hidden" id="pf_id">
+    <div class="fg">
+      <div class="fld"><label>วันที่บันทึก / อัพเดท</label><input type="date" id="pf_record_date"></div>
+      <div class="fld"><label>ธนาคาร</label><select id="pf_bank"><option value="SCB">SCB</option><option value="TTB">TTB</option><option value="อื่นๆ">อื่นๆ</option></select></div>
+      <div class="fld"><label>ประเภทรายการ</label><select id="pf_txn_type">
+        <option value="po_financing">ภาระหนี้ (PO Financing)</option>
+        <option value="lc_present">LC Present</option>
+        <option value="hold">เงิน HOLD</option>
+        <option value="deposit">เงินฝาก</option>
+        <option value="other_pending">เงินอื่นรอเข้า</option>
+        <option value="other">อื่นๆ</option>
+      </select></div>
+      <div class="fld"><label>สินค้า</label><select id="pf_product"><option value="starch">แป้งมัน</option><option value="chip">มันเส้น</option><option value="other">อื่นๆ</option></select></div>
+      <div class="fld s3"><label>PO No. / เลขที่สัญญา</label><input id="pf_po_no" placeholder="เช่น PO2026/03-001"></div>
+      <div class="fld"><label>จำนวน (ตัน)</label><input type="number" step="any" id="pf_qty_ton" oninput="calcPofin70()"></div>
+      <div class="fld"><label>ราคา/ตัน (USD)</label><input type="number" step="any" id="pf_price_usd" oninput="calcPofin70()"></div>
+      <div class="fld"><label>ยอด 70% (USD · คำนวณอัตโนมัติ)</label><input type="number" step="any" id="pf_amount_70pct_usd"></div>
+      <div class="fld"><label>ยอดภูจิง (บาท)</label><input type="number" step="any" id="pf_actual_loan_thb"></div>
+      <div class="fld"><label>ค้างชำระ (USD $)</label><input type="number" step="any" id="pf_outstanding_usd"></div>
+      <div class="fld"><label>ค้างชำระ (บาท ฿)</label><input type="number" step="any" id="pf_outstanding_thb"></div>
+      <div class="fld"><label>ค้างชำระ (หยวน CNY)</label><input type="number" step="any" id="pf_outstanding_cny"></div>
+      <div class="fld"><label>วันครบกำหนดตั๋ว</label><input type="date" id="pf_due_date" onchange="calcPofinExpiry()"></div>
+      <div class="fld"><label>หมดอายุ 60 วัน (อัตโนมัติจากวันครบกำหนด)</label><input type="date" id="pf_expire_60d"></div>
+      <div class="fld"><label>สถานะ</label><select id="pf_status"><option value="outstanding">ลงค้าง</option><option value="pending_update">รออัพเดท</option><option value="paid">ชำระแล้ว / ปิดยอด</option></select></div>
+      <div class="fld s3"><label>หมายเหตุ / รายละเอียด</label><input id="pf_remark"></div>
+    </div>
+  </div>
+  <div class="mF">
+    <button class="btn btn-o" onclick="closePofin()">ยกเลิก</button>
+    <button class="btn btn-p" onclick="savePofin()">💾 บันทึกข้อมูล</button>
   </div>
 </div>
 </div>
@@ -1259,6 +1346,7 @@ const PAGE_META={
   es:{label:'บันทึกข้อมูล',sub:'Export Starch'},
   ec:{label:'บันทึกข้อมูล',sub:'Export Chip'},
   fc:{label:'การเงิน',sub:'Forecast Income Receiving'},
+  pofin:{label:'การเงิน',sub:'PO Financing · SCB / TTB'},
   'rs-es':{label:'รายงานยอดขาย',sub:'Export Starch'},
   'rs-ec':{label:'รายงานยอดขาย',sub:'Export Chip'},
   'rs-dom':{label:'รายงานยอดขาย',sub:'Domestic Starch'},
@@ -1289,6 +1377,7 @@ function go(p){
   else if(p==='es')loadEs();
   else if(p==='ec')loadEc();
   else if(p==='fc')loadFc();
+  else if(p==='pofin')loadPoFin();
   else if(p==='dash')loadDash();
   else if(p==='txn')loadTxn();
   else if(p==='rs-es')loadRsEs();
@@ -1852,6 +1941,15 @@ function xFc(){
   a.download=`forecast_${FCT}_${new Date().toISOString().slice(0,10)}.csv`;a.click();
 }
 
+async function goForecastOverdue(cat){
+  go('fc');
+  await loadFc();
+  if(cat){FCT=cat;buildFcCT();rFcKpi();}
+  document.getElementById('fcDateFrom').value='';
+  document.getElementById('fcDateTo').value='';
+  document.getElementById('fcStF').value='overdue';
+  rFc();
+}
 // ═══════════ DASHBOARD ═══════════
 let CH={};
 function killChart(id){if(CH[id]){CH[id].destroy();delete CH[id];}}
@@ -1862,7 +1960,7 @@ Chart.defaults.plugins.legend.labels.boxWidth=11;Chart.defaults.plugins.legend.l
 async function loadDash(){
   const[{data:dom},{data:fc},{data:es},{data:ec}]=await Promise.all([
     sb.from('sales_domestic').select('year,total,qty_mts,packing_kgs,loading_date,factory1_name,factory2_name,factory3_name,factory4_name,shipping_name,survey_name,fumigation_name'),
-    sb.from('forecast_income').select('category,total,received_amount,received_date,forecast_received_date'),
+    sb.from('forecast_income').select('*'),
     sb.from('export_tapioca_starch').select('year,total,currency,qty_mts,packing_kgs,loading_date,factory1_name,factory2_name,factory3_name,factory4_name,shipping_name,survey_name,fumigation_name'),
     sb.from('export_tapioca_chip').select('year,total,currency,qty_mts,loading_date,factory1_name,factory2_name,factory3_name,factory4_name,shipping_name,survey_name,fumigation_name')
   ]);
@@ -1872,8 +1970,8 @@ async function loadDash(){
   const dT=D.reduce((s,r)=>s+(+r.total||0),0);
   const dM=D.reduce((s,r)=>s+(+r.qty_mts||0),0);
   const today=new Date();const lim=new Date();lim.setDate(lim.getDate()+21);
-  const pend=F.filter(r=>!r.received_date&&r.forecast_received_date&&new Date(r.forecast_received_date)>=today&&new Date(r.forecast_received_date)<=lim);
-  const over=F.filter(r=>!r.received_date&&r.forecast_received_date&&new Date(r.forecast_received_date)<today);
+  const pend=F.filter(r=>fcSt(r)==='pending'&&r.forecast_received_date&&new Date(r.forecast_received_date)>=today&&new Date(r.forecast_received_date)<=lim);
+  const over=F.filter(r=>fcSt(r)==='overdue');
   document.getElementById('dashKpiDom').innerHTML=`
     <div class="kCard kc-g"><div class="kLbl">ยอดขายในประเทศรวม</div><div class="kVal">${N(dT,0)}</div><div class="kSub">THB · ทุกปีรวมกัน</div><div class="kIco">🏭</div></div>
     <div class="kCard kc-g"><div class="kLbl">ปริมาณขายในประเทศ</div><div class="kVal">${N(dM,2)}</div><div class="kSub">MTS รวมทุกปี</div><div class="kIco">⚖️</div></div>
@@ -1895,9 +1993,17 @@ async function loadDash(){
     <div class="kCard kc-o"><div class="kLbl">ปริมาณขายมันเส้น</div><div class="kVal">${N(ecM,2)}</div><div class="kSub">MTS รวมทุกปี · BULK</div><div class="kIco">⚖️</div></div>
   `;
 
+  const overByCurCat={};
+  over.forEach(r=>{const k=r.currency||'THB';overByCurCat[k]=(overByCurCat[k]||0)+(+r.total||0);});
+  const overByCat={};
+  over.forEach(r=>{overByCat[r.category]=(overByCat[r.category]||0)+(+r.total||0);});
+  const topOverCat=Object.entries(overByCat).sort((a,b)=>b[1]-a[1])[0]?.[0]||'domestic';
+  const overSub=over.length
+    ?Object.entries(overByCurCat).map(([cur,amt])=>`${N(amt,0)} ${cur}`).join(' · ')+' · คลิกเพื่อดูรายการ'
+    :'ไม่มีรายการเลยกำหนด';
   document.getElementById('dashKpiFc').innerHTML=`
     <div class="kCard kc-a"><div class="kLbl">Forecast — คาดรับ 3 สัปดาห์</div><div class="kVal">${pend.length}</div><div class="kSub">รายการรอรับเงิน · ทุกหมวด</div><div class="kIco">📅</div></div>
-    <div class="kCard kc-r"><div class="kLbl">Forecast — เลยกำหนดรับ</div><div class="kVal">${over.length}</div><div class="kSub">รายการ ต้องติดตามด่วน!</div><div class="kIco">⚠️</div></div>
+    <div class="kCard kc-r" style="cursor:pointer" onclick="goForecastOverdue('${topOverCat}')" title="คลิกเพื่อดูรายการเลยกำหนดใน Forecast Income"><div class="kLbl">Forecast — เลยกำหนดรับ</div><div class="kVal">${over.length}</div><div class="kSub">${overSub}</div><div class="kIco">⚠️</div></div>
   `;
 
   const years=[...new Set([...D,...E,...C].map(r=>r.year).filter(Boolean))].sort((a,b)=>a-b);
@@ -2271,6 +2377,134 @@ function rBrk(){
     <td>${[...v.cats].map(c=>CAT_ICO[c]).join(' ')}</td>
     <td>${v.latestY||'—'}</td>
   </tr>`).join('');
+}
+
+// ═══════════ PO FINANCING (SCB / TTB) ═══════════
+let PF=[], PFBankRpt={}, PFBank='all';
+const PF_PRODUCT_LBL={starch:'แป้งมัน',chip:'มันเส้น',other:'อื่นๆ'};
+const PF_STATUS_BDG={outstanding:'<span class="bdg bdg-r">🔴 ลงค้าง</span>',pending_update:'<span class="bdg bdg-a">🟡 รออัพเดท</span>',paid:'<span class="bdg bdg-g">🟢 ชำระแล้ว / ปิดยอด</span>'};
+async function loadPoFin(){
+  document.getElementById('pofinTb').innerHTML='<tr><td colspan="14"><div class="loading"><span class="spin"></span>กำลังโหลด...</div></td></tr>';
+  const[{data:pf,error:e1},{data:br,error:e2}]=await Promise.all([
+    sb.from('po_financing').select('*').order('due_date',{ascending:true,nullsFirst:false}),
+    sb.from('po_financing_bank_report').select('*')
+  ]);
+  if(e1||e2){toast('โหลดไม่สำเร็จ: '+(e1||e2).message,true);return;}
+  PF=pf||[];
+  PFBankRpt={};(br||[]).forEach(r=>PFBankRpt[r.bank]=r);
+  rPofinKpi();rPofin();
+}
+function rPofinKpi(){
+  const thbKpi=PF.reduce((s,r)=>s+(+r.outstanding_thb||0),0);
+  const usdKpi=PF.reduce((s,r)=>s+(+r.outstanding_usd||0),0);
+  const cnyKpi=PF.reduce((s,r)=>s+(+r.outstanding_cny||0),0);
+  const scbRpt=PFBankRpt['SCB']?.reported_amount||0;
+  const diff=usdKpi-scbRpt;
+  document.getElementById('pofinKpi').innerHTML=`
+    <div class="kCard kc-g"><div class="kLbl">บาท (THB)</div><div class="kVal">${N(thbKpi,0)}</div><div class="kSub">KS AGRO บันทึก</div><div class="kIco">฿</div></div>
+    <div class="kCard kc-b">
+      <div class="kLbl">ดอลลาร์ (USD)</div><div class="kVal" style="font-size:19px;">${N(usdKpi,2)}</div><div class="kSub">KS AGRO บันทึก</div>
+      <div style="margin-top:9px;padding-top:9px;border-top:1px solid var(--border);font-size:11px;color:var(--dim);display:flex;justify-content:space-between;gap:8px;"><span>ยอดธนาคารแจ้ง (SCB)</span><span style="color:var(--text);font-weight:700;">${N(scbRpt,2)}</span></div>
+      <div style="font-size:11px;color:var(--dim);display:flex;justify-content:space-between;margin-top:4px;gap:8px;"><span>ส่วนต่าง (Diff)</span><span style="color:${Math.abs(diff)<1?'var(--dim)':diff<0?'var(--red)':'var(--green)'};font-weight:700;">${N(diff,2)}</span></div>
+      <div class="kIco">$</div>
+    </div>
+    <div class="kCard kc-p"><div class="kLbl">หยวน (CNY)</div><div class="kVal">${N(cnyKpi,0)}</div><div class="kSub">${cnyKpi?'KS AGRO บันทึก':'ไม่มียอดค้าง'}</div><div class="kIco">¥</div></div>
+  `;
+  const note=document.getElementById('pofinNote');
+  note.style.display='';
+  note.innerHTML=`⚠️ ยอดที่ KS AGRO บันทึกกับยอดธนาคารแจ้งอาจไม่ตรงกัน ใช้เป็น reference — ยอดในตารางคือยอดหลัก · <a href="javascript:void(0)" onclick="editBankReport()" style="color:var(--blue);text-decoration:underline;">✏ แก้ไขยอดธนาคารแจ้ง (SCB)</a>`;
+}
+async function editBankReport(){
+  const cur=PFBankRpt['SCB']?.reported_amount||0;
+  const v=prompt('กรอกยอดที่ธนาคาร SCB แจ้งมาล่าสุด (USD):',cur);
+  if(v===null)return;
+  const num=parseFloat(v);
+  if(isNaN(num)){toast('กรุณากรอกตัวเลข',true);return;}
+  const{error}=await sb.from('po_financing_bank_report').update({reported_amount:num,updated_by_email:U.email}).eq('bank','SCB');
+  if(error){toast('อัพเดทไม่สำเร็จ',true);return;}
+  toast('✅ อัพเดทยอดธนาคารแจ้งเรียบร้อย');loadPoFin();
+}
+function setPofinBank(b,el){PFBank=b;document.querySelectorAll('#pofinBankT .pTab').forEach(e=>e.classList.remove('act'));el.classList.add('act');rPofin();}
+function rPofin(){
+  let rows=PF;
+  if(PFBank!=='all')rows=rows.filter(r=>r.bank===PFBank);
+  const stF=document.getElementById('pofinStF').value;
+  if(stF)rows=rows.filter(r=>r.status===stF);
+  const s=(document.getElementById('pofinSr')?.value||'').toLowerCase();
+  if(s)rows=rows.filter(r=>(r.po_no||'').toLowerCase().includes(s));
+  const body=document.getElementById('pofinTb');
+  if(!rows.length){body.innerHTML='<tr><td colspan="14"><div class="empty"><div class="ei">📭</div><p>ไม่พบรายการ</p></div></td></tr>';document.getElementById('pofinCnt').textContent='ไม่พบรายการ';return;}
+  document.getElementById('pofinCnt').textContent=`แสดง ${rows.length} รายการ`;
+  const today=new Date();today.setHours(0,0,0,0);
+  body.innerHTML=rows.map((r,i)=>{
+    const overdue=r.due_date&&new Date(r.due_date)<today&&r.status!=='paid';
+    return`<tr>
+      <td style="color:var(--dim)">${i+1}</td>
+      <td style="font-weight:600">${E(r.po_no)}</td>
+      <td>${PF_PRODUCT_LBL[r.product]||r.product||'—'}</td>
+      <td><span class="bdg bdg-b">${E(r.bank)}</span></td>
+      <td>${r.qty_ton?N(r.qty_ton,0):'—'}</td>
+      <td>${r.price_usd?N(r.price_usd,0):'—'}</td>
+      <td>${r.amount_70pct_usd?N(r.amount_70pct_usd,0):'—'}</td>
+      <td>${r.actual_loan_thb?N(r.actual_loan_thb,0):'—'}</td>
+      <td style="color:${r.outstanding_usd?'var(--red)':'var(--dim)'};font-weight:${r.outstanding_usd?700:400}">${r.outstanding_usd?N(r.outstanding_usd,2):'0'}</td>
+      <td style="color:${r.outstanding_thb?'var(--red)':'var(--dim)'};font-weight:${r.outstanding_thb?700:400}">${r.outstanding_thb?N(r.outstanding_thb,0):'0'}</td>
+      <td style="color:${overdue?'var(--red)':'var(--text)'};font-weight:${overdue?700:400}">${D(r.due_date)}${overdue?' ⚠️':''}</td>
+      <td>${D(r.expire_60d)}</td>
+      <td>${PF_STATUS_BDG[r.status]||E(r.status)}</td>
+      <td><div class="ra"><button class="ib e" onclick="editPoFin('${r.id}')">✏</button><button class="ib d" onclick="delPoFin('${r.id}')">🗑</button></div></td>
+    </tr>`;
+  }).join('');
+}
+function calcPofin70(){
+  const qty=parseFloat(document.getElementById('pf_qty_ton').value);
+  const price=parseFloat(document.getElementById('pf_price_usd').value);
+  if(!isNaN(qty)&&!isNaN(price))document.getElementById('pf_amount_70pct_usd').value=R2(qty*price*0.7);
+}
+function calcPofinExpiry(){
+  const d=document.getElementById('pf_due_date').value;
+  if(!d)return;
+  const dt=new Date(d);dt.setDate(dt.getDate()+60);
+  document.getElementById('pf_expire_60d').value=dt.toISOString().slice(0,10);
+}
+const PF_FIELDS=['record_date','bank','txn_type','product','po_no','qty_ton','price_usd','amount_70pct_usd','actual_loan_thb','outstanding_usd','outstanding_thb','outstanding_cny','due_date','expire_60d','status','remark'];
+const PF_NUM=['qty_ton','price_usd','amount_70pct_usd','actual_loan_thb','outstanding_usd','outstanding_thb','outstanding_cny'];
+function openPoFin(){
+  document.getElementById('mPofinT').textContent='เพิ่มรายการภาระหนี้ใหม่ (PO Financing)';
+  document.getElementById('pf_id').value='';
+  PF_FIELDS.forEach(f=>{const el=document.getElementById('pf_'+f);if(el)el.value='';});
+  document.getElementById('pf_record_date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('pf_bank').value='SCB';
+  document.getElementById('pf_txn_type').value='po_financing';
+  document.getElementById('pf_product').value='starch';
+  document.getElementById('pf_status').value='outstanding';
+  document.getElementById('mPofin').classList.add('show');
+}
+function closePofin(){document.getElementById('mPofin').classList.remove('show');}
+function editPoFin(id){
+  const r=PF.find(x=>x.id===id);if(!r)return;
+  document.getElementById('mPofinT').textContent='แก้ไขรายการภาระหนี้ (PO Financing)';
+  document.getElementById('pf_id').value=r.id;
+  PF_FIELDS.forEach(f=>{const el=document.getElementById('pf_'+f);if(el)el.value=(PF_NUM.includes(f)?R2(r[f]):r[f])??'';});
+  document.getElementById('mPofin').classList.add('show');
+}
+async function savePofin(){
+  const id=document.getElementById('pf_id').value;
+  if(!document.getElementById('pf_po_no').value.trim()){toast('กรุณากรอก PO No. / เลขที่สัญญา',true);return;}
+  const p={};
+  PF_FIELDS.forEach(f=>{const el=document.getElementById('pf_'+f);if(!el)return;let v=el.value===''?null:el.value;if(PF_NUM.includes(f)&&v!==null)v=R2(parseFloat(v));p[f]=v;});
+  p.updated_by=U.id;p.updated_by_email=U.email;
+  let err;
+  if(id){({error:err}=await sb.from('po_financing').update(p).eq('id',id));}
+  else{p.created_by=U.id;p.created_by_email=U.email;({error:err}=await sb.from('po_financing').insert(p));}
+  if(err){toast('บันทึกไม่สำเร็จ: '+err.message,true);return;}
+  toast('✅ บันทึกเรียบร้อย');closePofin();loadPoFin();
+}
+async function delPoFin(id){
+  if(!confirm('ยืนยันลบรายการนี้? ไม่สามารถย้อนกลับได้'))return;
+  const{error}=await sb.from('po_financing').delete().eq('id',id);
+  if(error){toast('ลบไม่สำเร็จ',true);return;}
+  toast('ลบรายการเรียบร้อย');loadPoFin();
 }
 
 initAuth();
