@@ -308,6 +308,13 @@ tbody tr:hover td{background:var(--panel2);}
       <span class="sub">ภาพรวมทั้งหมด</span>
     </div>
   </div>
+  <div class="sbItem" id="sn-monthly" onclick="go('monthly')">
+    <span class="ico">📅</span>
+    <div class="lbl">Monthly Breakdown
+      <span class="sub">ยอดขายรายเดือน/ไตรมาส</span>
+    </div>
+    <span class="pill pill-green">Live</span>
+  </div>
 
   <!-- บันทึกข้อมูลการขาย -->
   <div class="sbGrp">บันทึกข้อมูลการขาย</div>
@@ -378,19 +385,12 @@ tbody tr:hover td{background:var(--panel2);}
 
   <!-- วิเคราะห์เชิงลึก -->
   <div class="sbGrp">วิเคราะห์เชิงลึก</div>
-  <div class="sbItem" id="sn-monthly" onclick="go('monthly')">
-    <span class="ico">📅</span>
-    <div class="lbl">Monthly Breakdown
-      <span class="sub">ยอดขายรายเดือน/ไตรมาส</span>
-    </div>
-    <span class="pill pill-dim">Soon</span>
-  </div>
   <div class="sbItem" id="sn-packing" onclick="go('packing')">
     <span class="ico">📦</span>
     <div class="lbl">Packing Analysis
       <span class="sub">สัดส่วน 25/50/850 kgs · BULK</span>
     </div>
-    <span class="pill pill-dim">Soon</span>
+    <span class="pill pill-green">Live</span>
   </div>
   <div class="sbItem" id="sn-brokers" onclick="go('brokers')">
     <span class="ico">🤝</span>
@@ -411,14 +411,14 @@ tbody tr:hover td{background:var(--panel2);}
     <div class="lbl">Currency: USD/CNY/THB
       <span class="sub">แยกสกุลเงิน ไม่รวมข้ามกัน</span>
     </div>
-    <span class="pill pill-dim">Soon</span>
+    <span class="pill pill-green">Live</span>
   </div>
   <div class="sbItem" id="sn-stock" onclick="go('stock')">
     <span class="ico">🗄</span>
     <div class="lbl">Stock สินค้า
       <span class="sub">คงเหลือ · มูลค่าสต๊อก</span>
     </div>
-    <span class="pill pill-dim">Soon</span>
+    <span class="pill pill-green">Live</span>
   </div>
 
   <div class="sbUser">
@@ -791,8 +791,50 @@ tbody tr:hover td{background:var(--panel2);}
     <div class="chCard"><h4>🏆 Top ลูกค้า</h4><div class="chSub">เรียงตามปริมาณ MTS รวม</div><ul class="rankList" id="rsDomTop"></ul></div>
   </div>
 </div>
-<div class="pg" id="pg-monthly"><div class="ph"><div class="phL"><h2>Monthly Breakdown</h2></div></div><div class="comingSoon"><div class="ci">📅</div><h3>Monthly &amp; Quarterly Breakdown</h3><p>ยอดขายรายเดือน · เปรียบเทียบรายไตรมาส · ทุกหมวดสินค้า · Phase 5<br>ใช้ CFS Loading Date เป็นตัวแบ่งไตรมาส</p></div></div>
-<div class="pg" id="pg-packing"><div class="ph"><div class="phL"><h2>Packing Analysis</h2></div></div><div class="comingSoon"><div class="ci">📦</div><h3>สัดส่วนขนาดบรรจุภัณฑ์</h3><p>Export Starch: 25 / 50 / 850 kgs · Domestic: 25 / 30 / 50 / 850 kgs · Export Chip: BULK<br>Pie chart + ตารางสัดส่วนปริมาณ MTS ต่อขนาดบรรจุ · แยกรายปีได้ · Phase 5</p></div></div>
+<div class="pg" id="pg-monthly">
+  <div class="ph"><div class="phL"><h2>Monthly Breakdown</h2><div class="phS"><span class="d" style="background:var(--amber)"></span>ยอดขายรายเดือน/ไตรมาส · ทุกหมวดสินค้า · อิงวันที่โหลดสินค้า (Loading Date)</div></div></div>
+  <div class="yPills" id="mbYP"></div>
+  <div class="kGrid" id="mbKpi"></div>
+  <div class="chGrid">
+    <div class="chCard"><h4>📊 ปริมาณขายรายเดือน (MTS)</h4><div class="chSub">แยกหมวด Domestic / Export Starch / Export Chip</div><div class="chWrap"><canvas id="mbVolChart"></canvas></div></div>
+    <div class="chCard"><h4>📅 เปรียบเทียบรายไตรมาส (MTS)</h4><div class="chSub" id="mbQtrSub">—</div><div class="chWrap"><canvas id="mbQtrChart"></canvas></div></div>
+  </div>
+  <div class="chGrid3">
+    <div class="chCard"><h4>💵 ยอดขายรายเดือน — THB</h4><div class="chSub">Domestic Starch</div><div class="chWrap"><canvas id="mbThbChart"></canvas></div></div>
+    <div class="chCard"><h4>💵 ยอดขายรายเดือน — USD</h4><div class="chSub">Export Starch + Export Chip</div><div class="chWrap"><canvas id="mbUsdChart"></canvas></div></div>
+    <div class="chCard"><h4>💴 ยอดขายรายเดือน — CNY</h4><div class="chSub">Export Starch เท่านั้น</div><div class="chWrap"><canvas id="mbCnyChart"></canvas></div></div>
+  </div>
+  <div class="tCard">
+    <div class="tWrap">
+      <table>
+        <thead><tr>
+          <th>เดือน</th><th>MTS Domestic</th><th>MTS Export Starch</th><th>MTS Export Chip</th><th>MTS รวม</th>
+          <th>THB</th><th>USD</th><th>CNY</th>
+        </tr></thead>
+        <tbody id="mbTb"><tr><td colspan="8"><div class="loading"><span class="spin"></span>กำลังโหลดข้อมูล...</div></td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<div class="pg" id="pg-packing">
+  <div class="ph"><div class="phL"><h2>Packing Analysis</h2><div class="phS"><span class="d" style="background:var(--purple)"></span>สัดส่วนขนาดบรรจุภัณฑ์ · Export Starch 25/50/850 kgs · Domestic 25/30/50/850 kgs · Export Chip BULK</div></div></div>
+  <div class="yPills" id="pkYP"></div>
+  <div class="kGrid" id="pkKpi"></div>
+  <div class="chGrid2">
+    <div class="chCard"><h4>🏠 สัดส่วนขนาดบรรจุ — Domestic</h4><div class="chSub">หน่วย MTS</div><div class="chWrap"><canvas id="pkDomChart"></canvas></div></div>
+    <div class="chCard"><h4>🚢 สัดส่วนขนาดบรรจุ — Export Starch</h4><div class="chSub">หน่วย MTS</div><div class="chWrap"><canvas id="pkEsChart"></canvas></div></div>
+  </div>
+  <div class="tCard">
+    <div class="tWrap">
+      <table>
+        <thead><tr>
+          <th>หมวด</th><th>ขนาดบรรจุ</th><th>MTS</th><th>สัดส่วน</th>
+        </tr></thead>
+        <tbody id="pkTb"><tr><td colspan="4"><div class="loading"><span class="spin"></span>กำลังโหลดข้อมูล...</div></td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
 <div class="pg" id="pg-brokers">
   <div class="ph">
     <div class="phL"><h2>Brokers &amp; Buyers</h2><div class="phS"><span class="d" style="background:var(--amber)"></span>อันดับนายหน้า/ลูกค้า · รวมทุกหมวดสินค้า · แยกมูลค่าตามสกุลเงินเสมอ</div></div>
@@ -869,8 +911,70 @@ tbody tr:hover td{background:var(--panel2);}
 </div>
 
 <!-- EXPORT CHIP -->
-<div class="pg" id="pg-currency"><div class="ph"><div class="phL"><h2>Currency: USD / CNY / THB</h2></div></div><div class="comingSoon"><div class="ci">💱</div><h3>วิเคราะห์ตามสกุลเงิน</h3><p>ยอดขาย USD แยกจาก CNY แยกจาก THB — ไม่รวมข้ามสกุลเงิน<br>Export Starch: USD + CNY (ปี 2023 เป็นต้นมามี CNY เพิ่มขึ้น) · Phase 5</p></div></div>
-<div class="pg" id="pg-stock"><div class="ph"><div class="phL"><h2>Stock สินค้า</h2></div></div><div class="comingSoon"><div class="ci">🗄</div><h3>สินค้าคงเหลือ &amp; มูลค่าสต๊อก</h3><p>สต๊อกแป้งมันสำปะหลัง (ตัน) · สต๊อกมันเส้น (ตัน) · มูลค่าสต๊อกรวม · Phase 5</p></div></div>
+<div class="pg" id="pg-currency">
+  <div class="ph"><div class="phL"><h2>Currency: USD / CNY / THB</h2><div class="phS"><span class="d" style="background:var(--cyan)"></span>ยอดขายแยกตามสกุลเงิน · ไม่รวมข้ามสกุลเงิน</div></div></div>
+  <div class="yPills" id="curYP"></div>
+  <div class="kGrid" id="curKpi"></div>
+  <div class="chGrid2">
+    <div class="chCard"><h4>💱 สัดส่วนปริมาณตามสกุลเงิน</h4><div class="chSub">หน่วย MTS · ทุกหมวดรวมกัน</div><div class="chWrap"><canvas id="curMixChart"></canvas></div></div>
+    <div class="chCard"><h4>🌾 Export Starch — USD vs CNY รายปี</h4><div class="chSub">แกนซ้าย USD · แกนขวา CNY · สังเกตแนวโน้ม CNY ตั้งแต่ปี 2023</div><div class="chWrap"><canvas id="curEsChart"></canvas></div></div>
+  </div>
+  <div class="chGrid2">
+    <div class="chCard"><h4>📈 อัตราแลกเปลี่ยนเฉลี่ยรายปี</h4><div class="chSub">เฉลี่ยจากฟิลด์ Exchange Rate ของแต่ละสัญญา</div><div class="chWrap"><canvas id="curFxChart"></canvas></div></div>
+    <div class="chCard"><h4>🏆 ลูกค้าที่ซื้อด้วย CNY มากที่สุด</h4><div class="chSub">เรียงตามปริมาณ MTS รวม</div><ul class="rankList" id="curCnyTop"></ul></div>
+  </div>
+  <div class="tCard">
+    <div class="tWrap">
+      <table>
+        <thead><tr>
+          <th>ปี</th><th>THB (Domestic)</th><th>USD (Export)</th><th>CNY (Export Starch)</th>
+          <th>% CNY ใน Export Starch</th><th>Rate เฉลี่ย USD</th><th>Rate เฉลี่ย CNY</th>
+        </tr></thead>
+        <tbody id="curTb"><tr><td colspan="7"><div class="loading"><span class="spin"></span>กำลังโหลดข้อมูล...</div></td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<div class="pg" id="pg-stock">
+  <div class="ph">
+    <div class="phL"><h2>Stock สินค้า</h2><div class="phS"><span class="d" style="background:var(--cyan)"></span>สินค้าคงเหลือ · มูลค่าสต๊อก · หน่วย MTS / USD</div></div>
+    <div class="phR"><button class="btn btn-o btn-sm" onclick="loadStock()">⟳ รีเฟรช</button><button class="btn btn-p btn-sm gate-write" onclick="openStock()">＋ เพิ่มรายการสต๊อค</button></div>
+  </div>
+  <div class="kGrid" id="stockKpi"></div>
+
+  <div class="chGrid2">
+    <div class="chCard">
+      <h4>📦 รายละเอียดสต๊อค</h4><div class="chSub">รายการที่นำมาคำนวณมูลค่าสต๊อครวม</div>
+      <div class="tWrap">
+        <table>
+          <thead><tr><th>STOCK</th><th>QTY MTS</th><th>PRICE</th><th>AMOUNT</th></tr></thead>
+          <tbody id="stockIncTb"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="chCard">
+      <h4>📦 รายละเอียดสต๊อคที่ไม่ได้นำมาคำนวณ</h4><div class="chSub">รายการที่ไม่รวมในมูลค่าสต๊อครวม</div>
+      <div class="tWrap">
+        <table>
+          <thead><tr><th>STOCK</th><th>QTY</th><th>PRICE</th><th>AMOUNT</th></tr></thead>
+          <tbody id="stockExcTb"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="tCard">
+    <div class="tWrap">
+      <table>
+        <thead><tr>
+          <th>ณ วันที่</th><th>หมวดสินค้า</th><th>QTY MTS</th><th>ราคา (USD/MTS)</th><th>Amount (USD)</th>
+          <th>นำมาคำนวณ</th><th>หมายเหตุ</th><th>จัดการ</th>
+        </tr></thead>
+        <tbody id="stockTb"><tr><td colspan="8"><div class="loading"><span class="spin"></span>กำลังโหลดข้อมูล...</div></td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
 </div><!-- /main -->
 </div><!-- /shell -->
@@ -1298,6 +1402,35 @@ tbody tr:hover td{background:var(--panel2);}
 </div>
 </div>
 
+<!-- STOCK MODAL -->
+<div class="mbg" id="mStock">
+<div class="mc">
+  <div class="mH"><h3 id="mStockT">เพิ่มรายการสต๊อค</h3><div class="ms">หน่วย MTS / USD · ฟิลด์ * จำเป็น</div></div>
+  <div class="mB">
+    <input type="hidden" id="s_id">
+    <div class="sLbl">ข้อมูลสต๊อค</div>
+    <div class="fg">
+      <div class="fld"><label>หมวดสินค้า *</label><select id="s_category" onchange="toggleStockOther()">
+        <option value="starch">แป้งมันสำปะหลัง</option>
+        <option value="chip">มันเส้น</option>
+        <option value="other">อื่นๆ (ระบุ)</option>
+      </select></div>
+      <div class="fld" id="s_other_wrap" style="display:none"><label>ระบุชื่อสินค้า *</label><input id="s_category_other" placeholder="เช่น กากมัน, แป้งมันดัดแปร"></div>
+      <div class="fld"><label>QTY MTS *</label><input type="number" step="any" id="s_qty_mts" oninput="calcStockAmount()"></div>
+      <div class="fld"><label>ราคา (USD/MTS) *</label><input type="number" step="any" id="s_price_usd" oninput="calcStockAmount()"></div>
+      <div class="fld"><label>Amount (USD)</label><input type="number" step="any" id="s_amount" readonly style="opacity:.7"></div>
+      <div class="fld"><label>ณ วันที่</label><input type="date" id="s_record_date"></div>
+      <div class="fld"><label>นำมาคำนวณมูลค่าสต๊อครวม?</label><select id="s_included"><option value="true">✅ นำมาคำนวณ</option><option value="false">🚫 ไม่นำมาคำนวณ</option></select></div>
+      <div class="fld s3"><label>หมายเหตุ</label><input id="s_remark" placeholder="เช่น ตรวจนับ ณ คลังสินค้า"></div>
+    </div>
+  </div>
+  <div class="mF">
+    <button class="btn btn-o" onclick="closeStock()">ยกเลิก</button>
+    <button class="btn btn-p" onclick="saveStock()">💾 บันทึก</button>
+  </div>
+</div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1382,7 +1515,7 @@ const PAGE_META={
   'rs-es':{label:'รายงานยอดขาย',sub:'Export Starch'},
   'rs-ec':{label:'รายงานยอดขาย',sub:'Export Chip'},
   'rs-dom':{label:'รายงานยอดขาย',sub:'Domestic Starch'},
-  monthly:{label:'วิเคราะห์เชิงลึก',sub:'Monthly Breakdown'},
+  monthly:{label:'ภาพรวม',sub:'Monthly Breakdown'},
   packing:{label:'วิเคราะห์เชิงลึก',sub:'Packing Analysis'},
   brokers:{label:'วิเคราะห์เชิงลึก',sub:'Brokers & Buyers'},
   txn:{label:'วิเคราะห์เชิงลึก',sub:'Transaction Detail'},
@@ -1420,6 +1553,10 @@ function go(p){
   else if(p==='rs-ec')loadRsEc();
   else if(p==='rs-dom')loadRsDom();
   else if(p==='brokers')loadBrk();
+  else if(p==='monthly')loadMb();
+  else if(p==='packing')loadPk();
+  else if(p==='currency')loadCur();
+  else if(p==='stock')loadStock();
 }
 
 // ─── HELPERS ───
@@ -2346,6 +2483,341 @@ function rRsDom(){
   killChart('rsDomQtr');
   CH.rsDomQtr=new Chart(document.getElementById('rsDomQtrChart'),{type:'bar',data:{labels:['Q1','Q2','Q3','Q4'],datasets:[{label:'MTS',data:qMts,backgroundColor:CHCOLORS.thb,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:'#1e2d42'}}}}});
   renderTopList('rsDomTop',topByVolume(scoped,'applicant_name'));
+}
+
+// ═══════════ MONTHLY BREAKDOWN ═══════════
+let MB_Y=null;
+const MB_MONTHS=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const mOf=dt=>{if(!dt)return null;return new Date(dt).getMonth();};
+async function loadMb(){
+  document.getElementById('mbTb').innerHTML='<tr><td colspan="8"><div class="loading"><span class="spin"></span>กำลังโหลดข้อมูล...</div></td></tr>';
+  const[{data:dom,error:e1},{data:es,error:e2},{data:ec,error:e3}]=await Promise.all([
+    fetchAllRows('sales_domestic'),
+    fetchAllRows('export_tapioca_starch'),
+    fetchAllRows('export_tapioca_chip')
+  ]);
+  if(e1||e2||e3){toast('โหลดไม่สำเร็จ: '+(e1||e2||e3).message,true);return;}
+  window.__mbDom=dom||[];window.__mbEs=es||[];window.__mbEc=ec||[];
+  const years=[...new Set([...window.__mbDom,...window.__mbEs,...window.__mbEc].map(r=>r.year).filter(Boolean))].sort((a,b)=>a-b);
+  if(!MB_Y||!years.map(String).includes(String(MB_Y)))MB_Y=years[years.length-1];
+  buildMbYP(years);
+  rMb();
+}
+function buildMbYP(years){
+  const w=document.getElementById('mbYP');
+  w.innerHTML='';
+  years.forEach(y=>{
+    const d=document.createElement('div');
+    d.className='yPill'+(String(MB_Y)===String(y)?' act':'');
+    d.textContent=y;
+    d.onclick=function(){MB_Y=y;w.querySelectorAll('.yPill').forEach(e=>e.classList.remove('act'));this.classList.add('act');rMb();};
+    w.appendChild(d);
+  });
+}
+function rMb(){
+  const D=window.__mbDom.filter(r=>String(r.year)===String(MB_Y));
+  const E=window.__mbEs.filter(r=>String(r.year)===String(MB_Y));
+  const C=window.__mbEc.filter(r=>String(r.year)===String(MB_Y));
+
+  const mtsDom=Array(12).fill(0),mtsEs=Array(12).fill(0),mtsEc=Array(12).fill(0);
+  const thbM=Array(12).fill(0),usdM=Array(12).fill(0),cnyM=Array(12).fill(0);
+  D.forEach(r=>{const m=mOf(r.loading_date);if(m==null)return;mtsDom[m]+=(+r.qty_mts||0);thbM[m]+=(+r.total||0);});
+  E.forEach(r=>{const m=mOf(r.loading_date);if(m==null)return;mtsEs[m]+=(+r.qty_mts||0);if(r.currency==='USD')usdM[m]+=(+r.total||0);else if(r.currency==='CNY')cnyM[m]+=(+r.total||0);});
+  C.forEach(r=>{const m=mOf(r.loading_date);if(m==null)return;mtsEc[m]+=(+r.qty_mts||0);if(r.currency==='USD')usdM[m]+=(+r.total||0);});
+
+  const totMts=mtsDom.reduce((a,b)=>a+b,0)+mtsEs.reduce((a,b)=>a+b,0)+mtsEc.reduce((a,b)=>a+b,0);
+  const totThb=thbM.reduce((a,b)=>a+b,0),totUsd=usdM.reduce((a,b)=>a+b,0),totCny=cnyM.reduce((a,b)=>a+b,0);
+  document.getElementById('mbKpi').innerHTML=`
+    <div class="kCard kc-g"><div class="kLbl">ปริมาณรวมทั้งปี</div><div class="kVal">${N(totMts,2)}</div><div class="kSub">MTS · ${MB_Y}</div><div class="kIco">⚖️</div></div>
+    <div class="kCard kc-g"><div class="kLbl">ยอดขาย THB</div><div class="kVal">${N(totThb,0)}</div><div class="kSub">Domestic · ${MB_Y}</div><div class="kIco">💵</div></div>
+    <div class="kCard kc-b"><div class="kLbl">ยอดขาย USD</div><div class="kVal">${N(totUsd,0)}</div><div class="kSub">Export Starch + Chip · ${MB_Y}</div><div class="kIco">💵</div></div>
+    <div class="kCard kc-p"><div class="kLbl">ยอดขาย CNY</div><div class="kVal">${N(totCny,0)}</div><div class="kSub">Export Starch · ${MB_Y}</div><div class="kIco">💴</div></div>
+  `;
+
+  killChart('mbVol');
+  CH.mbVol=new Chart(document.getElementById('mbVolChart'),{type:'bar',data:{labels:MB_MONTHS,datasets:[
+    {label:'Domestic',data:mtsDom,backgroundColor:CHCOLORS.thb},
+    {label:'Export Starch',data:mtsEs,backgroundColor:CHCOLORS.usd},
+    {label:'Export Chip',data:mtsEc,backgroundColor:CHCOLORS.orange}
+  ]},options:{responsive:true,maintainAspectRatio:false,scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:'#1e2d42'}}},plugins:{legend:{position:'bottom'}}}});
+
+  document.getElementById('mbQtrSub').textContent=`ปี ${MB_Y} · อิงวันที่โหลดสินค้า (Loading Date)`;
+  const qOf=m=>Math.floor(m/3);
+  const qVol={dom:[0,0,0,0],es:[0,0,0,0],ec:[0,0,0,0]};
+  mtsDom.forEach((v,m)=>qVol.dom[qOf(m)]+=v);
+  mtsEs.forEach((v,m)=>qVol.es[qOf(m)]+=v);
+  mtsEc.forEach((v,m)=>qVol.ec[qOf(m)]+=v);
+  killChart('mbQtr');
+  CH.mbQtr=new Chart(document.getElementById('mbQtrChart'),{type:'bar',data:{labels:['Q1','Q2','Q3','Q4'],datasets:[
+    {label:'Domestic',data:qVol.dom,backgroundColor:CHCOLORS.thb},
+    {label:'Export Starch',data:qVol.es,backgroundColor:CHCOLORS.usd},
+    {label:'Export Chip',data:qVol.ec,backgroundColor:CHCOLORS.orange}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:'#1e2d42'}}}}});
+
+  killChart('mbThb');
+  CH.mbThb=new Chart(document.getElementById('mbThbChart'),{type:'line',data:{labels:MB_MONTHS,datasets:[{label:'THB',data:thbM,borderColor:CHCOLORS.thb,backgroundColor:CHCOLORS.thb+'33',tension:.3,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:'#1e2d42'}}}}});
+  killChart('mbUsd');
+  CH.mbUsd=new Chart(document.getElementById('mbUsdChart'),{type:'line',data:{labels:MB_MONTHS,datasets:[{label:'USD',data:usdM,borderColor:CHCOLORS.usd,backgroundColor:CHCOLORS.usd+'33',tension:.3,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:'#1e2d42'}}}}});
+  killChart('mbCny');
+  CH.mbCny=new Chart(document.getElementById('mbCnyChart'),{type:'line',data:{labels:MB_MONTHS,datasets:[{label:'CNY',data:cnyM,borderColor:CHCOLORS.cny,backgroundColor:CHCOLORS.cny+'33',tension:.3,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:'#1e2d42'}}}}});
+
+  document.getElementById('mbTb').innerHTML=MB_MONTHS.map((mLbl,m)=>{
+    const tot=mtsDom[m]+mtsEs[m]+mtsEc[m];
+    if(!tot&&!thbM[m]&&!usdM[m]&&!cnyM[m])return `<tr style="opacity:.4"><td>${mLbl}</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>`;
+    return `<tr><td>${mLbl}</td><td>${N(mtsDom[m],2)}</td><td>${N(mtsEs[m],2)}</td><td>${N(mtsEc[m],2)}</td><td><b>${N(tot,2)}</b></td><td>${N(thbM[m],0)}</td><td>${N(usdM[m],0)}</td><td>${N(cnyM[m],0)}</td></tr>`;
+  }).join('')+`<tr style="font-weight:700;border-top:2px solid var(--border2)"><td>รวมทั้งปี</td><td>${N(mtsDom.reduce((a,b)=>a+b,0),2)}</td><td>${N(mtsEs.reduce((a,b)=>a+b,0),2)}</td><td>${N(mtsEc.reduce((a,b)=>a+b,0),2)}</td><td>${N(totMts,2)}</td><td>${N(totThb,0)}</td><td>${N(totUsd,0)}</td><td>${N(totCny,0)}</td></tr>`;
+}
+
+// ═══════════ PACKING ANALYSIS ═══════════
+let PK_Y='all';
+const PK_COLORS=[CHCOLORS.thb,CHCOLORS.usd,CHCOLORS.amber,CHCOLORS.cny,CHCOLORS.orange,CHCOLORS.cyan,CHCOLORS.dim];
+function pkKey(v){return (v||'อื่นๆ').toString().replace(/[^0-9A-Zก-๙]/gi,'')||'อื่นๆ';}
+function pkGroup(rows){
+  const m={};
+  rows.forEach(r=>{const k=pkKey(r.packing_kgs);m[k]=(m[k]||0)+(+r.qty_mts||0);});
+  return Object.entries(m).sort((a,b)=>b[1]-a[1]);
+}
+async function loadPk(){
+  document.getElementById('pkTb').innerHTML='<tr><td colspan="4"><div class="loading"><span class="spin"></span>กำลังโหลดข้อมูล...</div></td></tr>';
+  const[{data:dom,error:e1},{data:es,error:e2},{data:ec,error:e3}]=await Promise.all([
+    fetchAllRows('sales_domestic'),
+    fetchAllRows('export_tapioca_starch'),
+    fetchAllRows('export_tapioca_chip')
+  ]);
+  if(e1||e2||e3){toast('โหลดไม่สำเร็จ: '+(e1||e2||e3).message,true);return;}
+  window.__pkDom=dom||[];window.__pkEs=es||[];window.__pkEc=ec||[];
+  const years=[...new Set([...window.__pkDom,...window.__pkEs,...window.__pkEc].map(r=>r.year).filter(Boolean))].sort((a,b)=>a-b);
+  buildPkYP(years);
+  rPk();
+}
+function buildPkYP(years){
+  const w=document.getElementById('pkYP');
+  w.innerHTML=`<div class="yPill ${PK_Y==='all'?'act':''}" onclick="setPkY('all',this)">ทุกปี</div>`;
+  years.forEach(y=>{const d=document.createElement('div');d.className='yPill'+(String(PK_Y)===String(y)?' act':'');d.textContent=y;d.onclick=function(){setPkY(y,this);};w.appendChild(d);});
+}
+function setPkY(y,el){PK_Y=y;el.parentElement.querySelectorAll('.yPill').forEach(e=>e.classList.remove('act'));el.classList.add('act');rPk();}
+function rPk(){
+  const scope=arr=>PK_Y==='all'?arr:arr.filter(r=>String(r.year)===String(PK_Y));
+  const D=scope(window.__pkDom),E=scope(window.__pkEs),C=scope(window.__pkEc);
+  const domMts=D.reduce((s,r)=>s+(+r.qty_mts||0),0);
+  const esMts=E.reduce((s,r)=>s+(+r.qty_mts||0),0);
+  const ecMts=C.reduce((s,r)=>s+(+r.qty_mts||0),0);
+  document.getElementById('pkKpi').innerHTML=`
+    <div class="kCard kc-g"><div class="kLbl">Domestic</div><div class="kVal">${N(domMts,2)}</div><div class="kSub">MTS รวม · ${PK_Y==='all'?'ทุกปี':PK_Y}</div><div class="kIco">🏠</div></div>
+    <div class="kCard kc-b"><div class="kLbl">Export Starch</div><div class="kVal">${N(esMts,2)}</div><div class="kSub">MTS รวม · ${PK_Y==='all'?'ทุกปี':PK_Y}</div><div class="kIco">🚢</div></div>
+    <div class="kCard kc-o"><div class="kLbl">Export Chip</div><div class="kVal">${N(ecMts,2)}</div><div class="kSub">100% BULK · ${PK_Y==='all'?'ทุกปี':PK_Y}</div><div class="kIco">📦</div></div>
+  `;
+
+  const domG=pkGroup(D),esG=pkGroup(E);
+  killChart('pkDom');
+  CH.pkDom=new Chart(document.getElementById('pkDomChart'),{type:'doughnut',data:{labels:domG.map(([k])=>k+' kgs'),datasets:[{data:domG.map(([,v])=>v),backgroundColor:PK_COLORS,borderColor:'#131c2b',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}});
+  killChart('pkEs');
+  CH.pkEs=new Chart(document.getElementById('pkEsChart'),{type:'doughnut',data:{labels:esG.map(([k])=>k+' kgs'),datasets:[{data:esG.map(([,v])=>v),backgroundColor:PK_COLORS,borderColor:'#131c2b',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}});
+
+  const rows=[];
+  domG.forEach(([k,v])=>rows.push({cat:'Domestic',pk:k+' kgs',mts:v,pct:domMts?v/domMts*100:0}));
+  esG.forEach(([k,v])=>rows.push({cat:'Export Starch',pk:k+' kgs',mts:v,pct:esMts?v/esMts*100:0}));
+  if(ecMts)rows.push({cat:'Export Chip',pk:'BULK',mts:ecMts,pct:100});
+  document.getElementById('pkTb').innerHTML=rows.length?rows.map(r=>`<tr><td>${r.cat}</td><td>${r.pk}</td><td>${N(r.mts,2)}</td><td>${N(r.pct,1)}%</td></tr>`).join(''):'<tr><td colspan="4" style="color:var(--dim);text-align:center">ไม่มีข้อมูล</td></tr>';
+}
+
+// ═══════════ CURRENCY ANALYSIS ═══════════
+let CUR_Y='all';
+async function loadCur(){
+  document.getElementById('curTb').innerHTML='<tr><td colspan="7"><div class="loading"><span class="spin"></span>กำลังโหลดข้อมูล...</div></td></tr>';
+  const[{data:dom,error:e1},{data:es,error:e2},{data:ec,error:e3}]=await Promise.all([
+    fetchAllRows('sales_domestic'),
+    fetchAllRows('export_tapioca_starch'),
+    fetchAllRows('export_tapioca_chip')
+  ]);
+  if(e1||e2||e3){toast('โหลดไม่สำเร็จ: '+(e1||e2||e3).message,true);return;}
+  window.__curDom=dom||[];window.__curEs=es||[];window.__curEc=ec||[];
+  const years=[...new Set([...window.__curDom,...window.__curEs,...window.__curEc].map(r=>r.year).filter(Boolean))].sort((a,b)=>a-b);
+  buildCurYP(years);
+  rCur();
+}
+function buildCurYP(years){
+  const w=document.getElementById('curYP');
+  w.innerHTML=`<div class="yPill ${CUR_Y==='all'?'act':''}" onclick="setCurY('all',this)">ทุกปี</div>`;
+  years.forEach(y=>{const d=document.createElement('div');d.className='yPill'+(String(CUR_Y)===String(y)?' act':'');d.textContent=y;d.onclick=function(){setCurY(y,this);};w.appendChild(d);});
+}
+function setCurY(y,el){CUR_Y=y;el.parentElement.querySelectorAll('.yPill').forEach(e=>e.classList.remove('act'));el.classList.add('act');rCur();}
+function avg(arr){const v=arr.filter(n=>n!=null&&!isNaN(n)&&n>0);return v.length?v.reduce((a,b)=>a+b,0)/v.length:null;}
+function rCur(){
+  const scope=arr=>CUR_Y==='all'?arr:arr.filter(r=>String(r.year)===String(CUR_Y));
+  const D=scope(window.__curDom),E=scope(window.__curEs),C=scope(window.__curEc);
+
+  const thbT=D.reduce((s,r)=>s+(+r.total||0),0);
+  const usdT=E.filter(r=>r.currency==='USD').reduce((s,r)=>s+(+r.total||0),0)+C.filter(r=>r.currency==='USD').reduce((s,r)=>s+(+r.total||0),0);
+  const cnyT=E.filter(r=>r.currency==='CNY').reduce((s,r)=>s+(+r.total||0),0);
+  const esUsdT=E.filter(r=>r.currency==='USD').reduce((s,r)=>s+(+r.total||0),0);
+  const cnyShare=(esUsdT+cnyT)?cnyT/(esUsdT+cnyT)*100:0;
+  document.getElementById('curKpi').innerHTML=`
+    <div class="kCard kc-g"><div class="kLbl">ยอดขาย THB</div><div class="kVal">${N(thbT,0)}</div><div class="kSub">Domestic · ${CUR_Y==='all'?'ทุกปี':CUR_Y}</div><div class="kIco">💵</div></div>
+    <div class="kCard kc-b"><div class="kLbl">ยอดขาย USD</div><div class="kVal">${N(usdT,0)}</div><div class="kSub">Export Starch + Chip · ${CUR_Y==='all'?'ทุกปี':CUR_Y}</div><div class="kIco">💵</div></div>
+    <div class="kCard kc-p"><div class="kLbl">ยอดขาย CNY</div><div class="kVal">${N(cnyT,0)}</div><div class="kSub">Export Starch เท่านั้น · ${CUR_Y==='all'?'ทุกปี':CUR_Y}</div><div class="kIco">💴</div></div>
+    <div class="kCard kc-a"><div class="kLbl">สัดส่วน CNY ใน Export Starch</div><div class="kVal">${N(cnyShare,1)}%</div><div class="kSub">เทียบกับ USD ในหมวดเดียวกัน</div><div class="kIco">📊</div></div>
+  `;
+
+  const mtsThb=D.reduce((s,r)=>s+(+r.qty_mts||0),0);
+  const mtsUsd=E.filter(r=>r.currency==='USD').reduce((s,r)=>s+(+r.qty_mts||0),0)+C.filter(r=>r.currency==='USD').reduce((s,r)=>s+(+r.qty_mts||0),0);
+  const mtsCny=E.filter(r=>r.currency==='CNY').reduce((s,r)=>s+(+r.qty_mts||0),0);
+  killChart('curMix');
+  CH.curMix=new Chart(document.getElementById('curMixChart'),{type:'doughnut',data:{labels:['THB','USD','CNY'],datasets:[{data:[mtsThb,mtsUsd,mtsCny],backgroundColor:[CHCOLORS.thb,CHCOLORS.usd,CHCOLORS.cny],borderColor:'#131c2b',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}});
+
+  const allEs=window.__curEs;
+  const esYears=[...new Set(allEs.map(r=>r.year).filter(Boolean))].sort((a,b)=>a-b);
+  const esUsdByY=esYears.map(y=>allEs.filter(r=>r.year===y&&r.currency==='USD').reduce((s,r)=>s+(+r.total||0),0));
+  const esCnyByY=esYears.map(y=>allEs.filter(r=>r.year===y&&r.currency==='CNY').reduce((s,r)=>s+(+r.total||0),0));
+  killChart('curEs');
+  CH.curEs=new Chart(document.getElementById('curEsChart'),{type:'line',data:{labels:esYears,datasets:[
+    {label:'USD',data:esUsdByY,borderColor:CHCOLORS.usd,backgroundColor:CHCOLORS.usd+'33',tension:.3,fill:true,yAxisID:'yUsd'},
+    {label:'CNY',data:esCnyByY,borderColor:CHCOLORS.cny,backgroundColor:CHCOLORS.cny+'33',tension:.3,fill:true,yAxisID:'yCny'}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{
+    x:{grid:{display:false}},
+    yUsd:{position:'left',grid:{color:'#1e2d42'},title:{display:true,text:'USD'}},
+    yCny:{position:'right',grid:{display:false},title:{display:true,text:'CNY'}}
+  }}});
+
+  const fxUsdByY=esYears.map(y=>avg(allEs.filter(r=>r.year===y&&r.currency==='USD').map(r=>+r.exchange_rate)));
+  const fxCnyByY=esYears.map(y=>avg(allEs.filter(r=>r.year===y&&r.currency==='CNY').map(r=>+r.exchange_rate)));
+  killChart('curFx');
+  CH.curFx=new Chart(document.getElementById('curFxChart'),{type:'line',data:{labels:esYears,datasets:[
+    {label:'USD → THB',data:fxUsdByY,borderColor:CHCOLORS.usd,backgroundColor:CHCOLORS.usd+'33',tension:.3,spanGaps:true},
+    {label:'CNY → THB',data:fxCnyByY,borderColor:CHCOLORS.cny,backgroundColor:CHCOLORS.cny+'33',tension:.3,spanGaps:true}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{x:{grid:{display:false}},y:{grid:{color:'#1e2d42'}}}}});
+
+  renderTopList('curCnyTop',topByVolume(E.filter(r=>r.currency==='CNY'),'applicant_name'));
+
+  document.getElementById('curTb').innerHTML=esYears.length?esYears.map(y=>{
+    const yThb=window.__curDom.filter(r=>r.year===y).reduce((s,r)=>s+(+r.total||0),0);
+    const yUsd=allEs.filter(r=>r.year===y&&r.currency==='USD').reduce((s,r)=>s+(+r.total||0),0)+window.__curEc.filter(r=>r.year===y&&r.currency==='USD').reduce((s,r)=>s+(+r.total||0),0);
+    const yCny=allEs.filter(r=>r.year===y&&r.currency==='CNY').reduce((s,r)=>s+(+r.total||0),0);
+    const yEsUsd=allEs.filter(r=>r.year===y&&r.currency==='USD').reduce((s,r)=>s+(+r.total||0),0);
+    const yShare=(yEsUsd+yCny)?yCny/(yEsUsd+yCny)*100:0;
+    const yFxUsd=avg(allEs.filter(r=>r.year===y&&r.currency==='USD').map(r=>+r.exchange_rate));
+    const yFxCny=avg(allEs.filter(r=>r.year===y&&r.currency==='CNY').map(r=>+r.exchange_rate));
+    return `<tr><td>${y}</td><td>${N(yThb,0)}</td><td>${N(yUsd,0)}</td><td>${yCny?N(yCny,0):'—'}</td><td>${yCny?N(yShare,1)+'%':'—'}</td><td>${yFxUsd?N(yFxUsd,3):'—'}</td><td>${yFxCny?N(yFxCny,3):'—'}</td></tr>`;
+  }).join(''):'<tr><td colspan="7" style="color:var(--dim);text-align:center">ไม่มีข้อมูล</td></tr>';
+}
+
+// ═══════════ STOCK สินค้า ═══════════
+function toggleStockOther(){
+  const v=document.getElementById('s_category').value;
+  document.getElementById('s_other_wrap').style.display=v==='other'?'':'none';
+}
+function calcStockAmount(){
+  const q=parseFloat(document.getElementById('s_qty_mts').value);
+  const p=parseFloat(document.getElementById('s_price_usd').value);
+  if(!isNaN(q)&&!isNaN(p))document.getElementById('s_amount').value=R2(q*p);
+}
+function openStock(){
+  document.getElementById('mStockT').textContent='เพิ่มรายการสต๊อค';
+  document.getElementById('s_id').value='';
+  ['category_other','qty_mts','price_usd','amount','remark'].forEach(f=>{const el=document.getElementById('s_'+f);if(el)el.value='';});
+  document.getElementById('s_category').value='starch';
+  document.getElementById('s_included').value='true';
+  document.getElementById('s_record_date').value=new Date().toISOString().slice(0,10);
+  toggleStockOther();
+  document.getElementById('mStock').classList.add('show');
+}
+function closeStock(){document.getElementById('mStock').classList.remove('show');}
+function editStock(id){
+  const r=(window.__stockRows||[]).find(x=>x.id===id);if(!r)return;
+  document.getElementById('mStockT').textContent='แก้ไขรายการสต๊อค';
+  document.getElementById('s_id').value=r.id;
+  document.getElementById('s_category').value=r.category;
+  document.getElementById('s_category_other').value=r.category_other||'';
+  document.getElementById('s_qty_mts').value=r.qty_mts??'';
+  document.getElementById('s_price_usd').value=r.price_usd??'';
+  document.getElementById('s_amount').value=r.amount??'';
+  document.getElementById('s_record_date').value=r.record_date||'';
+  document.getElementById('s_included').value=r.included===false?'false':'true';
+  document.getElementById('s_remark').value=r.remark||'';
+  toggleStockOther();
+  document.getElementById('mStock').classList.add('show');
+}
+async function saveStock(){
+  const id=document.getElementById('s_id').value;
+  const cat=document.getElementById('s_category').value;
+  const catOther=document.getElementById('s_category_other').value.trim();
+  if(cat==='other'&&!catOther){toast('กรุณาระบุชื่อสินค้าสำหรับหมวดอื่นๆ',true);return;}
+  const qty=parseFloat(document.getElementById('s_qty_mts').value);
+  const price=parseFloat(document.getElementById('s_price_usd').value);
+  if(isNaN(qty)||isNaN(price)){toast('กรุณากรอก QTY MTS และราคาให้ครบ',true);return;}
+  const p={
+    category:cat,
+    category_other:cat==='other'?catOther:null,
+    qty_mts:qty,
+    price_usd:price,
+    amount:R2(qty*price),
+    record_date:document.getElementById('s_record_date').value||null,
+    included:document.getElementById('s_included').value==='true',
+    remark:document.getElementById('s_remark').value||null,
+    updated_by:U.id,updated_by_email:U.email
+  };
+  let err;
+  if(id){({error:err}=await sb.from('stock_items').update(p).eq('id',id));}
+  else{p.created_by=U.id;p.created_by_email=U.email;({error:err}=await sb.from('stock_items').insert(p));}
+  if(err){toast('บันทึกไม่สำเร็จ: '+err.message,true);return;}
+  toast('✅ บันทึกเรียบร้อย');closeStock();loadStock();
+}
+async function delStock(id){
+  if(!confirm('ยืนยันลบรายการนี้?'))return;
+  const{error}=await sb.from('stock_items').delete().eq('id',id);
+  if(error){toast('ลบไม่สำเร็จ',true);return;}
+  toast('ลบเรียบร้อย');loadStock();
+}
+function stockLabel(r){
+  if(r.category==='starch')return 'แป้งมันสำปะหลัง';
+  if(r.category==='chip')return 'มันเส้น';
+  return r.category_other||'อื่นๆ';
+}
+async function loadStock(){
+  document.getElementById('stockTb').innerHTML='<tr><td colspan="8"><div class="loading"><span class="spin"></span>กำลังโหลดข้อมูล...</div></td></tr>';
+  const{data,error}=await sb.from('stock_items').select('*').order('record_date',{ascending:false,nullsFirst:false});
+  if(error){toast('โหลดไม่สำเร็จ: '+error.message,true);return;}
+  window.__stockRows=data||[];
+  rStock();
+}
+function stockGroup(rows){
+  const m={};
+  rows.forEach(r=>{
+    const k=stockLabel(r);
+    if(!m[k])m[k]={qty:0,amount:0};
+    m[k].qty+=(+r.qty_mts||0);
+    m[k].amount+=(+r.amount||0);
+  });
+  return Object.entries(m).map(([label,v])=>({label,qty:v.qty,amount:v.amount,price:v.qty?v.amount/v.qty:0}));
+}
+function stockRowsHtml(groups){
+  if(!groups.length)return '<tr><td colspan="4" style="color:var(--dim);text-align:center">ไม่มีข้อมูล</td></tr>';
+  let totQty=0,totAmt=0;
+  const rows=groups.map(g=>{totQty+=g.qty;totAmt+=g.amount;return `<tr><td>${g.label}</td><td>${N(g.qty,2)}</td><td>$${N(g.price,2)}</td><td>$${N(g.amount,2)}</td></tr>`;}).join('');
+  return rows+`<tr style="font-weight:700;border-top:2px solid var(--border2)"><td>—</td><td>${N(totQty,2)}</td><td>TOTAL USD</td><td>$${N(totAmt,2)}</td></tr>`;
+}
+function rStock(){
+  const rows=window.__stockRows||[];
+  const inc=rows.filter(r=>r.included!==false);
+  const exc=rows.filter(r=>r.included===false);
+  const incG=stockGroup(inc),excG=stockGroup(exc);
+  document.getElementById('stockIncTb').innerHTML=stockRowsHtml(incG);
+  document.getElementById('stockExcTb').innerHTML=stockRowsHtml(excG);
+
+  const incQty=incG.reduce((s,g)=>s+g.qty,0),incAmt=incG.reduce((s,g)=>s+g.amount,0);
+  const excQty=excG.reduce((s,g)=>s+g.qty,0),excAmt=excG.reduce((s,g)=>s+g.amount,0);
+  document.getElementById('stockKpi').innerHTML=`
+    <div class="kCard kc-g"><div class="kLbl">มูลค่าสต๊อครวม</div><div class="kVal">$${N(incAmt,2)}</div><div class="kSub">USD · นำมาคำนวณ</div><div class="kIco">💰</div></div>
+    <div class="kCard kc-g"><div class="kLbl">ปริมาณสต๊อครวม</div><div class="kVal">${N(incQty,2)}</div><div class="kSub">MTS · นำมาคำนวณ</div><div class="kIco">⚖️</div></div>
+    <div class="kCard kc-a"><div class="kLbl">มูลค่าที่ไม่นำมาคำนวณ</div><div class="kVal">$${N(excAmt,2)}</div><div class="kSub">USD</div><div class="kIco">🚫</div></div>
+    <div class="kCard kc-a"><div class="kLbl">ปริมาณที่ไม่นำมาคำนวณ</div><div class="kVal">${N(excQty,2)}</div><div class="kSub">MTS</div><div class="kIco">🚫</div></div>
+  `;
+
+  document.getElementById('stockTb').innerHTML=rows.length?rows.map(r=>`<tr>
+    <td>${D(r.record_date)}</td><td>${stockLabel(r)}</td><td>${N(r.qty_mts,2)}</td><td>$${N(r.price_usd,2)}</td><td>$${N(r.amount,2)}</td>
+    <td>${r.included===false?'🚫 ไม่นับ':'✅ นับ'}</td><td>${E(r.remark)}</td>
+    <td><div class="ra"><button class="ib e gate-write" onclick="editStock('${r.id}')">✏</button><button class="ib d gate-delete" onclick="delStock('${r.id}')">🗑</button></div></td>
+  </tr>`).join(''):'<tr><td colspan="8" style="color:var(--dim);text-align:center">ยังไม่มีรายการสต๊อค</td></tr>';
 }
 
 // ═══════════ BROKERS & BUYERS ═══════════
