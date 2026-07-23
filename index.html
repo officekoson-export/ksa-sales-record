@@ -424,7 +424,7 @@ tbody tr:hover td{background:var(--panel2);}
   <div class="sbUser">
     <div class="sbAvatar">
       <div class="av" id="sbAv">K</div>
-      <div><div class="un" id="sbUn">-</div><div class="ur">5 Users · สิทธิ์เท่ากัน</div></div>
+      <div><div class="un" id="sbUn">-</div><div class="ur" id="sbUr">-</div></div>
     </div>
     <button class="sbLogout" onclick="doLogout()">ออกจากระบบ</button>
   </div>
@@ -453,8 +453,6 @@ tbody tr:hover td{background:var(--panel2);}
   <div class="ph">
     <div class="phL"><h2>Dashboard ภาพรวม</h2><div class="phS"><span class="d" style="background:var(--green)"></span>KS AGRO · Sales Management System</div></div>
   </div>
-  <div class="sLbl">📅 เลือกช่วงเวลาที่ดูภาพรวม</div>
-  <div class="yPills" id="dashYP" style="margin-bottom:16px;"></div>
   <div class="sLbl">🏠 ขายในประเทศ (THB)</div>
   <div class="kGrid" id="dashKpiDom"></div>
   <div class="sLbl">🚢 ส่งออกแป้งมันสำปะหลัง — Export Starch (USD/CNY)</div>
@@ -538,7 +536,7 @@ tbody tr:hover td{background:var(--panel2);}
     </div>
     <div class="phR">
       <button class="btn btn-o btn-sm" onclick="xDom()">⬇ Export CSV</button>
-      <button class="btn btn-p" onclick="openDom()">＋ เพิ่มรายการ</button>
+      <button class="btn btn-p gate-write" onclick="openDom()">＋ เพิ่มรายการ</button>
     </div>
   </div>
   <div class="kGrid" id="domKpi"></div>
@@ -581,7 +579,7 @@ tbody tr:hover td{background:var(--panel2);}
     </div>
     <div class="phR">
       <button class="btn btn-o btn-sm" onclick="xEs()">⬇ Export CSV</button>
-      <button class="btn btn-p" onclick="openEs()">＋ เพิ่มรายการ</button>
+      <button class="btn btn-p gate-write" onclick="openEs()">＋ เพิ่มรายการ</button>
     </div>
   </div>
   <div class="kGrid" id="esKpi"></div>
@@ -628,7 +626,7 @@ tbody tr:hover td{background:var(--panel2);}
     </div>
     <div class="phR">
       <button class="btn btn-o btn-sm" onclick="xEc()">⬇ Export CSV</button>
-      <button class="btn btn-p" onclick="openEc()">＋ เพิ่มรายการ</button>
+      <button class="btn btn-p gate-write" onclick="openEc()">＋ เพิ่มรายการ</button>
     </div>
   </div>
   <div class="kGrid" id="ecKpi"></div>
@@ -661,7 +659,7 @@ tbody tr:hover td{background:var(--panel2);}
     <div class="phL"><h2>Forecast Income Receiving</h2><div class="phS"><span class="d" style="background:var(--amber)"></span>ประมาณการรายรับที่คาดจะได้รับใน 3 สัปดาห์ข้างหน้า</div></div>
     <div class="phR">
       <button class="btn btn-o btn-sm" onclick="xFc()">⬇ Export CSV</button>
-      <button class="btn btn-p" onclick="openFc()">＋ เพิ่มรายการ</button>
+      <button class="btn btn-p gate-write" onclick="openFc()">＋ เพิ่มรายการ</button>
     </div>
   </div>
   <div class="kGrid" id="fcKpi"></div>
@@ -716,7 +714,7 @@ tbody tr:hover td{background:var(--panel2);}
 <div class="pg" id="pg-pofin">
   <div class="ph">
     <div class="phL"><h2>ภาระหนี้ PO Financing · SCB / TTB</h2><div class="phS"><span class="d" style="background:var(--amber)"></span>รายการ PO ที่นำไปขึ้นเงินกับธนาคาร · ตัวเลขแยก USD/THB/CNY · ตรวจครบกำหนด + หมดอายุ 60 วัน</div></div>
-    <div class="phR"><button class="btn btn-o btn-sm" onclick="loadPoFin()">⟳ รีเฟรช</button><button class="btn btn-p btn-sm" onclick="openPoFin()">+ เพิ่มรายการภาระหนี้</button></div>
+    <div class="phR"><button class="btn btn-o btn-sm" onclick="loadPoFin()">⟳ รีเฟรช</button><button class="btn btn-p btn-sm gate-write" onclick="openPoFin()">+ เพิ่มรายการภาระหนี้</button></div>
   </div>
   <div class="phS" style="margin:-10px 0 14px;font-weight:600;">ภาระหนี้เงินสด — แยกยอด KS AGRO บันทึก กับ ยอดธนาคารแจ้ง (ไม่รวมข้ามสกุลเงิน)</div>
   <div class="kGrid" id="pofinKpi"></div>
@@ -731,7 +729,7 @@ tbody tr:hover td{background:var(--panel2);}
     <div class="srchW"><input class="srch" id="pofinSr" placeholder="ค้นหา PO No. / สัญญา" oninput="rPofin()"></div>
     <select class="sel" id="pofinStF" onchange="rPofin()">
       <option value="">สถานะทั้งหมด</option>
-      <option value="outstanding">🔴 คงค้าง</option>
+      <option value="outstanding">🔴 ลงค้าง</option>
       <option value="pending_update">🟡 รออัพเดท</option>
       <option value="paid">🟢 ชำระแล้ว / ปิดยอด</option>
     </select>
@@ -742,7 +740,7 @@ tbody tr:hover td{background:var(--panel2);}
       <table>
         <thead><tr>
           <th>No.</th><th>PO No. / สัญญา</th><th>สินค้า</th><th>ธนาคาร</th>
-          <th>ตัน</th><th>ราคา (USD)</th><th>ยอด 70% ($)</th><th>ยอดกู้จริง (฿)</th>
+          <th>ตัน</th><th>ราคา (USD)</th><th>ยอด 70% ($)</th><th>ยอดภูจิง (฿)</th>
           <th>ค้างชำระ $</th><th>ค้างชำระ ฿</th><th>ครบกำหนดตั๋ว</th><th>หมดอายุ 60 วัน</th>
           <th>สถานะ</th><th>จัดการ</th>
         </tr></thead>
@@ -995,13 +993,13 @@ tbody tr:hover td{background:var(--panel2);}
       <div class="fld"><label>จำนวน (ตัน)</label><input type="number" step="any" id="pf_qty_ton" oninput="calcPofin70()"></div>
       <div class="fld"><label>ราคา/ตัน (USD)</label><input type="number" step="any" id="pf_price_usd" oninput="calcPofin70()"></div>
       <div class="fld"><label>ยอด 70% (USD · คำนวณอัตโนมัติ)</label><input type="number" step="any" id="pf_amount_70pct_usd"></div>
-      <div class="fld"><label>ยอดกู้จริง (บาท)</label><input type="number" step="any" id="pf_actual_loan_thb"></div>
+      <div class="fld"><label>ยอดภูจิง (บาท)</label><input type="number" step="any" id="pf_actual_loan_thb"></div>
       <div class="fld"><label>ค้างชำระ (USD $)</label><input type="number" step="any" id="pf_outstanding_usd"></div>
       <div class="fld"><label>ค้างชำระ (บาท ฿)</label><input type="number" step="any" id="pf_outstanding_thb"></div>
       <div class="fld"><label>ค้างชำระ (หยวน CNY)</label><input type="number" step="any" id="pf_outstanding_cny"></div>
       <div class="fld"><label>วันครบกำหนดตั๋ว</label><input type="date" id="pf_due_date" onchange="calcPofinExpiry()"></div>
       <div class="fld"><label>หมดอายุ 60 วัน (อัตโนมัติจากวันครบกำหนด)</label><input type="date" id="pf_expire_60d"></div>
-      <div class="fld"><label>สถานะ</label><select id="pf_status"><option value="outstanding">คงค้าง</option><option value="pending_update">รออัพเดท</option><option value="paid">ชำระแล้ว / ปิดยอด</option></select></div>
+      <div class="fld"><label>สถานะ</label><select id="pf_status"><option value="outstanding">ลงค้าง</option><option value="pending_update">รออัพเดท</option><option value="paid">ชำระแล้ว / ปิดยอด</option></select></div>
       <div class="fld s3"><label>หมายเหตุ / รายละเอียด</label><input id="pf_remark"></div>
     </div>
   </div>
@@ -1332,13 +1330,45 @@ async function initAuth(){
   const{data}=await sb.auth.getSession();
   if(data.session){U=data.session.user;boot();}
 }
-function boot(){
+const ROLE_LABEL={admin:'ผู้ดูแลระบบ',coordinator:'Coordinator',marketing:'Marketing',director:'ผู้บริหาร',finance:'ฝ่ายการเงิน'};
+// หน้าที่ Finance เห็นได้เท่านั้น
+const FINANCE_ALLOWED_PAGES=['dash','fc','pofin','stock'];
+async function boot(){
   document.getElementById('loginScreen').style.display='none';
   document.getElementById('app').style.display='block';
   document.getElementById('sbUn').textContent=U.email;
   document.getElementById('sbAv').textContent=U.email[0].toUpperCase();
-  go('dom');
+
+  // ─── ดึง role ของผู้ใช้จากตาราง profiles ───
+  const{data:profile,error:profErr}=await sb.from('profiles').select('role,username').eq('id',U.id).single();
+  if(profErr||!profile){
+    toast('ไม่พบสิทธิ์ผู้ใช้งาน กรุณาติดต่อผู้ดูแลระบบ',true);
+    U.role='finance'; // fail-safe: จำกัดสิทธิ์ต่ำสุดถ้าไม่พบ profile
+  }else{
+    U.role=profile.role;
+    U.username=profile.username;
+  }
+  document.getElementById('sbUr').textContent=ROLE_LABEL[U.role]||U.role;
+
+  applyRolePermissions(U.role);
+  go(U.role==='finance'?'dash':'dom');
   loadFcBadge();
+}
+function applyRolePermissions(role){
+  const isAdmin=role==='admin';
+  const isFinance=role==='finance';
+
+  // ปุ่มเพิ่ม/แก้ไข: ทุก role เขียนได้ ยกเว้น finance
+  document.querySelectorAll('.gate-write').forEach(el=>{el.style.display=isFinance?'none':'';});
+  // ปุ่มลบ: admin เท่านั้น
+  document.querySelectorAll('.gate-delete').forEach(el=>{el.style.display=isAdmin?'':'none';});
+
+  // เมนูฝั่งซ้าย: finance เห็นแค่ Dashboard / Forecast Income / PO Financing / Stock
+  document.querySelectorAll('.sbItem').forEach(el=>{
+    const pg=el.id.replace(/^sn-/,'');
+    if(isFinance&&!FINANCE_ALLOWED_PAGES.includes(pg)){el.style.display='none';}
+    else{el.style.display='';}
+  });
 }
 
 // ─── NAV ───
@@ -1364,6 +1394,10 @@ function toggleSidebar(){
   document.getElementById('sbOverlay').classList.toggle('show');
 }
 function go(p){
+  if(U&&U.role==='finance'&&!FINANCE_ALLOWED_PAGES.includes(p)){
+    toast('บัญชี Finance ไม่มีสิทธิ์เข้าหน้านี้',true);
+    p='dash';
+  }
   document.querySelector('.sb').classList.remove('open');
   document.getElementById('sbOverlay').classList.remove('show');
   document.querySelectorAll('.pg').forEach(el=>el.classList.remove('show'));
@@ -1484,7 +1518,7 @@ function rDom(){
     <td style="width:78px">${D(r.loading_date)}</td>
     <td class="td-trunc" style="min-width:150px;max-width:200px;font-size:11px;color:${srColor};font-weight:${isCancel||isOverdue||isDone?600:400}">${E(sr)||E(r.delivery_place)}</td>
     <td class="td-trunc" style="max-width:130px;color:var(--dim);font-size:10.5px">${E(r.payment_term)}</td>
-    <td style="width:56px"><div class="ra"><button class="ib e" onclick="editDom('${r.id}')">✏</button><button class="ib d" onclick="delDom('${r.id}')">🗑</button></div></td>
+    <td style="width:56px"><div class="ra"><button class="ib e gate-write" onclick="editDom('${r.id}')">✏</button><button class="ib d gate-delete" onclick="delDom('${r.id}')">🗑</button></div></td>
   </tr>`;}).join('');
 }
 
@@ -1615,7 +1649,7 @@ function rEs(){
       <td style="width:80px">${D(r.loading_date)}</td>
       <td class="td-trunc" style="max-width:160px;font-size:11px;color:${srColor};font-weight:${isCancel||isOverdue||isDone?600:400}">${E(sr)}</td>
       <td style="font-size:11px">${E(r.payment_term)}</td>
-      <td style="width:56px"><div class="ra"><button class="ib e" onclick="editEs('${r.id}')">✏</button><button class="ib d" onclick="delEs('${r.id}')">🗑</button></div></td>
+      <td style="width:56px"><div class="ra"><button class="ib e gate-write" onclick="editEs('${r.id}')">✏</button><button class="ib d gate-delete" onclick="delEs('${r.id}')">🗑</button></div></td>
     </tr>`;}).join('');
 }
 const EF=['year','seq_no','broker_name','comm_rate','comm_currency','total_comm','applicant_name','sales_contract','packing_kgs','qty_partial','qty_mts','currency','price_fob','price_cfr','price_cif','total','invoice_no','payment_term','exchange_rate','vessel_name','loading_date','closing_date','loading_ground','etd','eta','port','bank','unit_conts','delivery_date','status_remark','forecast_received_date','received_amount','diff_amount','received_date','factory1_name','factory1_po','factory1_price','factory1_total','factory1_before_vat','factory1_vat','factory2_name','factory2_po','factory2_price','factory2_total','factory2_before_vat','factory2_vat','factory3_name','factory3_po','factory3_price','factory3_total','factory3_before_vat','factory3_vat','factory4_name','factory4_po','factory4_price','factory4_total','factory4_before_vat','factory4_vat','shipping_name','shipping_cost','survey_name','fumigation_name','survey_cost','agent_name','freight_cost','packing_material_name','packing_material_cost','pallet','pallet_cost','insurance_name','insurance_cost','packing_service_name','packing_service_cost','doc_delivery_name','doc_delivery_cost','dhl_no','customs_no','booking_no','bl_no'];
@@ -1722,7 +1756,7 @@ function rEc(){
       <td style="width:80px">${D(r.loading_date)}</td>
       <td class="td-trunc" style="max-width:160px;font-size:11px;color:${srColor};font-weight:${isCancel||isOverdue||isDone?600:400}">${E(sr)}</td>
       <td style="font-size:11px">${E(r.payment_term)}</td>
-      <td style="width:56px"><div class="ra"><button class="ib e" onclick="editEc('${r.id}')">✏</button><button class="ib d" onclick="delEc('${r.id}')">🗑</button></div></td>
+      <td style="width:56px"><div class="ra"><button class="ib e gate-write" onclick="editEc('${r.id}')">✏</button><button class="ib d gate-delete" onclick="delEc('${r.id}')">🗑</button></div></td>
     </tr>`;}).join('');
 }
 const CF=['year','seq_no','broker_name','comm_rate','comm_currency','total_comm','applicant_name','sales_contract','qty_mts','currency','price_fob','price_cfr','price_cif','total','invoice_no','payment_term','exchange_rate','vessel_name','loading_date','closing_date','loading_ground','etd','eta','port','bank','delivery_date','status_remark','forecast_received_date','received_amount','diff_amount','received_date','factory1_name','factory1_po','factory1_price','factory1_total','factory1_before_vat','factory1_vat','factory2_name','factory2_po','factory2_price','factory2_total','factory2_before_vat','factory2_vat','factory3_name','factory3_po','factory3_price','factory3_total','factory3_before_vat','factory3_vat','factory4_name','factory4_po','factory4_price','factory4_total','factory4_before_vat','factory4_vat','shipping_name','survey_name','fumigation_name','agent_name','packing_material_name','pallet','insurance_name','packing_service_name','doc_delivery_name','dhl_no','customs_no','booking_no','bl_no'];
@@ -1825,29 +1859,31 @@ function fcSt(r){
   if(fd&&fd<t)return'overdue';
   return'pending';
 }
-function sumByCur(rows,field){
-  const o={THB:0,USD:0,CNY:0};
-  rows.forEach(r=>{const c=(r.currency||'THB').toUpperCase();o[c]=(o[c]||0)+(+r[field]||0);});
-  return o;
-}
-function curLines(byCur){
-  return`<span style="display:block">THB: ${N(byCur.THB||0,2)}</span><span style="display:block">USD: ${N(byCur.USD||0,2)}</span><span style="display:block">CNY: ${N(byCur.CNY||0,2)}</span>`;
-}
 function rFcKpi(){
   const rows=FR.filter(r=>r.category===FCT);
-  const rcvByCur=sumByCur(rows,'received_amount');
+  const tot=rows.reduce((s,r)=>s+(+r.total||0),0);
+  const rcv=rows.reduce((s,r)=>s+(+r.received_amount||0),0);
   const today=new Date();const lim=new Date();lim.setDate(lim.getDate()+21);
   const pend=rows.filter(r=>{if(!r.forecast_received_date||r.received_date)return false;const d=new Date(r.forecast_received_date);return d>=today&&d<=lim;});
   const over=rows.filter(r=>fcSt(r)==='overdue');
-  const pendByCur=sumByCur(pend,'total');
-  // ยอดค้างรับ = total - received_amount (กรณีชำระบางส่วน) แยกตามสกุลเงิน
-  const overByCur={THB:0,USD:0,CNY:0};
-  over.forEach(r=>{const c=(r.currency||'THB').toUpperCase();const total=Number(r.total||0);const recv=Number(r.received_amount||0);overByCur[c]=(overByCur[c]||0)+(total>0?total-recv:0);});
+  const cur=rows[0]?.currency||'';
+  // ยอดค้างรับ = total - received_amount (กรณีชำระบางส่วน)
+  const overdueSum=over.reduce((s,r)=>{
+    const total=Number(r.total||0);
+    const recv=Number(r.received_amount||0);
+    return s+(total>0?total-recv:0);
+  },0);
+  // ยอดที่รับบางส่วนมาแล้วจากรายการที่ยังเกินกำหนด (คำนวณอัตโนมัติ ไม่ hardcode)
+  const overduePartialRecv=over.reduce((s,r)=>s+(Number(r.received_amount||0)),0);
+  const pendSum=pend.reduce((s,r)=>s+(+r.total||0),0);
+  const overdueSub=overdueSum>0
+    ?`${cur} — ต้องติดตามด่วน!${overduePartialRecv>0?' · หักยอดรับบางส่วนแล้ว '+N(overduePartialRecv,2):''}`
+    :'ไม่มีรายการเลยกำหนด';
   document.getElementById('fcKpi').innerHTML=`
     <div class="kCard kc-b"><div class="kLbl">รายการทั้งหมด</div><div class="kVal">${rows.length}</div><div class="kSub">รายการ</div></div>
-    <div class="kCard kc-g"><div class="kLbl">รับเงินแล้ว</div><div class="kVal" style="font-size:14px;line-height:1.7;">${curLines(rcvByCur)}</div></div>
-    <div class="kCard kc-a"><div class="kLbl">คาดรับใน 3 สัปดาห์ (${pend.length} รายการ)</div><div class="kVal" style="font-size:14px;line-height:1.7;">${curLines(pendByCur)}</div></div>
-    <div class="kCard kc-r"><div class="kLbl">⚠️ เลยกำหนดรับ (${over.length} รายการ)</div><div class="kVal" style="font-size:14px;line-height:1.7;">${curLines(overByCur)}</div></div>
+    <div class="kCard kc-g"><div class="kLbl">รับเงินแล้ว</div><div class="kVal">${N(rcv,2)}</div><div class="kSub">${cur}</div></div>
+    <div class="kCard kc-a"><div class="kLbl">คาดรับใน 3 สัปดาห์ (${pend.length} รายการ)</div><div class="kVal">${N(pendSum,2)}</div><div class="kSub">${cur}</div></div>
+    <div class="kCard kc-r"><div class="kLbl">⚠️ เลยกำหนดรับ (${over.length} รายการ)</div><div class="kVal">${N(overdueSum,2)}</div><div class="kSub">${overdueSub}</div></div>
   `;
 }
 function rFc(){
@@ -1893,7 +1929,7 @@ function rFc(){
       <td style="font-size:11px;width:80px">${E(r.bank)}</td>
       <td style="width:110px">${bdg}</td>
       <td class="td-trunc" style="max-width:140px;font-size:11px;color:var(--dim)">${E(r.remark)}</td>
-      <td style="width:56px"><div class="ra"><button class="ib e" onclick="editFc('${r.id}')">✏</button><button class="ib d" onclick="delFc('${r.id}')">🗑</button></div></td>
+      <td style="width:56px"><div class="ra"><button class="ib e gate-write" onclick="editFc('${r.id}')">✏</button><button class="ib d gate-delete" onclick="delFc('${r.id}')">🗑</button></div></td>
     </tr>`;
   }).join('');
 }
@@ -1941,81 +1977,6 @@ function xFc(){
   a.download=`forecast_${FCT}_${new Date().toISOString().slice(0,10)}.csv`;a.click();
 }
 
-let DASHY='all', DASH_D=[], DASH_F=[], DASH_E=[], DASH_C=[];
-function buildDashYP(){
-  const yrs=[...new Set([...DASH_D,...DASH_E,...DASH_C].map(r=>r.year).filter(Boolean))].sort((a,b)=>b-a);
-  const w=document.getElementById('dashYP');
-  w.innerHTML=`<div class="yPill ${DASHY==='all'?'act':''}" onclick="setDashY('all',this)">🌐 ทุกปี (ภาพรวม)</div>`;
-  yrs.forEach(y=>{const d=document.createElement('div');d.className='yPill'+(String(DASHY)===String(y)?' act':'');d.textContent=y;d.onclick=function(){setDashY(y,this);};w.appendChild(d);});
-}
-function setDashY(y,el){DASHY=y;document.querySelectorAll('#dashYP .yPill').forEach(e=>e.classList.remove('act'));el.classList.add('act');rDashKpi();}
-function rDashKpi(){
-  const D=DASHY==='all'?DASH_D:DASH_D.filter(r=>String(r.year)===String(DASHY));
-  const E=DASHY==='all'?DASH_E:DASH_E.filter(r=>String(r.year)===String(DASHY));
-  const C=DASHY==='all'?DASH_C:DASH_C.filter(r=>String(r.year)===String(DASHY));
-  const F=DASH_F;
-  const yLabel=DASHY==='all'?'ทุกปีรวมกัน':`ปี ${DASHY}`;
-
-  const dT=D.reduce((s,r)=>s+(+r.total||0),0);
-  const dM=D.reduce((s,r)=>s+(+r.qty_mts||0),0);
-  document.getElementById('dashKpiDom').innerHTML=`
-    <div class="kCard kc-g"><div class="kLbl">ยอดขายในประเทศรวม</div><div class="kVal">${N(dT,0)}</div><div class="kSub">THB · ${yLabel}</div><div class="kIco">🏭</div></div>
-    <div class="kCard kc-g"><div class="kLbl">ปริมาณขายในประเทศ</div><div class="kVal">${N(dM,2)}</div><div class="kSub">MTS · ${yLabel}</div><div class="kIco">⚖️</div></div>
-  `;
-
-  const esUsdT=E.filter(r=>r.currency==='USD').reduce((s,r)=>s+(+r.total||0),0);
-  const esCnyT=E.filter(r=>r.currency==='CNY').reduce((s,r)=>s+(+r.total||0),0);
-  const esM=E.reduce((s,r)=>s+(+r.qty_mts||0),0);
-  document.getElementById('dashKpiEs').innerHTML=`
-    <div class="kCard kc-b"><div class="kLbl">ยอดขายส่งออก USD</div><div class="kVal">${N(esUsdT,0)}</div><div class="kSub">USD · ${yLabel}</div><div class="kIco">💵</div></div>
-    <div class="kCard kc-p"><div class="kLbl">ยอดขายส่งออก CNY</div><div class="kVal">${N(esCnyT,0)}</div><div class="kSub">CNY · ${yLabel}</div><div class="kIco">💴</div></div>
-    <div class="kCard kc-b"><div class="kLbl">ปริมาณขายส่งออก Starch</div><div class="kVal">${N(esM,2)}</div><div class="kSub">MTS · ${yLabel}</div><div class="kIco">⚖️</div></div>
-  `;
-
-  const ecUsdT=C.filter(r=>r.currency==='USD').reduce((s,r)=>s+(+r.total||0),0);
-  const ecM=C.reduce((s,r)=>s+(+r.qty_mts||0),0);
-  document.getElementById('dashKpiEc').innerHTML=`
-    <div class="kCard kc-o"><div class="kLbl">ยอดขายมันเส้น USD</div><div class="kVal">${N(ecUsdT,0)}</div><div class="kSub">USD · ${yLabel}</div><div class="kIco">💵</div></div>
-    <div class="kCard kc-o"><div class="kLbl">ปริมาณขายมันเส้น</div><div class="kVal">${N(ecM,2)}</div><div class="kSub">MTS · ${yLabel} · BULK</div><div class="kIco">⚖️</div></div>
-  `;
-
-  // Forecast ไม่กรองตามปีที่เลือก — เป็นการติดตามเงินรับใกล้เข้ามาโดยธรรมชาติ ไม่ผูกกับปีของยอดขาย
-  const today=new Date();const lim=new Date();lim.setDate(lim.getDate()+21);
-  const pend=F.filter(r=>fcSt(r)==='pending'&&r.forecast_received_date&&new Date(r.forecast_received_date)>=today&&new Date(r.forecast_received_date)<=lim);
-  const over=F.filter(r=>fcSt(r)==='overdue');
-
-  const pendByCur=sumByCur(pend,'total');
-  const pendByCat={};
-  pend.forEach(r=>{pendByCat[r.category]=(pendByCat[r.category]||0)+(+r.total||0);});
-  const topPendCat=Object.entries(pendByCat).sort((a,b)=>b[1]-a[1])[0]?.[0]||'domestic';
-
-  const overByCur=sumByCur(over,'total');
-  const overByCat={};
-  over.forEach(r=>{overByCat[r.category]=(overByCat[r.category]||0)+(+r.total||0);});
-  const topOverCat=Object.entries(overByCat).sort((a,b)=>b[1]-a[1])[0]?.[0]||'domestic';
-
-  document.getElementById('dashKpiFc').innerHTML=`
-    <div class="kCard kc-a" style="cursor:pointer" onclick="goForecastPending('${topPendCat}')" title="คลิกเพื่อดูรายการรอรับเงินใน Forecast Income">
-      <div class="kLbl">Forecast — คาดรับ 3 สัปดาห์ (${pend.length} รายการ)</div>
-      <div class="kVal" style="font-size:14px;line-height:1.7;">${curLines(pendByCur)}</div>
-      <div class="kIco">📅</div>
-    </div>
-    <div class="kCard kc-r" style="cursor:pointer" onclick="goForecastOverdue('${topOverCat}')" title="คลิกเพื่อดูรายการเลยกำหนดใน Forecast Income">
-      <div class="kLbl">Forecast — เลยกำหนดรับ (${over.length} รายการ)</div>
-      <div class="kVal" style="font-size:14px;line-height:1.7;">${curLines(overByCur)}</div>
-      <div class="kIco">⚠️</div>
-    </div>
-  `;
-}
-async function goForecastPending(cat){
-  go('fc');
-  await loadFc();
-  if(cat){FCT=cat;buildFcCT();rFcKpi();}
-  document.getElementById('fcDateFrom').value='';
-  document.getElementById('fcDateTo').value='';
-  document.getElementById('fcStF').value='pending';
-  rFc();
-}
 async function goForecastOverdue(cat){
   go('fc');
   await loadFc();
@@ -2039,12 +2000,50 @@ async function loadDash(){
     sb.from('export_tapioca_starch').select('year,total,currency,qty_mts,packing_kgs,loading_date,factory1_name,factory2_name,factory3_name,factory4_name,shipping_name,survey_name,fumigation_name'),
     sb.from('export_tapioca_chip').select('year,total,currency,qty_mts,loading_date,factory1_name,factory2_name,factory3_name,factory4_name,shipping_name,survey_name,fumigation_name')
   ]);
-  DASH_D=dom||[];DASH_F=fc||[];DASH_E=es||[];DASH_C=ec||[];
-  const D=DASH_D,F=DASH_F,E=DASH_E,C=DASH_C;
-  buildDashYP();
-  rDashKpi();
+  const D=dom||[],F=fc||[],E=es||[],C=ec||[];
+
+  // ── KPI (เดิม) ──
+  const dT=D.reduce((s,r)=>s+(+r.total||0),0);
+  const dM=D.reduce((s,r)=>s+(+r.qty_mts||0),0);
+  const today=new Date();const lim=new Date();lim.setDate(lim.getDate()+21);
+  const pend=F.filter(r=>fcSt(r)==='pending'&&r.forecast_received_date&&new Date(r.forecast_received_date)>=today&&new Date(r.forecast_received_date)<=lim);
+  const over=F.filter(r=>fcSt(r)==='overdue');
+  document.getElementById('dashKpiDom').innerHTML=`
+    <div class="kCard kc-g"><div class="kLbl">ยอดขายในประเทศรวม</div><div class="kVal">${N(dT,0)}</div><div class="kSub">THB · ทุกปีรวมกัน</div><div class="kIco">🏭</div></div>
+    <div class="kCard kc-g"><div class="kLbl">ปริมาณขายในประเทศ</div><div class="kVal">${N(dM,2)}</div><div class="kSub">MTS รวมทุกปี</div><div class="kIco">⚖️</div></div>
+  `;
+
+  const esUsdT=E.filter(r=>r.currency==='USD').reduce((s,r)=>s+(+r.total||0),0);
+  const esCnyT=E.filter(r=>r.currency==='CNY').reduce((s,r)=>s+(+r.total||0),0);
+  const esM=E.reduce((s,r)=>s+(+r.qty_mts||0),0);
+  document.getElementById('dashKpiEs').innerHTML=`
+    <div class="kCard kc-b"><div class="kLbl">ยอดขายส่งออก USD</div><div class="kVal">${N(esUsdT,0)}</div><div class="kSub">USD · ทุกปีรวมกัน</div><div class="kIco">💵</div></div>
+    <div class="kCard kc-p"><div class="kLbl">ยอดขายส่งออก CNY</div><div class="kVal">${N(esCnyT,0)}</div><div class="kSub">CNY · ทุกปีรวมกัน</div><div class="kIco">💴</div></div>
+    <div class="kCard kc-b"><div class="kLbl">ปริมาณขายส่งออก Starch</div><div class="kVal">${N(esM,2)}</div><div class="kSub">MTS รวมทุกปี</div><div class="kIco">⚖️</div></div>
+  `;
+
+  const ecUsdT=C.filter(r=>r.currency==='USD').reduce((s,r)=>s+(+r.total||0),0);
+  const ecM=C.reduce((s,r)=>s+(+r.qty_mts||0),0);
+  document.getElementById('dashKpiEc').innerHTML=`
+    <div class="kCard kc-o"><div class="kLbl">ยอดขายมันเส้น USD</div><div class="kVal">${N(ecUsdT,0)}</div><div class="kSub">USD · ทุกปีรวมกัน</div><div class="kIco">💵</div></div>
+    <div class="kCard kc-o"><div class="kLbl">ปริมาณขายมันเส้น</div><div class="kVal">${N(ecM,2)}</div><div class="kSub">MTS รวมทุกปี · BULK</div><div class="kIco">⚖️</div></div>
+  `;
+
+  const overByCurCat={};
+  over.forEach(r=>{const k=r.currency||'THB';overByCurCat[k]=(overByCurCat[k]||0)+(+r.total||0);});
+  const overByCat={};
+  over.forEach(r=>{overByCat[r.category]=(overByCat[r.category]||0)+(+r.total||0);});
+  const topOverCat=Object.entries(overByCat).sort((a,b)=>b[1]-a[1])[0]?.[0]||'domestic';
+  const overSub=over.length
+    ?Object.entries(overByCurCat).map(([cur,amt])=>`${N(amt,0)} ${cur}`).join(' · ')+' · คลิกเพื่อดูรายการ'
+    :'ไม่มีรายการเลยกำหนด';
+  document.getElementById('dashKpiFc').innerHTML=`
+    <div class="kCard kc-a"><div class="kLbl">Forecast — คาดรับ 3 สัปดาห์</div><div class="kVal">${pend.length}</div><div class="kSub">รายการรอรับเงิน · ทุกหมวด</div><div class="kIco">📅</div></div>
+    <div class="kCard kc-r" style="cursor:pointer" onclick="goForecastOverdue('${topOverCat}')" title="คลิกเพื่อดูรายการเลยกำหนดใน Forecast Income"><div class="kLbl">Forecast — เลยกำหนดรับ</div><div class="kVal">${over.length}</div><div class="kSub">${overSub}</div><div class="kIco">⚠️</div></div>
+  `;
 
   const years=[...new Set([...D,...E,...C].map(r=>r.year).filter(Boolean))].sort((a,b)=>a-b);
+
   // ── 1) ปริมาณขายรายปี (MTS) แยกหมวด ──
   const volD=years.map(y=>D.filter(r=>r.year===y).reduce((s,r)=>s+(+r.qty_mts||0),0));
   const volE=years.map(y=>E.filter(r=>r.year===y).reduce((s,r)=>s+(+r.qty_mts||0),0));
@@ -2419,7 +2418,7 @@ function rBrk(){
 // ═══════════ PO FINANCING (SCB / TTB) ═══════════
 let PF=[], PFBankRpt={}, PFBank='all';
 const PF_PRODUCT_LBL={starch:'แป้งมัน',chip:'มันเส้น',other:'อื่นๆ'};
-const PF_STATUS_BDG={outstanding:'<span class="bdg bdg-r">🔴 คงค้าง</span>',pending_update:'<span class="bdg bdg-a">🟡 รออัพเดท</span>',paid:'<span class="bdg bdg-g">🟢 ชำระแล้ว / ปิดยอด</span>'};
+const PF_STATUS_BDG={outstanding:'<span class="bdg bdg-r">🔴 ลงค้าง</span>',pending_update:'<span class="bdg bdg-a">🟡 รออัพเดท</span>',paid:'<span class="bdg bdg-g">🟢 ชำระแล้ว / ปิดยอด</span>'};
 async function loadPoFin(){
   document.getElementById('pofinTb').innerHTML='<tr><td colspan="14"><div class="loading"><span class="spin"></span>กำลังโหลด...</div></td></tr>';
   const[{data:pf,error:e1},{data:br,error:e2}]=await Promise.all([
@@ -2449,9 +2448,11 @@ function rPofinKpi(){
   `;
   const note=document.getElementById('pofinNote');
   note.style.display='';
-  note.innerHTML=`⚠️ ยอดที่ KS AGRO บันทึกกับยอดธนาคารแจ้งอาจไม่ตรงกัน ใช้เป็น reference — ยอดในตารางคือยอดหลัก · <a href="javascript:void(0)" onclick="editBankReport()" style="color:var(--blue);text-decoration:underline;">✏ แก้ไขยอดธนาคารแจ้ง (SCB)</a>`;
+  const canEditBank=!(U&&(U.role==='finance'));
+  note.innerHTML=`⚠️ ยอดที่ KS AGRO บันทึกกับยอดธนาคารแจ้งอาจไม่ตรงกัน ใช้เป็น reference — ยอดในตารางคือยอดหลัก`+(canEditBank?` · <a href="javascript:void(0)" onclick="editBankReport()" style="color:var(--blue);text-decoration:underline;">✏ แก้ไขยอดธนาคารแจ้ง (SCB)</a>`:'');
 }
 async function editBankReport(){
+  if(U&&U.role==='finance'){toast('บัญชี Finance ไม่มีสิทธิ์แก้ไขข้อมูลนี้',true);return;}
   const cur=PFBankRpt['SCB']?.reported_amount||0;
   const v=prompt('กรอกยอดที่ธนาคาร SCB แจ้งมาล่าสุด (USD):',cur);
   if(v===null)return;
@@ -2489,7 +2490,7 @@ function rPofin(){
       <td style="color:${overdue?'var(--red)':'var(--text)'};font-weight:${overdue?700:400}">${D(r.due_date)}${overdue?' ⚠️':''}</td>
       <td>${D(r.expire_60d)}</td>
       <td>${PF_STATUS_BDG[r.status]||E(r.status)}</td>
-      <td><div class="ra"><button class="ib e" onclick="editPoFin('${r.id}')">✏</button><button class="ib d" onclick="delPoFin('${r.id}')">🗑</button></div></td>
+      <td><div class="ra"><button class="ib e gate-write" onclick="editPoFin('${r.id}')">✏</button><button class="ib d gate-delete" onclick="delPoFin('${r.id}')">🗑</button></div></td>
     </tr>`;
   }).join('');
 }
