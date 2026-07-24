@@ -1465,7 +1465,7 @@ async function initAuth(){
 }
 const ROLE_LABEL={admin:'ผู้ดูแลระบบ',coordinator:'Coordinator',marketing:'Marketing',director:'ผู้บริหาร',finance:'ฝ่ายการเงิน'};
 // หน้าที่ Finance เห็นได้เท่านั้น
-const FINANCE_ALLOWED_PAGES=['dash','fc','pofin','stock'];
+const FINANCE_ALLOWED_PAGES=['dash','monthly','fc','pofin','stock'];
 async function boot(){
   document.getElementById('loginScreen').style.display='none';
   document.getElementById('app').style.display='block';
@@ -1490,13 +1490,15 @@ async function boot(){
 function applyRolePermissions(role){
   const isAdmin=role==='admin';
   const isFinance=role==='finance';
+  const isDirector=role==='director';
+  const isReadOnly=isFinance||isDirector;
 
-  // ปุ่มเพิ่ม/แก้ไข: ทุก role เขียนได้ ยกเว้น finance
-  document.querySelectorAll('.gate-write').forEach(el=>{el.style.display=isFinance?'none':'';});
+  // ปุ่มเพิ่ม/แก้ไข/บันทึก: admin/coordinator/marketing เขียนได้ · finance และ director ดูได้อย่างเดียว
+  document.querySelectorAll('.gate-write').forEach(el=>{el.style.display=isReadOnly?'none':'';});
   // ปุ่มลบ: admin เท่านั้น
   document.querySelectorAll('.gate-delete').forEach(el=>{el.style.display=isAdmin?'':'none';});
 
-  // เมนูฝั่งซ้าย: finance เห็นแค่ Dashboard / Forecast Income / PO Financing / Stock
+  // เมนูฝั่งซ้าย: finance เห็นแค่ Dashboard / Monthly Breakdown / Forecast Income / PO Financing / Stock
   document.querySelectorAll('.sbItem').forEach(el=>{
     const pg=el.id.replace(/^sn-/,'');
     if(isFinance&&!FINANCE_ALLOWED_PAGES.includes(pg)){el.style.display='none';}
