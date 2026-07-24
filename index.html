@@ -89,7 +89,7 @@ button{cursor:pointer;font-family:inherit;}
 .tbStatus .dot{width:6px;height:6px;border-radius:50%;background:var(--green);}
 
 /* ─── MAIN ─── */
-.main{margin-left:var(--sb-w);padding-top:52px;min-height:100vh;}
+.main{margin-left:var(--sb-w);padding-top:52px;min-height:100vh;min-width:0;flex:1 1 auto;overflow-x:hidden;}
 .pg{padding:22px 26px;display:none;}
 .pg.show{display:block;}
 
@@ -265,6 +265,13 @@ tbody tr:hover td{background:var(--panel2);}
   .mB{padding:14px;}
   .tbPage{font-size:13px;}
 }
+/* ─── สิทธิ์การใช้งานตาม role: ใช้ CSS attribute selector แทน JS sweep
+   เพราะปุ่มแก้ไข/ลบส่วนใหญ่ถูกสร้างขึ้นทีหลัง (หลังโหลดข้อมูลจาก Supabase
+   เสร็จ) ซึ่งมาทีหลังตอนที่ JS กวาดซ่อนปุ่มรอบแรกไปแล้ว การใช้ CSS ตรงนี้
+   ทำให้ปุ่มที่เพิ่งถูกสร้างขึ้นใหม่ถูกซ่อน/ปิดกั้นสิทธิ์ทันทีโดยไม่ต้องรอ JS ─── */
+body[data-role="finance"] .gate-write,
+body[data-role="director"] .gate-write{display:none !important;}
+body:not([data-role="admin"]) .gate-delete{display:none !important;}
 </style>
 </head>
 <body>
@@ -1484,10 +1491,11 @@ async function boot(){
   document.getElementById('sbUr').textContent=ROLE_LABEL[U.role]||U.role;
 
   applyRolePermissions(U.role);
-  go(U.role==='finance'?'dash':'dom');
+  go('dash');
   loadFcBadge();
 }
 function applyRolePermissions(role){
+  document.body.setAttribute('data-role',role||'');
   const isAdmin=role==='admin';
   const isFinance=role==='finance';
   const isDirector=role==='director';
