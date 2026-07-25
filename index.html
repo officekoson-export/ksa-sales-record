@@ -347,6 +347,23 @@ body:not([data-role="admin"]) .gate-delete{display:none !important;}
     <span class="pill pill-green">Live</span>
   </div>
 
+  <!-- กาแฟ -->
+  <div class="sbGrp">กาแฟ</div>
+  <div class="sbItem" id="sn-dcoffee" onclick="go('dcoffee')">
+    <span class="ico">☕</span>
+    <div class="lbl">Domestic Coffee
+      <span class="sub">ขายกาแฟในประเทศ · THB</span>
+    </div>
+    <span class="pill pill-green">Live</span>
+  </div>
+  <div class="sbItem" id="sn-icoffee" onclick="go('icoffee')">
+    <span class="ico">🚛</span>
+    <div class="lbl">Import Coffee
+      <span class="sub">นำเข้ากาแฟ · THB</span>
+    </div>
+    <span class="pill pill-green">Live</span>
+  </div>
+
   <!-- การเงิน -->
   <div class="sbGrp">การเงิน</div>
   <div class="sbItem" id="sn-fc" onclick="go('fc')">
@@ -466,6 +483,8 @@ body:not([data-role="admin"]) .gate-delete{display:none !important;}
   <div class="kGrid" id="dashKpiEs"></div>
   <div class="sLbl">📦 ส่งออกมันเส้น — Export Chip (USD)</div>
   <div class="kGrid" id="dashKpiEc"></div>
+  <div class="sLbl">☕ กาแฟ — Domestic + Import (THB)</div>
+  <div class="kGrid" id="dashKpiCoffee"></div>
   <div class="sLbl">⏰ Forecast Income (ทุกหมวดรวมกัน)</div>
   <div class="kGrid" id="dashKpiFc"></div>
 
@@ -499,6 +518,19 @@ body:not([data-role="admin"]) .gate-delete{display:none !important;}
       <h4>🟣 ยอดขายส่งออก CNY</h4>
       <div class="chSub">Export Starch เท่านั้น · รายปี</div>
       <div class="chWrap sm"><canvas id="chRevCny"></canvas></div>
+    </div>
+  </div>
+
+  <div class="chGrid2">
+    <div class="chCard">
+      <h4>☕ ยอดขาย/นำเข้ากาแฟ (THB)</h4>
+      <div class="chSub">Domestic Coffee vs Import Coffee · รายปี</div>
+      <div class="chWrap"><canvas id="chCoffeeRev"></canvas></div>
+    </div>
+    <div class="chCard">
+      <h4>☕ ปริมาณกาแฟ (MTS)</h4>
+      <div class="chSub">Domestic Coffee vs Import Coffee · รายปี</div>
+      <div class="chWrap"><canvas id="chCoffeeVol"></canvas></div>
     </div>
   </div>
 
@@ -657,6 +689,76 @@ body:not([data-role="admin"]) .gate-delete{display:none !important;}
       </table>
     </div>
     <div class="tFoot"><span id="ecCnt">—</span><span id="ecTot" style="color:var(--text)">—</span></div>
+  </div>
+</div>
+
+<!-- DOMESTIC COFFEE -->
+<div class="pg" id="pg-dcoffee">
+  <div class="ph">
+    <div class="phL">
+      <h2>Domestic Coffee — ขายกาแฟในประเทศ</h2>
+      <div class="phS"><span class="d" style="background:var(--amber)"></span>สกุลเงิน THB เท่านั้น</div>
+    </div>
+    <div class="phR">
+      <button class="btn btn-p gate-write" onclick="openDc()">＋ เพิ่มรายการ</button>
+    </div>
+  </div>
+  <div class="kGrid" id="dcKpi"></div>
+  <div class="yPills" id="dcYP"></div>
+  <div class="tb">
+    <div class="srchW"><input class="srch" id="dcSr" placeholder="ค้นหา ชื่อลูกค้า/Invoice" oninput="rDc()"></div>
+    <div class="sp"></div>
+    <button class="btn btn-o btn-sm" onclick="loadDc()">⟳ รีเฟรช</button>
+  </div>
+  <div class="tCard">
+    <div class="tWrap">
+      <table>
+        <thead><tr>
+          <th>NO.</th><th>ปี</th><th>ลูกค้า</th><th>Invoice No.</th>
+          <th>ขนาดบรรจุ</th><th>QTY (MTS)</th><th>Total (THB)</th>
+          <th>วันส่งของ</th><th>สถานะ / หมายเหตุ</th>
+          <th>Payment Term</th>
+          <th>จัดการ</th>
+        </tr></thead>
+        <tbody id="dcTb"><tr><td colspan="11"><div class="loading"><span class="spin"></span>กำลังโหลด...</div></td></tr></tbody>
+      </table>
+    </div>
+    <div class="tFoot"><span id="dcCnt">—</span><span id="dcTot" style="color:var(--text)">—</span></div>
+  </div>
+</div>
+
+<!-- IMPORT COFFEE -->
+<div class="pg" id="pg-icoffee">
+  <div class="ph">
+    <div class="phL">
+      <h2>Import Coffee — นำเข้ากาแฟ</h2>
+      <div class="phS"><span class="d" style="background:var(--orange)"></span>ซื้อเข้าจากต่างประเทศ · มัดจำ + ยอดคงเหลือ</div>
+    </div>
+    <div class="phR">
+      <button class="btn btn-p gate-write" onclick="openIc()">＋ เพิ่มรายการ</button>
+    </div>
+  </div>
+  <div class="kGrid" id="icKpi"></div>
+  <div class="yPills" id="icYP"></div>
+  <div class="tb">
+    <div class="srchW"><input class="srch" id="icSr" placeholder="ค้นหา ชื่อลูกค้า/Invoice" oninput="rIc()"></div>
+    <div class="sp"></div>
+    <button class="btn btn-o btn-sm" onclick="loadIc()">⟳ รีเฟรช</button>
+  </div>
+  <div class="tCard">
+    <div class="tWrap">
+      <table>
+        <thead><tr>
+          <th>NO.</th><th>ปี</th><th>ผู้ขาย (ต้นทาง)</th><th>Invoice No.</th>
+          <th>QTY (MTS)</th><th>Total</th>
+          <th>วันโหลด</th><th>สถานะ / หมายเหตุ</th>
+          <th>Payment Term</th>
+          <th>จัดการ</th>
+        </tr></thead>
+        <tbody id="icTb"><tr><td colspan="10"><div class="loading"><span class="spin"></span>กำลังโหลด...</div></td></tr></tbody>
+      </table>
+    </div>
+    <div class="tFoot"><span id="icCnt">—</span><span id="icTot" style="color:var(--text)">—</span></div>
   </div>
 </div>
 
@@ -1078,6 +1180,205 @@ body:not([data-role="admin"]) .gate-delete{display:none !important;}
   <div class="mF">
     <button class="btn btn-o" onclick="closeDom()">ยกเลิก</button>
     <button class="btn btn-p" onclick="saveDom()">💾 บันทึก</button>
+  </div>
+</div>
+</div>
+
+<!-- DOMESTIC COFFEE MODAL -->
+<div class="mbg" id="mDc">
+<div class="mc">
+  <div class="mH"><h3 id="mDcT">เพิ่มรายการ — Domestic Coffee</h3><div class="ms">สกุลเงิน THB · ฟิลด์ * จำเป็น</div></div>
+  <div class="mB">
+    <input type="hidden" id="dc_id">
+    <div class="sLbl">ข้อมูลการขาย</div>
+    <div class="fg">
+      <div class="fld"><label>ปี *</label><input type="number" id="dc_year"></div>
+      <div class="fld"><label>NO. ลำดับที่</label><input id="dc_seq_no" placeholder="NO.1, NO.2..."></div>
+      <div class="fld"><label>Broker Name</label><input id="dc_broker_name"></div>
+      <div class="fld"><label>คอม (ต่อตัน)</label><input type="number" step="any" id="dc_comm_rate" oninput="calcComm('dc')"></div>
+      <div class="fld"><label>Total Comm</label><input type="number" step="any" id="dc_total_comm"></div>
+      <div class="fld"><label>Contact Date</label><input type="date" id="dc_contact_date"></div>
+      <div class="fld"><label>Shipment Date (ข้อความ)</label><input id="dc_shipment_date" placeholder="เช่น Within March 2026"></div>
+      <div class="fld s2"><label>ลูกค้า (Applicant Name) *</label><input id="dc_applicant_name"></div>
+      <div class="fld s2"><label>Contact No. / PO</label><input id="dc_contact_no"></div>
+      <div class="fld"><label>ขนาดบรรจุ (kgs)</label><input type="number" step="any" id="dc_packing_kgs"></div>
+      <div class="fld"><label>Partial / CONTS</label><input id="dc_qty_partial"></div>
+      <div class="fld"><label>QTY MTS</label><input type="number" step="any" id="dc_qty_mts" oninput="calcComm('dc')"></div>
+      <div class="fld"><label>PRICE FOB</label><input type="number" step="any" id="dc_price_fob"></div>
+      <div class="fld"><label>PRICE CFR</label><input type="number" step="any" id="dc_price_cfr"></div>
+      <div class="fld"><label>PRICE CIF</label><input type="number" step="any" id="dc_price_cif"></div>
+      <div class="fld"><label>สกุลเงิน</label><select id="dc_currency"><option value="THB">THB</option><option value="USD">USD</option></select></div>
+      <div class="fld"><label>Total</label><input type="number" step="any" id="dc_total"></div>
+      <div class="fld"><label>Invoice No.</label><input id="dc_invoice_no"></div>
+      <div class="fld s2"><label>Payment Term</label><input id="dc_payment_term"></div>
+      <div class="fld"><label>Exchange Rate</label><input type="number" step="any" id="dc_exchange_rate"></div>
+      <div class="fld s3"><label>สถานะ / หมายเหตุ 📌</label><input id="dc_status_remark"></div>
+    </div>
+
+    <div class="sLbl">การรับเงิน</div>
+    <div class="fg">
+      <div class="fld"><label>วันที่รับเงินงวด #1</label><input type="date" id="dc_receive_date1"></div>
+      <div class="fld"><label>ยอดรับเงินงวด #1</label><input type="number" step="any" id="dc_receive_amount1"></div>
+      <div class="fld"><label>วันที่รับเงินงวด #2</label><input type="date" id="dc_receive_date2"></div>
+      <div class="fld"><label>ยอดรับเงินงวด #2</label><input type="number" step="any" id="dc_receive_amount2"></div>
+    </div>
+
+    <div class="sLbl">การจัดส่ง</div>
+    <div class="fg">
+      <div class="fld"><label>Delivery By</label><input id="dc_delivery_by" placeholder="เช่น TRUCK"></div>
+      <div class="fld"><label>Truck No.</label><input id="dc_truck_no"></div>
+      <div class="fld s2"><label>Delivery Document</label><input id="dc_delivery_document"></div>
+      <div class="fld s2"><label>สถานที่ส่งของ</label><input id="dc_delivery_place"></div>
+      <div class="fld"><label>วันส่ง #1</label><input type="date" id="dc_delivery_date1"></div>
+      <div class="fld"><label>QTY ส่ง #1 (MTS)</label><input type="number" step="any" id="dc_delivery_qty1"></div>
+      <div class="fld"><label>วันส่ง #2</label><input type="date" id="dc_delivery_date2"></div>
+      <div class="fld"><label>QTY ส่ง #2 (MTS)</label><input type="number" step="any" id="dc_delivery_qty2"></div>
+      <div class="fld"><label>วันส่ง #3</label><input type="date" id="dc_delivery_date3"></div>
+      <div class="fld"><label>QTY ส่ง #3 (MTS)</label><input type="number" step="any" id="dc_delivery_qty3"></div>
+    </div>
+
+    <div class="sLbl">ค่าใช้จ่ายอื่นๆ</div>
+    <div class="fg">
+      <div class="fld"><label>ตัวแทนโควต้านำเข้า</label><input id="dc_import_agent_name"></div>
+      <div class="fld"><label>ค่าบริการนำเข้า (บาท)</label><input type="number" step="any" id="dc_import_service_cost"></div>
+      <div class="fld"><label>ค่าวัสดุหีบห่อ (บาท)</label><input type="number" step="any" id="dc_packing_material_cost"></div>
+      <div class="fld"><label>พาเลท</label><input id="dc_pallet_name"></div>
+      <div class="fld"><label>ค่าพาเลท (บาท)</label><input type="number" step="any" id="dc_pallet_cost"></div>
+      <div class="fld"><label>เซอร์เวย์ / QC</label><input id="dc_survey_name"></div>
+      <div class="fld"><label>ค่าเซอร์เวย์ (บาท)</label><input type="number" step="any" id="dc_survey_cost"></div>
+      <div class="fld"><label>ประกันภัย</label><input id="dc_insurance_name"></div>
+      <div class="fld"><label>ค่าเบี้ยประกัน (บาท)</label><input type="number" step="any" id="dc_insurance_cost"></div>
+      <div class="fld"><label>Packing Service Name</label><input id="dc_packing_service_name"></div>
+      <div class="fld s3"><label>หมายเหตุ</label><input id="dc_remark"></div>
+    </div>
+  </div>
+  <div class="mF">
+    <button class="btn btn-o" onclick="closeDc()">ยกเลิก</button>
+    <button class="btn btn-p" onclick="saveDc()">💾 บันทึก</button>
+  </div>
+</div>
+</div>
+
+<!-- IMPORT COFFEE MODAL -->
+<div class="mbg" id="mIc">
+<div class="mc">
+  <div class="mH"><h3 id="mIcT">เพิ่มรายการ — Import Coffee</h3><div class="ms">ฟิลด์ * จำเป็น</div></div>
+  <div class="mB">
+    <input type="hidden" id="ic_id">
+    <div class="sLbl">ข้อมูลการสั่งซื้อ</div>
+    <div class="fg">
+      <div class="fld"><label>ปี *</label><input type="number" id="ic_year"></div>
+      <div class="fld"><label>NO. ลำดับที่</label><input id="ic_seq_no" placeholder="NO.1, NO.2..."></div>
+      <div class="fld"><label>Broker Name</label><input id="ic_broker_name"></div>
+      <div class="fld"><label>คอม (ต่อตัน)</label><input type="number" step="any" id="ic_comm_rate" oninput="calcComm('ic')"></div>
+      <div class="fld"><label>Total Comm</label><input type="number" step="any" id="ic_total_comm"></div>
+      <div class="fld"><label>Contact Date</label><input type="date" id="ic_contact_date"></div>
+      <div class="fld"><label>Shipment Date (ข้อความ)</label><input id="ic_shipment_date"></div>
+      <div class="fld s2"><label>ผู้ขาย / ต้นทาง (Applicant Name) *</label><input id="ic_applicant_name"></div>
+      <div class="fld s2"><label>Contact No.</label><input id="ic_contact_no"></div>
+      <div class="fld"><label>ขนาดบรรจุ (kgs)</label><input type="number" step="any" id="ic_packing_kgs"></div>
+      <div class="fld"><label>Partial / Shipment</label><input id="ic_qty_partial"></div>
+      <div class="fld"><label>QTY MTS</label><input type="number" step="any" id="ic_qty_mts" oninput="calcComm('ic')"></div>
+      <div class="fld"><label>PRICE FOB</label><input type="number" step="any" id="ic_price_fob"></div>
+      <div class="fld"><label>PRICE CFR</label><input type="number" step="any" id="ic_price_cfr"></div>
+      <div class="fld"><label>PRICE CIF</label><input type="number" step="any" id="ic_price_cif"></div>
+      <div class="fld"><label>สกุลเงิน</label><select id="ic_currency"><option value="THB">THB</option><option value="USD">USD</option></select></div>
+      <div class="fld"><label>Total</label><input type="number" step="any" id="ic_total"></div>
+      <div class="fld"><label>Invoice No.</label><input id="ic_invoice_no"></div>
+      <div class="fld s2"><label>Payment Term</label><input id="ic_payment_term"></div>
+      <div class="fld s3"><label>สถานะ / หมายเหตุ 📌</label><input id="ic_status_remark"></div>
+    </div>
+
+    <div class="sLbl">การชำระเงิน (มัดจำ + ยอดคงเหลือ)</div>
+    <div class="fg">
+      <div class="fld"><label>วันที่มัดจำ (T/T Deposit)</label><input type="date" id="ic_deposit_date"></div>
+      <div class="fld"><label>ยอดมัดจำ (THB)</label><input type="number" step="any" id="ic_deposit_value_thb"></div>
+      <div class="fld"><label>Exchange Rate #1</label><input type="number" step="any" id="ic_exchange_rate1"></div>
+      <div class="fld"><label>ยอดมัดจำ (USD)</label><input type="number" step="any" id="ic_deposit_total_usd"></div>
+      <div class="fld"><label>วันที่ชำระยอดคงเหลือ</label><input type="date" id="ic_balance_date"></div>
+      <div class="fld"><label>ยอดคงเหลือ (THB)</label><input type="number" step="any" id="ic_balance_total"></div>
+      <div class="fld"><label>Exchange Rate #2</label><input type="number" step="any" id="ic_exchange_rate2"></div>
+      <div class="fld"><label>ยอดคงเหลือ (USD)</label><input type="number" step="any" id="ic_balance_total_usd2"></div>
+    </div>
+
+    <div class="sLbl">การนำเข้า / จัดส่ง</div>
+    <div class="fg">
+      <div class="fld"><label>Delivery By</label><input id="ic_delivery_by" placeholder="เช่น TRUCK"></div>
+      <div class="fld"><label>ใบขนฯ เลขที่</label><input id="ic_customs_no"></div>
+      <div class="fld"><label>From Origin</label><input id="ic_from_origin"></div>
+      <div class="fld"><label>Pass as Border</label><input id="ic_pass_border"></div>
+      <div class="fld"><label>Loading Date *</label><input type="date" id="ic_loading_date"></div>
+      <div class="fld s2"><label>สถานที่ส่งของ</label><input id="ic_delivery_place"></div>
+      <div class="fld"><label>วันส่ง #1</label><input type="date" id="ic_delivery_date1"></div>
+      <div class="fld"><label>วันส่ง #2</label><input type="date" id="ic_delivery_date2"></div>
+      <div class="fld"><label>วันส่ง #3</label><input type="date" id="ic_delivery_date3"></div>
+      <div class="fld"><label>วันที่ส่งของ (สรุป)</label><input type="date" id="ic_final_delivery_date"></div>
+    </div>
+
+    <div class="sLbl">ต้นทุนวัตถุดิบจากโรงงาน</div>
+    <div class="fg2">
+      <div class="fBox"><h4>🏭 โรงงาน #1</h4><div class="fi">
+        <div class="fld s3"><label>ชื่อโรงงาน</label><input id="ic_factory1_name"></div>
+        <div class="fld s3"><label>PO No.</label><input id="ic_factory1_po"></div>
+        <div class="fld"><label>ราคาซื้อ</label><input type="number" step="any" id="ic_factory1_price"></div>
+        <div class="fld"><label>รวมยอดเงิน</label><input type="number" step="any" id="ic_factory1_total"></div>
+        <div class="fld"><label>ก่อน VAT</label><input type="number" step="any" id="ic_factory1_before_vat"></div>
+        <div class="fld"><label>VAT 7%</label><input type="number" step="any" id="ic_factory1_vat"></div>
+      </div></div>
+      <div class="fBox"><h4>🏭 โรงงาน #2</h4><div class="fi">
+        <div class="fld s3"><label>ชื่อโรงงาน</label><input id="ic_factory2_name"></div>
+        <div class="fld s3"><label>PO No.</label><input id="ic_factory2_po"></div>
+        <div class="fld"><label>ราคาซื้อ</label><input type="number" step="any" id="ic_factory2_price"></div>
+        <div class="fld"><label>รวมยอดเงิน</label><input type="number" step="any" id="ic_factory2_total"></div>
+        <div class="fld"><label>ก่อน VAT</label><input type="number" step="any" id="ic_factory2_before_vat"></div>
+        <div class="fld"><label>VAT 7%</label><input type="number" step="any" id="ic_factory2_vat"></div>
+      </div></div>
+      <div class="fBox"><h4>🏭 โรงงาน #3</h4><div class="fi">
+        <div class="fld s3"><label>ชื่อโรงงาน</label><input id="ic_factory3_name"></div>
+        <div class="fld s3"><label>PO No.</label><input id="ic_factory3_po"></div>
+        <div class="fld"><label>ราคาซื้อ</label><input type="number" step="any" id="ic_factory3_price"></div>
+        <div class="fld"><label>รวมยอดเงิน</label><input type="number" step="any" id="ic_factory3_total"></div>
+        <div class="fld"><label>ก่อน VAT</label><input type="number" step="any" id="ic_factory3_before_vat"></div>
+        <div class="fld"><label>VAT 7%</label><input type="number" step="any" id="ic_factory3_vat"></div>
+      </div></div>
+      <div class="fBox"><h4>🏭 โรงงาน #4</h4><div class="fi">
+        <div class="fld s3"><label>ชื่อโรงงาน</label><input id="ic_factory4_name"></div>
+        <div class="fld s3"><label>PO No.</label><input id="ic_factory4_po"></div>
+        <div class="fld"><label>ราคาซื้อ</label><input type="number" step="any" id="ic_factory4_price"></div>
+        <div class="fld"><label>รวมยอดเงิน</label><input type="number" step="any" id="ic_factory4_total"></div>
+        <div class="fld"><label>ก่อน VAT</label><input type="number" step="any" id="ic_factory4_before_vat"></div>
+        <div class="fld"><label>VAT 7%</label><input type="number" step="any" id="ic_factory4_vat"></div>
+      </div></div>
+    </div>
+
+    <div class="sLbl">ค่าใช้จ่ายนำเข้าอื่นๆ</div>
+    <div class="fg">
+      <div class="fld"><label>Packings Name</label><input id="ic_packing_name"></div>
+      <div class="fld"><label>ตัวแทนโควต้านำเข้า</label><input id="ic_import_agent_name"></div>
+      <div class="fld"><label>ค่าบริการนำเข้า</label><input type="number" step="any" id="ic_import_service_cost"></div>
+      <div class="fld"><label>ค่าวัสดุหีบห่อ</label><input type="number" step="any" id="ic_packing_material_cost"></div>
+      <div class="fld"><label>ค่าพาเลท</label><input type="number" step="any" id="ic_pallet_cost"></div>
+      <div class="fld"><label>ค่ากระสอบ</label><input type="number" step="any" id="ic_sack_cost"></div>
+      <div class="fld"><label>Agent name</label><input id="ic_agent_name"></div>
+      <div class="fld"><label>ค่าเฟรท</label><input type="number" step="any" id="ic_freight_cost"></div>
+      <div class="fld"><label>เซอร์เวย์</label><input id="ic_survey_name"></div>
+      <div class="fld"><label>รมยา</label><input id="ic_fumigation_name"></div>
+      <div class="fld"><label>ค่าเซอร์เวย์/รมยา</label><input type="number" step="any" id="ic_survey_fumigation_cost"></div>
+      <div class="fld"><label>ชิปปิ้ง</label><input id="ic_shipping_name"></div>
+      <div class="fld"><label>ค่าชิปปิ้ง</label><input type="number" step="any" id="ic_shipping_cost"></div>
+      <div class="fld"><label>Insurance Name</label><input id="ic_insurance_name"></div>
+      <div class="fld"><label>ค่าเบี้ยประกันภัย</label><input type="number" step="any" id="ic_insurance_cost"></div>
+      <div class="fld"><label>บริษัทรถขนส่ง</label><input id="ic_transport_company"></div>
+      <div class="fld"><label>ค่าบริการรถขนส่ง</label><input type="number" step="any" id="ic_transport_cost"></div>
+      <div class="fld"><label>ค่าส่งเอกสาร</label><input type="number" step="any" id="ic_doc_delivery_cost"></div>
+      <div class="fld"><label>DHL NO.</label><input id="ic_dhl_no"></div>
+      <div class="fld"><label>BOOKING NO.</label><input id="ic_booking_no"></div>
+      <div class="fld"><label>BILL OF LADING / TRUCK NO.</label><input id="ic_bl_truck_no"></div>
+    </div>
+  </div>
+  <div class="mF">
+    <button class="btn btn-o" onclick="closeIc()">ยกเลิก</button>
+    <button class="btn btn-p" onclick="saveIc()">💾 บันทึก</button>
   </div>
 </div>
 </div>
@@ -1553,6 +1854,8 @@ function go(p){
   if(m.sub){sep.style.display='';sub.textContent=m.sub;}
   else{sep.style.display='none';sub.textContent='';}
   if(p==='dom')loadDom();
+  else if(p==='dcoffee')loadDc();
+  else if(p==='icoffee')loadIc();
   else if(p==='es')loadEs();
   else if(p==='ec')loadEc();
   else if(p==='fc')loadFc();
@@ -1713,6 +2016,203 @@ function xDom(){
   const csv=[h.join(',')].concat(rows.map(r=>h.map(k=>`"${(r[k]??'').toString().replace(/"/g,'""')}"`).join(','))).join('\n');
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv'}));
   a.download=`domestic_${DY}_${new Date().toISOString().slice(0,10)}.csv`;a.click();
+}
+
+// ═══════════ DOMESTIC COFFEE ═══════════
+let DCR=[], DCY='all';
+async function loadDc(){
+  document.getElementById('dcTb').innerHTML='<tr><td colspan="11"><div class="loading"><span class="spin"></span>กำลังโหลดข้อมูล...</div></td></tr>';
+  const{data,error}=await fetchAllRows('domestic_coffee');
+  if(error){toast('โหลดไม่สำเร็จ: '+error.message,true);return;}
+  DCR=(data||[]).sort((a,b)=>{const ya=Number(a.year||0),yb=Number(b.year||0);if(ya!==yb)return ya-yb;return seqNum(a.seq_no)-seqNum(b.seq_no);});
+  buildDcY();rDcKpi();rDc();
+}
+function buildDcY(){
+  const yrs=[...new Set(DCR.map(r=>r.year).filter(Boolean))].sort((a,b)=>b-a);
+  const w=document.getElementById('dcYP');
+  w.innerHTML=`<div class="yPill ${DCY==='all'?'act':''}" onclick="setDcY('all',this)">ทุกปี (${DCR.length})</div>`;
+  yrs.forEach(y=>{const c=DCR.filter(r=>String(r.year)===String(y)).length;const d=document.createElement('div');d.className='yPill'+(String(DCY)===String(y)?' act':'');d.innerHTML=`${y} <span style="opacity:.55;font-size:10.5px">(${c})</span>`;d.onclick=function(){setDcY(y,this);};w.appendChild(d);});
+}
+function setDcY(y,el){DCY=y;document.querySelectorAll('#dcYP .yPill').forEach(e=>e.classList.remove('act'));el.classList.add('act');rDcKpi();rDc();}
+function gDc(){
+  let r=DCR;
+  if(DCY!=='all')r=r.filter(x=>String(x.year)===String(DCY));
+  const s=(document.getElementById('dcSr')?.value||'').toLowerCase();
+  if(s)r=r.filter(x=>(x.applicant_name||'').toLowerCase().includes(s)||(x.invoice_no||'').toLowerCase().includes(s));
+  return r;
+}
+function rDcKpi(){
+  const r=gDc();
+  const mts=r.reduce((s,x)=>s+(+x.qty_mts||0),0);
+  const thb=r.reduce((s,x)=>s+(+x.total||0),0);
+  document.getElementById('dcKpi').innerHTML=`
+    <div class="kCard kc-b"><div class="kLbl">รายการทั้งหมด</div><div class="kVal">${r.length}</div><div class="kSub">รายการ</div><div class="kIco">📋</div></div>
+    <div class="kCard kc-g"><div class="kLbl">ปริมาณรวม</div><div class="kVal">${N(mts,2)}</div><div class="kSub">เมตริกตัน (MTS)</div><div class="kIco">⚖️</div></div>
+    <div class="kCard kc-b"><div class="kLbl">มูลค่ารวม (THB)</div><div class="kVal">${N(thb,0)}</div><div class="kSub">บาท</div><div class="kIco">💵</div></div>
+  `;
+}
+function rDc(){
+  const rows=gDc(),body=document.getElementById('dcTb');
+  if(!rows.length){body.innerHTML='<tr><td colspan="11"><div class="empty"><div class="ei">📭</div><p>ไม่พบรายการ</p></div></td></tr>';document.getElementById('dcCnt').textContent='ไม่พบรายการ';document.getElementById('dcTot').textContent='';return;}
+  const mts=rows.reduce((s,r)=>s+(+r.qty_mts||0),0),thb=rows.reduce((s,r)=>s+(+r.total||0),0);
+  document.getElementById('dcCnt').textContent=`แสดง ${rows.length} รายการ`;
+  document.getElementById('dcTot').textContent=`รวม ${N(mts,2)} MTS · ${N(thb,0)} THB`;
+  body.innerHTML=rows.map((r,i)=>{
+    const sr=r.status_remark||'';
+    const isCancel=sr.includes('ยกเลิก');
+    const isDone=sr.includes('ครบ')||sr.includes('เข้าแล้ว');
+    const isPending=sr.includes('รอ');
+    const srColor=isCancel?'var(--red)':isDone?'var(--green)':isPending?'var(--amber)':'var(--dim)';
+    return`<tr>
+    <td style="color:var(--blue);width:44px;font-size:11px;font-weight:700">${E(r.seq_no)||String(i+1)}</td>
+    <td style="width:44px"><strong style="color:var(--blue)">${r.year||'—'}</strong></td>
+    <td class="td-trunc" style="font-weight:600;max-width:160px">${E(r.applicant_name)}</td>
+    <td class="td-trunc" style="min-width:110px;max-width:150px;font-size:11px">${E(r.invoice_no)}</td>
+    <td style="width:64px">${r.packing_kgs?N(r.packing_kgs,0)+' kgs':'—'}</td>
+    <td style="font-weight:700;width:68px">${N(r.qty_mts,3)}</td>
+    <td style="font-weight:700;color:var(--green);width:88px">${N(r.total,0)}</td>
+    <td style="width:78px">${D(r.delivery_date1)}</td>
+    <td class="td-trunc" style="min-width:150px;max-width:200px;font-size:11px;color:${srColor}">${E(sr)}</td>
+    <td class="td-trunc" style="max-width:130px;color:var(--dim);font-size:10.5px">${E(r.payment_term)}</td>
+    <td style="width:56px"><div class="ra"><button class="ib e gate-write" onclick="editDc('${r.id}')">✏</button><button class="ib d gate-delete" onclick="delDc('${r.id}')">🗑</button></div></td>
+  </tr>`;}).join('');
+}
+
+const DCF=['year','seq_no','broker_name','comm_rate','total_comm','contact_date','shipment_date','applicant_name','contact_no','packing_kgs','qty_partial','qty_mts','price_fob','price_cfr','price_cif','total','invoice_no','payment_term','exchange_rate','status_remark','receive_date1','receive_amount1','receive_date2','receive_amount2','delivery_by','truck_no','delivery_document','delivery_place','delivery_date1','delivery_qty1','delivery_date2','delivery_qty2','delivery_date3','delivery_qty3','import_agent_name','import_service_cost','packing_material_cost','pallet_name','pallet_cost','survey_name','survey_cost','insurance_name','insurance_cost','packing_service_name','remark'];
+const DCN=['comm_rate','total_comm','packing_kgs','qty_mts','price_fob','price_cfr','price_cif','total','exchange_rate','receive_amount1','receive_amount2','delivery_qty1','delivery_qty2','delivery_qty3','import_service_cost','packing_material_cost','pallet_cost','survey_cost','insurance_cost'];
+
+function openDc(){
+  document.getElementById('mDcT').textContent='เพิ่มรายการ — Domestic Coffee';
+  document.getElementById('dc_id').value='';
+  DCF.forEach(f=>{const el=document.getElementById('dc_'+f);if(el)el.value='';});
+  document.getElementById('dc_year').value=new Date().getFullYear();
+  document.getElementById('dc_currency').value='THB';
+  document.getElementById('mDc').classList.add('show');
+}
+function closeDc(){document.getElementById('mDc').classList.remove('show');}
+function editDc(id){
+  const r=DCR.find(x=>x.id===id);if(!r)return;
+  document.getElementById('mDcT').textContent='แก้ไขรายการ — Domestic Coffee';
+  document.getElementById('dc_id').value=r.id;
+  DCF.forEach(f=>{const el=document.getElementById('dc_'+f);if(el)el.value=(DCN.includes(f)?R2(r[f]):r[f])??'';});
+  document.getElementById('dc_currency').value=r.currency||'THB';
+  document.getElementById('mDc').classList.add('show');
+}
+async function saveDc(){
+  const id=document.getElementById('dc_id').value;
+  if(!document.getElementById('dc_applicant_name').value.trim()){toast('กรุณากรอกชื่อลูกค้า',true);return;}
+  const p={currency:document.getElementById('dc_currency').value||'THB'};
+  DCF.forEach(f=>{const el=document.getElementById('dc_'+f);if(!el)return;let v=el.value===''?null:el.value;if(DCN.includes(f)&&v!==null)v=R2(parseFloat(v));if(f==='year'&&v)v=parseInt(v);p[f]=v;});
+  p.updated_by=U.id;p.updated_by_email=U.email;
+  let err;
+  if(id){({error:err}=await sb.from('domestic_coffee').update(p).eq('id',id));}
+  else{p.created_by=U.id;p.created_by_email=U.email;({error:err}=await sb.from('domestic_coffee').insert(p));}
+  if(err){toast('บันทึกไม่สำเร็จ: '+err.message,true);return;}
+  toast('✅ บันทึกเรียบร้อย');closeDc();loadDc();
+}
+async function delDc(id){
+  if(!confirm('ยืนยันลบรายการนี้? ไม่สามารถย้อนกลับได้'))return;
+  const{error}=await sb.from('domestic_coffee').delete().eq('id',id);
+  if(error){toast('ลบไม่สำเร็จ',true);return;}
+  toast('ลบรายการเรียบร้อย');loadDc();
+}
+
+// ═══════════ IMPORT COFFEE ═══════════
+let ICR=[], ICY='all';
+async function loadIc(){
+  document.getElementById('icTb').innerHTML='<tr><td colspan="10"><div class="loading"><span class="spin"></span>กำลังโหลดข้อมูล...</div></td></tr>';
+  const{data,error}=await fetchAllRows('import_coffee');
+  if(error){toast('โหลดไม่สำเร็จ: '+error.message,true);return;}
+  ICR=(data||[]).sort((a,b)=>{const ya=Number(a.year||0),yb=Number(b.year||0);if(ya!==yb)return ya-yb;return seqNum(a.seq_no)-seqNum(b.seq_no);});
+  buildIcY();rIcKpi();rIc();
+}
+function buildIcY(){
+  const yrs=[...new Set(ICR.map(r=>r.year).filter(Boolean))].sort((a,b)=>b-a);
+  const w=document.getElementById('icYP');
+  w.innerHTML=`<div class="yPill ${ICY==='all'?'act':''}" onclick="setIcY('all',this)">ทุกปี (${ICR.length})</div>`;
+  yrs.forEach(y=>{const c=ICR.filter(r=>String(r.year)===String(y)).length;const d=document.createElement('div');d.className='yPill'+(String(ICY)===String(y)?' act':'');d.innerHTML=`${y} <span style="opacity:.55;font-size:10.5px">(${c})</span>`;d.onclick=function(){setIcY(y,this);};w.appendChild(d);});
+}
+function setIcY(y,el){ICY=y;document.querySelectorAll('#icYP .yPill').forEach(e=>e.classList.remove('act'));el.classList.add('act');rIcKpi();rIc();}
+function gIc(){
+  let r=ICR;
+  if(ICY!=='all')r=r.filter(x=>String(x.year)===String(ICY));
+  const s=(document.getElementById('icSr')?.value||'').toLowerCase();
+  if(s)r=r.filter(x=>(x.applicant_name||'').toLowerCase().includes(s)||(x.invoice_no||'').toLowerCase().includes(s));
+  return r;
+}
+function rIcKpi(){
+  const r=gIc();
+  const mts=r.reduce((s,x)=>s+(+x.qty_mts||0),0);
+  const thb=r.reduce((s,x)=>s+((x.currency==='THB'||!x.currency)?(+x.total||0):0),0);
+  document.getElementById('icKpi').innerHTML=`
+    <div class="kCard kc-b"><div class="kLbl">รายการทั้งหมด</div><div class="kVal">${r.length}</div><div class="kSub">รายการ</div><div class="kIco">📋</div></div>
+    <div class="kCard kc-g"><div class="kLbl">ปริมาณรวม</div><div class="kVal">${N(mts,2)}</div><div class="kSub">เมตริกตัน (MTS)</div><div class="kIco">⚖️</div></div>
+    <div class="kCard kc-o"><div class="kLbl">มูลค่ารวม (THB)</div><div class="kVal">${N(thb,0)}</div><div class="kSub">บาท</div><div class="kIco">💵</div></div>
+  `;
+}
+function rIc(){
+  const rows=gIc(),body=document.getElementById('icTb');
+  if(!rows.length){body.innerHTML='<tr><td colspan="10"><div class="empty"><div class="ei">📭</div><p>ไม่พบรายการ</p></div></td></tr>';document.getElementById('icCnt').textContent='ไม่พบรายการ';document.getElementById('icTot').textContent='';return;}
+  const mts=rows.reduce((s,r)=>s+(+r.qty_mts||0),0),thb=rows.reduce((s,r)=>s+(+r.total||0),0);
+  document.getElementById('icCnt').textContent=`แสดง ${rows.length} รายการ`;
+  document.getElementById('icTot').textContent=`รวม ${N(mts,2)} MTS · ${N(thb,0)} ${'THB'}`;
+  body.innerHTML=rows.map((r,i)=>{
+    const sr=r.status_remark||'';
+    const isCancel=sr.includes('ยกเลิก');
+    const isDone=sr.includes('ครบ')||sr.includes('เข้าแล้ว');
+    const isPending=sr.includes('รอ');
+    const srColor=isCancel?'var(--red)':isDone?'var(--green)':isPending?'var(--amber)':'var(--dim)';
+    return`<tr>
+    <td style="color:var(--blue);width:44px;font-size:11px;font-weight:700">${E(r.seq_no)||String(i+1)}</td>
+    <td style="width:44px"><strong style="color:var(--blue)">${r.year||'—'}</strong></td>
+    <td class="td-trunc" style="font-weight:600;max-width:170px">${E(r.applicant_name)}</td>
+    <td class="td-trunc" style="min-width:110px;max-width:150px;font-size:11px">${E(r.invoice_no)}</td>
+    <td style="font-weight:700;width:68px">${N(r.qty_mts,3)}</td>
+    <td style="font-weight:700;color:var(--orange);width:96px">${N(r.total,0)} ${E(r.currency)||''}</td>
+    <td style="width:78px">${D(r.loading_date)}</td>
+    <td class="td-trunc" style="min-width:150px;max-width:200px;font-size:11px;color:${srColor}">${E(sr)}</td>
+    <td class="td-trunc" style="max-width:130px;color:var(--dim);font-size:10.5px">${E(r.payment_term)}</td>
+    <td style="width:56px"><div class="ra"><button class="ib e gate-write" onclick="editIc('${r.id}')">✏</button><button class="ib d gate-delete" onclick="delIc('${r.id}')">🗑</button></div></td>
+  </tr>`;}).join('');
+}
+
+const ICF=['year','seq_no','broker_name','comm_rate','total_comm','contact_date','shipment_date','applicant_name','contact_no','packing_kgs','qty_partial','qty_mts','price_fob','price_cfr','price_cif','total','invoice_no','payment_term','status_remark','deposit_date','deposit_value_thb','exchange_rate1','deposit_total_usd','balance_date','balance_total','exchange_rate2','balance_total_usd2','delivery_by','customs_no','from_origin','pass_border','loading_date','delivery_place','delivery_date1','delivery_date2','delivery_date3','final_delivery_date','factory1_name','factory1_po','factory1_price','factory1_total','factory1_before_vat','factory1_vat','factory2_name','factory2_po','factory2_price','factory2_total','factory2_before_vat','factory2_vat','factory3_name','factory3_po','factory3_price','factory3_total','factory3_before_vat','factory3_vat','factory4_name','factory4_po','factory4_price','factory4_total','factory4_before_vat','factory4_vat','packing_name','import_agent_name','import_service_cost','packing_material_cost','pallet_cost','sack_cost','agent_name','freight_cost','survey_name','fumigation_name','survey_fumigation_cost','shipping_name','shipping_cost','insurance_name','insurance_cost','transport_company','transport_cost','doc_delivery_cost','dhl_no','booking_no','bl_truck_no'];
+const ICN=['comm_rate','total_comm','packing_kgs','qty_mts','price_fob','price_cfr','price_cif','total','deposit_value_thb','exchange_rate1','deposit_total_usd','balance_total','exchange_rate2','balance_total_usd2','factory1_price','factory1_total','factory1_before_vat','factory1_vat','factory2_price','factory2_total','factory2_before_vat','factory2_vat','factory3_price','factory3_total','factory3_before_vat','factory3_vat','factory4_price','factory4_total','factory4_before_vat','factory4_vat','import_service_cost','packing_material_cost','pallet_cost','sack_cost','freight_cost','survey_fumigation_cost','shipping_cost','insurance_cost','transport_cost','doc_delivery_cost'];
+
+function openIc(){
+  document.getElementById('mIcT').textContent='เพิ่มรายการ — Import Coffee';
+  document.getElementById('ic_id').value='';
+  ICF.forEach(f=>{const el=document.getElementById('ic_'+f);if(el)el.value='';});
+  document.getElementById('ic_year').value=new Date().getFullYear();
+  document.getElementById('ic_currency').value='THB';
+  document.getElementById('mIc').classList.add('show');
+}
+function closeIc(){document.getElementById('mIc').classList.remove('show');}
+function editIc(id){
+  const r=ICR.find(x=>x.id===id);if(!r)return;
+  document.getElementById('mIcT').textContent='แก้ไขรายการ — Import Coffee';
+  document.getElementById('ic_id').value=r.id;
+  ICF.forEach(f=>{const el=document.getElementById('ic_'+f);if(el)el.value=(ICN.includes(f)?R2(r[f]):r[f])??'';});
+  document.getElementById('ic_currency').value=r.currency||'THB';
+  document.getElementById('mIc').classList.add('show');
+}
+async function saveIc(){
+  const id=document.getElementById('ic_id').value;
+  if(!document.getElementById('ic_applicant_name').value.trim()){toast('กรุณากรอกชื่อผู้ขาย/ต้นทาง',true);return;}
+  const p={currency:document.getElementById('ic_currency').value||'THB'};
+  ICF.forEach(f=>{const el=document.getElementById('ic_'+f);if(!el)return;let v=el.value===''?null:el.value;if(ICN.includes(f)&&v!==null)v=R2(parseFloat(v));if(f==='year'&&v)v=parseInt(v);p[f]=v;});
+  p.updated_by=U.id;p.updated_by_email=U.email;
+  let err;
+  if(id){({error:err}=await sb.from('import_coffee').update(p).eq('id',id));}
+  else{p.created_by=U.id;p.created_by_email=U.email;({error:err}=await sb.from('import_coffee').insert(p));}
+  if(err){toast('บันทึกไม่สำเร็จ: '+err.message,true);return;}
+  toast('✅ บันทึกเรียบร้อย');closeIc();loadIc();
+}
+async function delIc(id){
+  if(!confirm('ยืนยันลบรายการนี้? ไม่สามารถย้อนกลับได้'))return;
+  const{error}=await sb.from('import_coffee').delete().eq('id',id);
+  if(error){toast('ลบไม่สำเร็จ',true);return;}
+  toast('ลบรายการเรียบร้อย');loadIc();
 }
 
 // ═══════════ EXPORT STARCH ═══════════
@@ -2141,13 +2641,15 @@ Chart.defaults.color='#5a738f';Chart.defaults.font.family="'Segoe UI',system-ui,
 Chart.defaults.plugins.legend.labels.boxWidth=11;Chart.defaults.plugins.legend.labels.padding=10;
 
 async function loadDash(){
-  const[{data:dom},{data:fc},{data:es},{data:ec}]=await Promise.all([
+  const[{data:dom},{data:fc},{data:es},{data:ec},{data:dc},{data:ic}]=await Promise.all([
     sb.from('sales_domestic').select('year,total,qty_mts,packing_kgs,loading_date,factory1_name,factory2_name,factory3_name,factory4_name,shipping_name,survey_name,fumigation_name'),
     sb.from('forecast_income').select('*'),
     sb.from('export_tapioca_starch').select('year,total,currency,qty_mts,packing_kgs,loading_date,factory1_name,factory2_name,factory3_name,factory4_name,shipping_name,survey_name,fumigation_name'),
-    sb.from('export_tapioca_chip').select('year,total,currency,qty_mts,loading_date,factory1_name,factory2_name,factory3_name,factory4_name,shipping_name,survey_name,fumigation_name')
+    sb.from('export_tapioca_chip').select('year,total,currency,qty_mts,loading_date,factory1_name,factory2_name,factory3_name,factory4_name,shipping_name,survey_name,fumigation_name'),
+    sb.from('domestic_coffee').select('year,total,qty_mts,currency'),
+    sb.from('import_coffee').select('year,total,qty_mts,currency')
   ]);
-  const D=dom||[],F=fc||[],E=es||[],C=ec||[];
+  const D=dom||[],F=fc||[],E=es||[],C=ec||[],DCoff=dc||[],ICoff=ic||[];
 
   // ── KPI (เดิม) ──
   const dT=D.reduce((s,r)=>s+(+r.total||0),0);
@@ -2174,6 +2676,15 @@ async function loadDash(){
   document.getElementById('dashKpiEc').innerHTML=`
     <div class="kCard kc-o"><div class="kLbl">ยอดขายมันเส้น USD</div><div class="kVal">${N(ecUsdT,0)}</div><div class="kSub">USD · ทุกปีรวมกัน</div><div class="kIco">💵</div></div>
     <div class="kCard kc-o"><div class="kLbl">ปริมาณขายมันเส้น</div><div class="kVal">${N(ecM,2)}</div><div class="kSub">MTS รวมทุกปี · BULK</div><div class="kIco">⚖️</div></div>
+  `;
+
+  const dcT=DCoff.reduce((s,r)=>s+(+r.total||0),0),dcM=DCoff.reduce((s,r)=>s+(+r.qty_mts||0),0);
+  const icT=ICoff.filter(r=>!r.currency||r.currency==='THB').reduce((s,r)=>s+(+r.total||0),0),icM=ICoff.reduce((s,r)=>s+(+r.qty_mts||0),0);
+  document.getElementById('dashKpiCoffee').innerHTML=`
+    <div class="kCard kc-a"><div class="kLbl">ยอดขายกาแฟในประเทศ</div><div class="kVal">${N(dcT,0)}</div><div class="kSub">THB · ทุกปีรวมกัน</div><div class="kIco">☕</div></div>
+    <div class="kCard kc-a"><div class="kLbl">ปริมาณขายกาแฟในประเทศ</div><div class="kVal">${N(dcM,2)}</div><div class="kSub">MTS รวมทุกปี</div><div class="kIco">⚖️</div></div>
+    <div class="kCard kc-r"><div class="kLbl">ยอดนำเข้ากาแฟ</div><div class="kVal">${N(icT,0)}</div><div class="kSub">THB · ทุกปีรวมกัน</div><div class="kIco">🚛</div></div>
+    <div class="kCard kc-r"><div class="kLbl">ปริมาณนำเข้ากาแฟ</div><div class="kVal">${N(icM,2)}</div><div class="kSub">MTS รวมทุกปี</div><div class="kIco">⚖️</div></div>
   `;
 
   const overByCurCat={};
@@ -2221,6 +2732,23 @@ async function loadDash(){
   const revCny=years.map(y=>E.filter(r=>r.year===y&&r.currency==='CNY').reduce((s,r)=>s+(+r.total||0),0));
   killChart('rc');
   CH.rc=new Chart(document.getElementById('chRevCny'),{type:'bar',data:{labels:years,datasets:[{label:'CNY',data:revCny,backgroundColor:CHCOLORS.cny,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:'#1e2d42'}}}}});
+
+  // ── ☕ กาแฟ: ยอดขาย/นำเข้า รายปี ──
+  const coffeeYears=[...new Set([...DCoff,...ICoff].map(r=>r.year).filter(Boolean))].sort((a,b)=>a-b);
+  const dcRevByY=coffeeYears.map(y=>DCoff.filter(r=>r.year===y).reduce((s,r)=>s+(+r.total||0),0));
+  const icRevByY=coffeeYears.map(y=>ICoff.filter(r=>r.year===y&&(!r.currency||r.currency==='THB')).reduce((s,r)=>s+(+r.total||0),0));
+  const dcVolByY=coffeeYears.map(y=>DCoff.filter(r=>r.year===y).reduce((s,r)=>s+(+r.qty_mts||0),0));
+  const icVolByY=coffeeYears.map(y=>ICoff.filter(r=>r.year===y).reduce((s,r)=>s+(+r.qty_mts||0),0));
+  killChart('coffeeRev');
+  CH.coffeeRev=new Chart(document.getElementById('chCoffeeRev'),{type:'bar',data:{labels:coffeeYears,datasets:[
+    {label:'Domestic Coffee',data:dcRevByY,backgroundColor:CHCOLORS.amber,borderRadius:4},
+    {label:'Import Coffee',data:icRevByY,backgroundColor:'#ef4444',borderRadius:4}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{x:{grid:{display:false}},y:{grid:{color:'#1e2d42'}}}}});
+  killChart('coffeeVol');
+  CH.coffeeVol=new Chart(document.getElementById('chCoffeeVol'),{type:'bar',data:{labels:coffeeYears,datasets:[
+    {label:'Domestic Coffee',data:dcVolByY,backgroundColor:CHCOLORS.amber,borderRadius:4},
+    {label:'Import Coffee',data:icVolByY,backgroundColor:'#ef4444',borderRadius:4}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{x:{grid:{display:false}},y:{grid:{color:'#1e2d42'}}}}});
 
   // ── 6) สัดส่วนขนาดบรรจุ (MTS) — Domestic + Export Starch ──
   const pkMap={};
