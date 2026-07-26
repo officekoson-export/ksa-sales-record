@@ -913,14 +913,17 @@ body:not([data-role="admin"]) .gate-delete{display:none !important;}
     <div class="chCard"><h4>💵 ยอดขายรายเดือน — USD</h4><div class="chSub">Export Starch + Export Chip</div><div class="chWrap"><canvas id="mbUsdChart"></canvas></div></div>
     <div class="chCard"><h4>💴 ยอดขายรายเดือน — CNY</h4><div class="chSub">Export Starch เท่านั้น</div><div class="chWrap"><canvas id="mbCnyChart"></canvas></div></div>
   </div>
+  <div class="chGrid2">
+    <div class="chCard"><h4>☕ ยอดขาย/นำเข้ากาแฟรายเดือน (THB)</h4><div class="chSub">Domestic Coffee vs Import Coffee</div><div class="chWrap"><canvas id="mbCoffeeChart"></canvas></div></div>
+  </div>
   <div class="tCard">
     <div class="tWrap">
       <table>
         <thead><tr>
-          <th>เดือน</th><th>MTS Domestic</th><th>MTS Export Starch</th><th>MTS Export Chip</th><th>MTS รวม</th>
-          <th>THB</th><th>USD</th><th>CNY</th>
+          <th>เดือน</th><th>MTS Domestic</th><th>MTS Export Starch</th><th>MTS Export Chip</th><th>MTS กาแฟในประเทศ</th><th>MTS นำเข้ากาแฟ</th><th>MTS รวม</th>
+          <th>THB</th><th>USD</th><th>CNY</th><th>กาแฟ (THB)</th>
         </tr></thead>
-        <tbody id="mbTb"><tr><td colspan="8"><div class="loading"><span class="spin"></span>กำลังโหลดข้อมูล...</div></td></tr></tbody>
+        <tbody id="mbTb"><tr><td colspan="11"><div class="loading"><span class="spin"></span>กำลังโหลดข้อมูล...</div></td></tr></tbody>
       </table>
     </div>
   </div>
@@ -992,6 +995,8 @@ body:not([data-role="admin"]) .gate-delete{display:none !important;}
     <div class="pTab" onclick="setTxCat('dom',this)">🏠 Domestic</div>
     <div class="pTab" onclick="setTxCat('es',this)">🚢 Export Starch</div>
     <div class="pTab" onclick="setTxCat('ec',this)">📦 Export Chip</div>
+    <div class="pTab" onclick="setTxCat('dc',this)">☕ Domestic Coffee</div>
+    <div class="pTab" onclick="setTxCat('ic',this)">🚛 Import Coffee</div>
   </div>
   <div class="pTabs" id="txCurT" style="margin-top:8px;">
     <div class="pTab act" onclick="setTxCur('all',this)">ทุกสกุลเงิน</div>
@@ -1659,7 +1664,7 @@ body:not([data-role="admin"]) .gate-delete{display:none !important;}
     <input type="hidden" id="f_id">
     <div class="sLbl">ข้อมูลทั่วไป</div>
     <div class="fg">
-      <div class="fld"><label>หมวดหมู่ *</label><select id="f_category"><option value="export_starch">ขายแป้งมันส่งออก</option><option value="export_chip">ขายมันเส้นส่งออก</option><option value="domestic">ขายแป้งมันในประเทศ</option></select></div>
+      <div class="fld"><label>หมวดหมู่ *</label><select id="f_category"><option value="export_starch">ขายแป้งมันส่งออก</option><option value="export_chip">ขายมันเส้นส่งออก</option><option value="domestic">ขายแป้งมันในประเทศ</option><option value="domestic_coffee">ขายกาแฟในประเทศ</option></select></div>
       <div class="fld"><label>Broker</label><input id="f_broker_name"></div>
       <div class="fld"><label>ลูกค้า *</label><input id="f_applicant_name"></div>
       <div class="fld"><label>Sales Contract</label><input id="f_sales_contract"></div>
@@ -1751,7 +1756,7 @@ let U=null, DR=[], FR=[];
 let DY='all', DK='all', FCT='export_starch';
 let ES=[], EY='all', EK='all', EC='all';
 let ECD=[], ECY='all';
-const FCL={export_starch:'ขายแป้งมันส่งออก',export_chip:'ขายมันเส้นส่งออก',domestic:'ขายแป้งมันในประเทศ'};
+const FCL={export_starch:'ขายแป้งมันส่งออก',export_chip:'ขายมันเส้นส่งออก',domestic:'ขายแป้งมันในประเทศ',domestic_coffee:'ขายกาแฟในประเทศ'};
 
 // ─── INIT ───
 document.getElementById('tbDate').textContent=new Date().toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
@@ -2508,29 +2513,30 @@ function fcSt(r){
 }
 function rFcKpi(){
   const rows=FR.filter(r=>r.category===FCT);
-  const tot=rows.reduce((s,r)=>s+(+r.total||0),0);
-  const rcv=rows.reduce((s,r)=>s+(+r.received_amount||0),0);
+  const currencies=[...new Set(rows.map(r=>(r.currency||'THB').toUpperCase()))];
+  const byCur=cur=>rows.filter(r=>(r.currency||'THB').toUpperCase()===cur);
   const today=new Date();const lim=new Date();lim.setDate(lim.getDate()+21);
-  const pend=rows.filter(r=>{if(!r.forecast_received_date||r.received_date)return false;const d=new Date(r.forecast_received_date);return d>=today&&d<=lim;});
-  const over=rows.filter(r=>fcSt(r)==='overdue');
-  const cur=rows[0]?.currency||'';
-  // ยอดค้างรับ = total - received_amount (กรณีชำระบางส่วน)
-  const overdueSum=over.reduce((s,r)=>{
-    const total=Number(r.total||0);
-    const recv=Number(r.received_amount||0);
-    return s+(total>0?total-recv:0);
-  },0);
-  // ยอดที่รับบางส่วนมาแล้วจากรายการที่ยังเกินกำหนด (คำนวณอัตโนมัติ ไม่ hardcode)
-  const overduePartialRecv=over.reduce((s,r)=>s+(Number(r.received_amount||0)),0);
-  const pendSum=pend.reduce((s,r)=>s+(+r.total||0),0);
-  const overdueSub=overdueSum>0
-    ?`${cur} — ต้องติดตามด่วน!${overduePartialRecv>0?' · หักยอดรับบางส่วนแล้ว '+N(overduePartialRecv,2):''}`
-    :'ไม่มีรายการเลยกำหนด';
+
+  const rcvByC=currencies.map(cur=>({cur,v:byCur(cur).reduce((s,r)=>s+(+r.received_amount||0),0)}));
+  const pendByC=currencies.map(cur=>{
+    const rs=byCur(cur).filter(r=>{if(!r.forecast_received_date||r.received_date)return false;const d=new Date(r.forecast_received_date);return d>=today&&d<=lim;});
+    return{cur,cnt:rs.length,v:rs.reduce((s,r)=>s+(+r.total||0),0)};
+  });
+  const overByC=currencies.map(cur=>{
+    const rs=byCur(cur).filter(r=>fcSt(r)==='overdue');
+    const sum=rs.reduce((s,r)=>{const total=Number(r.total||0);const recv=Number(r.received_amount||0);return s+(total>0?total-recv:0);},0);
+    return{cur,cnt:rs.length,v:sum};
+  });
+  const totalPendCnt=pendByC.reduce((s,x)=>s+x.cnt,0);
+  const totalOverCnt=overByC.reduce((s,x)=>s+x.cnt,0);
+  const overdueSubHtml=totalOverCnt>0?'ต้องติดตามด่วน!':'ไม่มีรายการเลยกำหนด';
+  const multiLine=list=>list.map(x=>`<span style="display:block">${N(x.v,2)} <span style="font-size:10.5px;opacity:.6">${x.cur}</span></span>`).join('')||`<span style="display:block">0.00</span>`;
+
   document.getElementById('fcKpi').innerHTML=`
     <div class="kCard kc-b"><div class="kLbl">รายการทั้งหมด</div><div class="kVal">${rows.length}</div><div class="kSub">รายการ</div></div>
-    <div class="kCard kc-g"><div class="kLbl">รับเงินแล้ว</div><div class="kVal">${N(rcv,2)}</div><div class="kSub">${cur}</div></div>
-    <div class="kCard kc-a"><div class="kLbl">คาดรับใน 3 สัปดาห์ (${pend.length} รายการ)</div><div class="kVal">${N(pendSum,2)}</div><div class="kSub">${cur}</div></div>
-    <div class="kCard kc-r"><div class="kLbl">⚠️ เลยกำหนดรับ (${over.length} รายการ)</div><div class="kVal">${N(overdueSum,2)}</div><div class="kSub">${overdueSub}</div></div>
+    <div class="kCard kc-g"><div class="kLbl">รับเงินแล้ว</div><div class="kVal" style="font-size:15px;line-height:1.7">${multiLine(rcvByC)}</div></div>
+    <div class="kCard kc-a"><div class="kLbl">คาดรับใน 3 สัปดาห์ (${totalPendCnt} รายการ)</div><div class="kVal" style="font-size:15px;line-height:1.7">${multiLine(pendByC)}</div></div>
+    <div class="kCard kc-r"><div class="kLbl">⚠️ เลยกำหนดรับ (${totalOverCnt} รายการ)</div><div class="kVal" style="font-size:15px;line-height:1.7">${multiLine(overByC)}</div><div class="kSub">${overdueSubHtml}</div></div>
   `;
 }
 function rFc(){
@@ -2688,16 +2694,22 @@ async function loadDash(){
   `;
 
   const overByCurCat={};
-  over.forEach(r=>{const k=r.currency||'THB';overByCurCat[k]=(overByCurCat[k]||0)+(+r.total||0);});
+  over.forEach(r=>{
+    const k=r.currency||'THB';
+    const total=Number(r.total||0);
+    const recv=Number(r.received_amount||0);
+    const outstanding=total>0?total-recv:0;
+    overByCurCat[k]=(overByCurCat[k]||0)+outstanding;
+  });
   const overByCat={};
   over.forEach(r=>{overByCat[r.category]=(overByCat[r.category]||0)+(+r.total||0);});
   const topOverCat=Object.entries(overByCat).sort((a,b)=>b[1]-a[1])[0]?.[0]||'domestic';
-  const overSub=over.length
-    ?Object.entries(overByCurCat).map(([cur,amt])=>`${N(amt,0)} ${cur}`).join(' · ')+' · คลิกเพื่อดูรายการ'
-    :'ไม่มีรายการเลยกำหนด';
+  const overAmtHtml=Object.entries(overByCurCat).length
+    ?Object.entries(overByCurCat).map(([cur,amt])=>`<span style="display:block">${N(amt,0)} <span style="font-size:11px;opacity:.7">${cur}</span></span>`).join('')
+    :'<span style="display:block">0.00</span>';
   document.getElementById('dashKpiFc').innerHTML=`
     <div class="kCard kc-a"><div class="kLbl">Forecast — คาดรับ 3 สัปดาห์</div><div class="kVal">${pend.length}</div><div class="kSub">รายการรอรับเงิน · ทุกหมวด</div><div class="kIco">📅</div></div>
-    <div class="kCard kc-r" style="cursor:pointer" onclick="goForecastOverdue('${topOverCat}')" title="คลิกเพื่อดูรายการเลยกำหนดใน Forecast Income"><div class="kLbl">Forecast — เลยกำหนดรับ</div><div class="kVal">${over.length}</div><div class="kSub">${overSub}</div><div class="kIco">⚠️</div></div>
+    <div class="kCard kc-r" style="cursor:pointer" onclick="goForecastOverdue('${topOverCat}')" title="คลิกเพื่อดูรายการเลยกำหนดใน Forecast Income"><div class="kLbl">⚠️ Forecast — เลยกำหนดรับ</div><div class="kVal" style="font-size:22px;line-height:1.35">${overAmtHtml}</div><div class="kSub">${over.length} รายการ · คลิกเพื่อดูรายการ</div><div class="kIco">⚠️</div></div>
   `;
 
   const years=[...new Set([...D,...E,...C].map(r=>r.year).filter(Boolean))].sort((a,b)=>a-b);
@@ -2789,15 +2801,17 @@ let TX=[], TXY='all', TXC='all', TXCUR='all';
 function refreshTxnIfActive(){if(document.getElementById('pg-txn')?.classList.contains('show'))loadTxn();}
 async function loadTxn(){
   document.getElementById('txTb').innerHTML='<tr><td colspan="11"><div class="loading"><span class="spin"></span>กำลังโหลดข้อมูล...</div></td></tr>';
-  const[{data:dom,error:e1},{data:es,error:e2},{data:ec,error:e3}]=await Promise.all([
+  const[{data:dom,error:e1},{data:es,error:e2},{data:ec,error:e3},{data:dc,error:e4},{data:ic,error:e5}]=await Promise.all([
     fetchAllRows('sales_domestic'),
     fetchAllRows('export_tapioca_starch'),
-    fetchAllRows('export_tapioca_chip')
+    fetchAllRows('export_tapioca_chip'),
+    fetchAllRows('domestic_coffee'),
+    fetchAllRows('import_coffee')
   ]);
-  if(e1||e2||e3){toast('โหลดไม่สำเร็จ: '+(e1||e2||e3).message,true);return;}
-  DR=dom||[];ES=es||[];ECD=ec||[]; // sync ให้เปิดหน้าแก้ไขจาก Transaction Detail ได้โดยตรง
-  const tag=(arr,cat)=>arr.map(r=>({...r,_cat:cat,_cur:cat==='dom'?'THB':(r.currency||'').toUpperCase()}));
-  TX=[...tag(DR,'dom'),...tag(ES,'es'),...tag(ECD,'ec')]
+  if(e1||e2||e3||e4||e5){toast('โหลดไม่สำเร็จ: '+(e1||e2||e3||e4||e5).message,true);return;}
+  DR=dom||[];ES=es||[];ECD=ec||[];DCR=dc||[];ICR=ic||[]; // sync ให้เปิดหน้าแก้ไขจาก Transaction Detail ได้โดยตรง
+  const tag=(arr,cat)=>arr.map(r=>({...r,_cat:cat,_cur:cat==='dom'||cat==='dc'?'THB':(r.currency||'').toUpperCase()}));
+  TX=[...tag(DR,'dom'),...tag(ES,'es'),...tag(ECD,'ec'),...tag(DCR,'dc'),...tag(ICR,'ic')]
     .sort((a,b)=>{const ya=Number(a.year||0),yb=Number(b.year||0);if(ya!==yb)return yb-ya;return seqNum(b.seq_no)-seqNum(a.seq_no);});
   buildTxY();rTx();
 }
@@ -2819,8 +2833,8 @@ function gTx(){
   if(s)r=r.filter(x=>(x.applicant_name||'').toLowerCase().includes(s)||(x.invoice_no||'').toLowerCase().includes(s)||(x.sales_contract||'').toLowerCase().includes(s));
   return r;
 }
-const TX_CAT_LBL={dom:'🏠 Domestic',es:'🚢 Ex.Starch',ec:'📦 Ex.Chip'};
-const TX_CAT_CLS={dom:'bdg-g',es:'bdg-b',ec:'bdg-o'};
+const TX_CAT_LBL={dom:'🏠 Domestic',es:'🚢 Ex.Starch',ec:'📦 Ex.Chip',dc:'☕ Dom.Coffee',ic:'🚛 Imp.Coffee'};
+const TX_CAT_CLS={dom:'bdg-g',es:'bdg-b',ec:'bdg-o',dc:'bdg-a',ic:'bdg-p'};
 const TX_CUR_CLS={THB:'bdg-g',USD:'bdg-b',CNY:'bdg-p'};
 function rTxKpi(){
   const r=gTx();
@@ -2857,8 +2871,8 @@ function rTx(){
     const isPending=sr.includes('รอ')||sr.includes('วางบิล')||sr.includes('ส่งของ');
     const srColor=isCancel||isOverdue?'var(--red)':isDone?'var(--green)':isPending?'var(--amber)':'var(--dim)';
     const ref=r._cat==='dom'?(r.invoice_no||r.contact_no||'—'):(r.sales_contract||r.invoice_no||'—');
-    const editFn=r._cat==='dom'?'editDom':r._cat==='es'?'editEs':'editEc';
-    const delFn=r._cat==='dom'?'delDom':r._cat==='es'?'delEs':'delEc';
+    const editFn=r._cat==='dom'?'editDom':r._cat==='es'?'editEs':r._cat==='ec'?'editEc':r._cat==='dc'?'editDc':'editIc';
+    const delFn=r._cat==='dom'?'delDom':r._cat==='es'?'delEs':r._cat==='ec'?'delEc':r._cat==='dc'?'delDc':'delIc';
     return`<tr>
       <td style="width:96px"><span class="bdg ${TX_CAT_CLS[r._cat]}">${TX_CAT_LBL[r._cat]}</span></td>
       <td style="width:52px">${E(r.year)}</td>
@@ -2870,7 +2884,7 @@ function rTx(){
       <td style="font-weight:700">${N(r.total,2)}</td>
       <td style="width:80px">${D(r.loading_date)}</td>
       <td class="td-trunc" style="max-width:160px;font-size:11px;color:${srColor};font-weight:${isCancel||isOverdue||isDone?600:400}">${E(sr)}</td>
-      <td style="width:56px"><div class="ra"><button class="ib e" onclick="${editFn}('${r.id}')">✏</button><button class="ib d" onclick="${delFn}('${r.id}')">🗑</button></div></td>
+      <td style="width:56px"><div class="ra"><button class="ib e gate-write" onclick="${editFn}('${r.id}')">✏</button><button class="ib d gate-delete" onclick="${delFn}('${r.id}')">🗑</button></div></td>
     </tr>`;
   }).join('');
 }
@@ -3028,15 +3042,17 @@ let MB_Y=null;
 const MB_MONTHS=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 const mOf=dt=>{if(!dt)return null;return new Date(dt).getMonth();};
 async function loadMb(){
-  document.getElementById('mbTb').innerHTML='<tr><td colspan="8"><div class="loading"><span class="spin"></span>กำลังโหลดข้อมูล...</div></td></tr>';
-  const[{data:dom,error:e1},{data:es,error:e2},{data:ec,error:e3}]=await Promise.all([
+  document.getElementById('mbTb').innerHTML='<tr><td colspan="11"><div class="loading"><span class="spin"></span>กำลังโหลดข้อมูล...</div></td></tr>';
+  const[{data:dom,error:e1},{data:es,error:e2},{data:ec,error:e3},{data:dc,error:e4},{data:ic,error:e5}]=await Promise.all([
     fetchAllRows('sales_domestic'),
     fetchAllRows('export_tapioca_starch'),
-    fetchAllRows('export_tapioca_chip')
+    fetchAllRows('export_tapioca_chip'),
+    fetchAllRows('domestic_coffee'),
+    fetchAllRows('import_coffee')
   ]);
-  if(e1||e2||e3){toast('โหลดไม่สำเร็จ: '+(e1||e2||e3).message,true);return;}
-  window.__mbDom=dom||[];window.__mbEs=es||[];window.__mbEc=ec||[];
-  const years=[...new Set([...window.__mbDom,...window.__mbEs,...window.__mbEc].map(r=>r.year).filter(Boolean))].sort((a,b)=>a-b);
+  if(e1||e2||e3||e4||e5){toast('โหลดไม่สำเร็จ: '+(e1||e2||e3||e4||e5).message,true);return;}
+  window.__mbDom=dom||[];window.__mbEs=es||[];window.__mbEc=ec||[];window.__mbDc=dc||[];window.__mbIc=ic||[];
+  const years=[...new Set([...window.__mbDom,...window.__mbEs,...window.__mbEc,...window.__mbDc,...window.__mbIc].map(r=>r.year).filter(Boolean))].sort((a,b)=>a-b);
   if(!MB_Y||!years.map(String).includes(String(MB_Y)))MB_Y=years[years.length-1];
   buildMbYP(years);
   rMb();
@@ -3056,40 +3072,52 @@ function rMb(){
   const D=window.__mbDom.filter(r=>String(r.year)===String(MB_Y));
   const E=window.__mbEs.filter(r=>String(r.year)===String(MB_Y));
   const C=window.__mbEc.filter(r=>String(r.year)===String(MB_Y));
+  const DCo=window.__mbDc.filter(r=>String(r.year)===String(MB_Y));
+  const ICo=window.__mbIc.filter(r=>String(r.year)===String(MB_Y));
 
-  const mtsDom=Array(12).fill(0),mtsEs=Array(12).fill(0),mtsEc=Array(12).fill(0);
-  const thbM=Array(12).fill(0),usdM=Array(12).fill(0),cnyM=Array(12).fill(0);
+  const mtsDom=Array(12).fill(0),mtsEs=Array(12).fill(0),mtsEc=Array(12).fill(0),mtsDc=Array(12).fill(0),mtsIc=Array(12).fill(0);
+  const thbM=Array(12).fill(0),usdM=Array(12).fill(0),cnyM=Array(12).fill(0),coffeeDcM=Array(12).fill(0),coffeeIcM=Array(12).fill(0);
   D.forEach(r=>{const m=mOf(r.loading_date);if(m==null)return;mtsDom[m]+=(+r.qty_mts||0);thbM[m]+=(+r.total||0);});
   E.forEach(r=>{const m=mOf(r.loading_date);if(m==null)return;mtsEs[m]+=(+r.qty_mts||0);if(r.currency==='USD')usdM[m]+=(+r.total||0);else if(r.currency==='CNY')cnyM[m]+=(+r.total||0);});
   C.forEach(r=>{const m=mOf(r.loading_date);if(m==null)return;mtsEc[m]+=(+r.qty_mts||0);if(r.currency==='USD')usdM[m]+=(+r.total||0);});
+  DCo.forEach(r=>{const m=mOf(r.delivery_date1);if(m==null)return;mtsDc[m]+=(+r.qty_mts||0);coffeeDcM[m]+=(+r.total||0);});
+  ICo.forEach(r=>{const m=mOf(r.loading_date);if(m==null)return;mtsIc[m]+=(+r.qty_mts||0);if(!r.currency||r.currency==='THB')coffeeIcM[m]+=(+r.total||0);});
 
-  const totMts=mtsDom.reduce((a,b)=>a+b,0)+mtsEs.reduce((a,b)=>a+b,0)+mtsEc.reduce((a,b)=>a+b,0);
+  const totMts=mtsDom.reduce((a,b)=>a+b,0)+mtsEs.reduce((a,b)=>a+b,0)+mtsEc.reduce((a,b)=>a+b,0)+mtsDc.reduce((a,b)=>a+b,0)+mtsIc.reduce((a,b)=>a+b,0);
   const totThb=thbM.reduce((a,b)=>a+b,0),totUsd=usdM.reduce((a,b)=>a+b,0),totCny=cnyM.reduce((a,b)=>a+b,0);
+  const totCoffee=coffeeDcM.reduce((a,b)=>a+b,0)+coffeeIcM.reduce((a,b)=>a+b,0);
   document.getElementById('mbKpi').innerHTML=`
     <div class="kCard kc-g"><div class="kLbl">ปริมาณรวมทั้งปี</div><div class="kVal">${N(totMts,2)}</div><div class="kSub">MTS · ${MB_Y}</div><div class="kIco">⚖️</div></div>
     <div class="kCard kc-g"><div class="kLbl">ยอดขาย THB</div><div class="kVal">${N(totThb,0)}</div><div class="kSub">Domestic · ${MB_Y}</div><div class="kIco">💵</div></div>
     <div class="kCard kc-b"><div class="kLbl">ยอดขาย USD</div><div class="kVal">${N(totUsd,0)}</div><div class="kSub">Export Starch + Chip · ${MB_Y}</div><div class="kIco">💵</div></div>
     <div class="kCard kc-p"><div class="kLbl">ยอดขาย CNY</div><div class="kVal">${N(totCny,0)}</div><div class="kSub">Export Starch · ${MB_Y}</div><div class="kIco">💴</div></div>
+    <div class="kCard kc-a"><div class="kLbl">กาแฟ (THB)</div><div class="kVal">${N(totCoffee,0)}</div><div class="kSub">Domestic + Import · ${MB_Y}</div><div class="kIco">☕</div></div>
   `;
 
   killChart('mbVol');
   CH.mbVol=new Chart(document.getElementById('mbVolChart'),{type:'bar',data:{labels:MB_MONTHS,datasets:[
     {label:'Domestic',data:mtsDom,backgroundColor:CHCOLORS.thb},
     {label:'Export Starch',data:mtsEs,backgroundColor:CHCOLORS.usd},
-    {label:'Export Chip',data:mtsEc,backgroundColor:CHCOLORS.orange}
+    {label:'Export Chip',data:mtsEc,backgroundColor:CHCOLORS.orange},
+    {label:'Domestic Coffee',data:mtsDc,backgroundColor:CHCOLORS.amber},
+    {label:'Import Coffee',data:mtsIc,backgroundColor:'#ef4444'}
   ]},options:{responsive:true,maintainAspectRatio:false,scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:'#1e2d42'}}},plugins:{legend:{position:'bottom'}}}});
 
   document.getElementById('mbQtrSub').textContent=`ปี ${MB_Y} · อิงวันที่โหลดสินค้า (Loading Date)`;
   const qOf=m=>Math.floor(m/3);
-  const qVol={dom:[0,0,0,0],es:[0,0,0,0],ec:[0,0,0,0]};
+  const qVol={dom:[0,0,0,0],es:[0,0,0,0],ec:[0,0,0,0],dc:[0,0,0,0],ic:[0,0,0,0]};
   mtsDom.forEach((v,m)=>qVol.dom[qOf(m)]+=v);
   mtsEs.forEach((v,m)=>qVol.es[qOf(m)]+=v);
   mtsEc.forEach((v,m)=>qVol.ec[qOf(m)]+=v);
+  mtsDc.forEach((v,m)=>qVol.dc[qOf(m)]+=v);
+  mtsIc.forEach((v,m)=>qVol.ic[qOf(m)]+=v);
   killChart('mbQtr');
   CH.mbQtr=new Chart(document.getElementById('mbQtrChart'),{type:'bar',data:{labels:['Q1','Q2','Q3','Q4'],datasets:[
     {label:'Domestic',data:qVol.dom,backgroundColor:CHCOLORS.thb},
     {label:'Export Starch',data:qVol.es,backgroundColor:CHCOLORS.usd},
-    {label:'Export Chip',data:qVol.ec,backgroundColor:CHCOLORS.orange}
+    {label:'Export Chip',data:qVol.ec,backgroundColor:CHCOLORS.orange},
+    {label:'Domestic Coffee',data:qVol.dc,backgroundColor:CHCOLORS.amber},
+    {label:'Import Coffee',data:qVol.ic,backgroundColor:'#ef4444'}
   ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:'#1e2d42'}}}}});
 
   killChart('mbThb');
@@ -3098,12 +3126,18 @@ function rMb(){
   CH.mbUsd=new Chart(document.getElementById('mbUsdChart'),{type:'line',data:{labels:MB_MONTHS,datasets:[{label:'USD',data:usdM,borderColor:CHCOLORS.usd,backgroundColor:CHCOLORS.usd+'33',tension:.3,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:'#1e2d42'}}}}});
   killChart('mbCny');
   CH.mbCny=new Chart(document.getElementById('mbCnyChart'),{type:'line',data:{labels:MB_MONTHS,datasets:[{label:'CNY',data:cnyM,borderColor:CHCOLORS.cny,backgroundColor:CHCOLORS.cny+'33',tension:.3,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:'#1e2d42'}}}}});
+  killChart('mbCoffee');
+  CH.mbCoffee=new Chart(document.getElementById('mbCoffeeChart'),{type:'bar',data:{labels:MB_MONTHS,datasets:[
+    {label:'Domestic Coffee',data:coffeeDcM,backgroundColor:CHCOLORS.amber,borderRadius:4},
+    {label:'Import Coffee',data:coffeeIcM,backgroundColor:'#ef4444',borderRadius:4}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{x:{grid:{display:false}},y:{grid:{color:'#1e2d42'}}}}});
 
   document.getElementById('mbTb').innerHTML=MB_MONTHS.map((mLbl,m)=>{
-    const tot=mtsDom[m]+mtsEs[m]+mtsEc[m];
-    if(!tot&&!thbM[m]&&!usdM[m]&&!cnyM[m])return `<tr style="opacity:.4"><td>${mLbl}</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>`;
-    return `<tr><td>${mLbl}</td><td>${N(mtsDom[m],2)}</td><td>${N(mtsEs[m],2)}</td><td>${N(mtsEc[m],2)}</td><td><b>${N(tot,2)}</b></td><td>${N(thbM[m],0)}</td><td>${N(usdM[m],0)}</td><td>${N(cnyM[m],0)}</td></tr>`;
-  }).join('')+`<tr style="font-weight:700;border-top:2px solid var(--border2)"><td>รวมทั้งปี</td><td>${N(mtsDom.reduce((a,b)=>a+b,0),2)}</td><td>${N(mtsEs.reduce((a,b)=>a+b,0),2)}</td><td>${N(mtsEc.reduce((a,b)=>a+b,0),2)}</td><td>${N(totMts,2)}</td><td>${N(totThb,0)}</td><td>${N(totUsd,0)}</td><td>${N(totCny,0)}</td></tr>`;
+    const tot=mtsDom[m]+mtsEs[m]+mtsEc[m]+mtsDc[m]+mtsIc[m];
+    const coffeeThb=coffeeDcM[m]+coffeeIcM[m];
+    if(!tot&&!thbM[m]&&!usdM[m]&&!cnyM[m]&&!coffeeThb)return `<tr style="opacity:.4"><td>${mLbl}</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>`;
+    return `<tr><td>${mLbl}</td><td>${N(mtsDom[m],2)}</td><td>${N(mtsEs[m],2)}</td><td>${N(mtsEc[m],2)}</td><td>${N(mtsDc[m],2)}</td><td>${N(mtsIc[m],2)}</td><td><b>${N(tot,2)}</b></td><td>${N(thbM[m],0)}</td><td>${N(usdM[m],0)}</td><td>${N(cnyM[m],0)}</td><td>${N(coffeeThb,0)}</td></tr>`;
+  }).join('')+`<tr style="font-weight:700;border-top:2px solid var(--border2)"><td>รวมทั้งปี</td><td>${N(mtsDom.reduce((a,b)=>a+b,0),2)}</td><td>${N(mtsEs.reduce((a,b)=>a+b,0),2)}</td><td>${N(mtsEc.reduce((a,b)=>a+b,0),2)}</td><td>${N(mtsDc.reduce((a,b)=>a+b,0),2)}</td><td>${N(mtsIc.reduce((a,b)=>a+b,0),2)}</td><td>${N(totMts,2)}</td><td>${N(totThb,0)}</td><td>${N(totUsd,0)}</td><td>${N(totCny,0)}</td><td>${N(totCoffee,0)}</td></tr>`;
 }
 
 // ═══════════ PACKING ANALYSIS ═══════════
@@ -3163,14 +3197,16 @@ function rPk(){
 let CUR_Y='all';
 async function loadCur(){
   document.getElementById('curTb').innerHTML='<tr><td colspan="7"><div class="loading"><span class="spin"></span>กำลังโหลดข้อมูล...</div></td></tr>';
-  const[{data:dom,error:e1},{data:es,error:e2},{data:ec,error:e3}]=await Promise.all([
+  const[{data:dom,error:e1},{data:es,error:e2},{data:ec,error:e3},{data:dc,error:e4},{data:ic,error:e5}]=await Promise.all([
     fetchAllRows('sales_domestic'),
     fetchAllRows('export_tapioca_starch'),
-    fetchAllRows('export_tapioca_chip')
+    fetchAllRows('export_tapioca_chip'),
+    fetchAllRows('domestic_coffee'),
+    fetchAllRows('import_coffee')
   ]);
-  if(e1||e2||e3){toast('โหลดไม่สำเร็จ: '+(e1||e2||e3).message,true);return;}
-  window.__curDom=dom||[];window.__curEs=es||[];window.__curEc=ec||[];
-  const years=[...new Set([...window.__curDom,...window.__curEs,...window.__curEc].map(r=>r.year).filter(Boolean))].sort((a,b)=>a-b);
+  if(e1||e2||e3||e4||e5){toast('โหลดไม่สำเร็จ: '+(e1||e2||e3||e4||e5).message,true);return;}
+  window.__curDom=dom||[];window.__curEs=es||[];window.__curEc=ec||[];window.__curDc=dc||[];window.__curIc=ic||[];
+  const years=[...new Set([...window.__curDom,...window.__curEs,...window.__curEc,...window.__curDc,...window.__curIc].map(r=>r.year).filter(Boolean))].sort((a,b)=>a-b);
   buildCurYP(years);
   rCur();
 }
@@ -3183,22 +3219,22 @@ function setCurY(y,el){CUR_Y=y;el.parentElement.querySelectorAll('.yPill').forEa
 function avg(arr){const v=arr.filter(n=>n!=null&&!isNaN(n)&&n>0);return v.length?v.reduce((a,b)=>a+b,0)/v.length:null;}
 function rCur(){
   const scope=arr=>CUR_Y==='all'?arr:arr.filter(r=>String(r.year)===String(CUR_Y));
-  const D=scope(window.__curDom),E=scope(window.__curEs),C=scope(window.__curEc);
+  const D=scope(window.__curDom),E=scope(window.__curEs),C=scope(window.__curEc),DCo=scope(window.__curDc),ICo=scope(window.__curIc);
 
-  const thbT=D.reduce((s,r)=>s+(+r.total||0),0);
-  const usdT=E.filter(r=>r.currency==='USD').reduce((s,r)=>s+(+r.total||0),0)+C.filter(r=>r.currency==='USD').reduce((s,r)=>s+(+r.total||0),0);
+  const thbT=D.reduce((s,r)=>s+(+r.total||0),0)+DCo.reduce((s,r)=>s+(+r.total||0),0);
+  const usdT=E.filter(r=>r.currency==='USD').reduce((s,r)=>s+(+r.total||0),0)+C.filter(r=>r.currency==='USD').reduce((s,r)=>s+(+r.total||0),0)+ICo.filter(r=>r.currency==='USD').reduce((s,r)=>s+(+r.total||0),0);
   const cnyT=E.filter(r=>r.currency==='CNY').reduce((s,r)=>s+(+r.total||0),0);
   const esUsdT=E.filter(r=>r.currency==='USD').reduce((s,r)=>s+(+r.total||0),0);
   const cnyShare=(esUsdT+cnyT)?cnyT/(esUsdT+cnyT)*100:0;
   document.getElementById('curKpi').innerHTML=`
-    <div class="kCard kc-g"><div class="kLbl">ยอดขาย THB</div><div class="kVal">${N(thbT,0)}</div><div class="kSub">Domestic · ${CUR_Y==='all'?'ทุกปี':CUR_Y}</div><div class="kIco">💵</div></div>
-    <div class="kCard kc-b"><div class="kLbl">ยอดขาย USD</div><div class="kVal">${N(usdT,0)}</div><div class="kSub">Export Starch + Chip · ${CUR_Y==='all'?'ทุกปี':CUR_Y}</div><div class="kIco">💵</div></div>
+    <div class="kCard kc-g"><div class="kLbl">ยอดขาย THB</div><div class="kVal">${N(thbT,0)}</div><div class="kSub">Domestic + Domestic Coffee · ${CUR_Y==='all'?'ทุกปี':CUR_Y}</div><div class="kIco">💵</div></div>
+    <div class="kCard kc-b"><div class="kLbl">ยอดขาย USD</div><div class="kVal">${N(usdT,0)}</div><div class="kSub">Export Starch + Chip + Import Coffee · ${CUR_Y==='all'?'ทุกปี':CUR_Y}</div><div class="kIco">💵</div></div>
     <div class="kCard kc-p"><div class="kLbl">ยอดขาย CNY</div><div class="kVal">${N(cnyT,0)}</div><div class="kSub">Export Starch เท่านั้น · ${CUR_Y==='all'?'ทุกปี':CUR_Y}</div><div class="kIco">💴</div></div>
     <div class="kCard kc-a"><div class="kLbl">สัดส่วน CNY ใน Export Starch</div><div class="kVal">${N(cnyShare,1)}%</div><div class="kSub">เทียบกับ USD ในหมวดเดียวกัน</div><div class="kIco">📊</div></div>
   `;
 
-  const mtsThb=D.reduce((s,r)=>s+(+r.qty_mts||0),0);
-  const mtsUsd=E.filter(r=>r.currency==='USD').reduce((s,r)=>s+(+r.qty_mts||0),0)+C.filter(r=>r.currency==='USD').reduce((s,r)=>s+(+r.qty_mts||0),0);
+  const mtsThb=D.reduce((s,r)=>s+(+r.qty_mts||0),0)+DCo.reduce((s,r)=>s+(+r.qty_mts||0),0);
+  const mtsUsd=E.filter(r=>r.currency==='USD').reduce((s,r)=>s+(+r.qty_mts||0),0)+C.filter(r=>r.currency==='USD').reduce((s,r)=>s+(+r.qty_mts||0),0)+ICo.filter(r=>r.currency==='USD').reduce((s,r)=>s+(+r.qty_mts||0),0);
   const mtsCny=E.filter(r=>r.currency==='CNY').reduce((s,r)=>s+(+r.qty_mts||0),0);
   killChart('curMix');
   CH.curMix=new Chart(document.getElementById('curMixChart'),{type:'doughnut',data:{labels:['THB','USD','CNY'],datasets:[{data:[mtsThb,mtsUsd,mtsCny],backgroundColor:[CHCOLORS.thb,CHCOLORS.usd,CHCOLORS.cny],borderColor:'#131c2b',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}});
@@ -3360,17 +3396,19 @@ function rStock(){
 
 // ═══════════ BROKERS & BUYERS ═══════════
 let BRK_MODE='broker', BRK_Y='all';
-const CAT_ICO={dom:'🏠',es:'🚢',ec:'📦'};
+const CAT_ICO={dom:'🏠',es:'🚢',ec:'📦',dc:'☕',ic:'🚛'};
 async function loadBrk(){
   document.getElementById('brkTb').innerHTML='<tr><td colspan="9"><div class="loading"><span class="spin"></span>กำลังโหลดข้อมูล...</div></td></tr>';
-  const[{data:dom,error:e1},{data:es,error:e2},{data:ec,error:e3}]=await Promise.all([
+  const[{data:dom,error:e1},{data:es,error:e2},{data:ec,error:e3},{data:dc,error:e4},{data:ic,error:e5}]=await Promise.all([
     fetchAllRows('sales_domestic'),
     fetchAllRows('export_tapioca_starch'),
-    fetchAllRows('export_tapioca_chip')
+    fetchAllRows('export_tapioca_chip'),
+    fetchAllRows('domestic_coffee'),
+    fetchAllRows('import_coffee')
   ]);
-  if(e1||e2||e3){toast('โหลดไม่สำเร็จ: '+(e1||e2||e3).message,true);return;}
+  if(e1||e2||e3||e4||e5){toast('โหลดไม่สำเร็จ: '+(e1||e2||e3||e4||e5).message,true);return;}
   const tag=(arr,cat,curDefault)=>arr.map(r=>({...r,_cat:cat,_cur:curDefault||(r.currency||'').toUpperCase()}));
-  window.__brkData=[...tag(dom,'dom','THB'),...tag(es,'es'),...tag(ec,'ec')];
+  window.__brkData=[...tag(dom,'dom','THB'),...tag(es,'es'),...tag(ec,'ec'),...tag(dc,'dc','THB'),...tag(ic,'ic')];
   buildBrkYP();
   rBrk();
 }
