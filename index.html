@@ -309,6 +309,13 @@ body:not([data-role="admin"]) .gate-delete{display:none !important;}
 
   <!-- ภาพรวม -->
   <div class="sbGrp">ภาพรวม</div>
+  <div class="sbItem" id="sn-kpi" onclick="go('kpi')">
+    <span class="ico">🎯</span>
+    <div class="lbl">KPI ภาพรวมธุรกิจ
+      <span class="sub">สรุปกลยุทธ์ · ดูปุ๊บเข้าใจปั๊บ</span>
+    </div>
+    <span class="pill pill-green">Live</span>
+  </div>
   <div class="sbItem" id="sn-dash" onclick="go('dash')">
     <span class="ico">⊞</span>
     <div class="lbl">Dashboard
@@ -473,6 +480,29 @@ body:not([data-role="admin"]) .gate-delete{display:none !important;}
 <div class="main">
 
 <!-- DASHBOARD -->
+<div class="pg" id="pg-kpi">
+  <div class="ph"><div class="phL"><h2>🎯 KPI ภาพรวมธุรกิจ</h2><div class="phS"><span class="d" style="background:var(--cyan)"></span>สรุประดับกลยุทธ์ · เทียบปีต่อปี · ทุกหมวดสินค้า</div></div></div>
+  <div class="yPills" id="kpiYP"></div>
+
+  <div class="kGrid" id="kpiVolCard"></div>
+  <div class="kGrid" id="kpiRevCard"></div>
+
+  <div class="chGrid2">
+    <div class="chCard">
+      <h4>🥧 สัดส่วนธุรกิจ (ตามปริมาณ MTS)</h4>
+      <div class="chSub">Domestic Starch / Export Starch / Export Chip / Domestic Coffee / Import Coffee</div>
+      <div class="chWrap"><canvas id="kpiMixChart"></canvas></div>
+    </div>
+    <div class="chCard">
+      <h4>👥 ลูกค้า Top 3 — สัดส่วนความเสี่ยงกระจุกตัว</h4>
+      <div class="chSub" id="kpiTopSub">% ของปริมาณขายรวม (MTS) · ปีที่เลือก</div>
+      <div class="chWrap"><canvas id="kpiTopChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="kGrid" id="kpiRiskCard"></div>
+</div>
+
 <div class="pg" id="pg-dash">
   <div class="ph">
     <div class="phL"><h2>Dashboard ภาพรวม</h2><div class="phS"><span class="d" style="background:var(--green)"></span>KS AGRO · Sales Management System</div></div>
@@ -739,6 +769,7 @@ body:not([data-role="admin"]) .gate-delete{display:none !important;}
     </div>
   </div>
   <div class="kGrid" id="icKpi"></div>
+  <div class="kGrid" id="icPayKpi"></div>
   <div class="yPills" id="icYP"></div>
   <div class="tb">
     <div class="srchW"><input class="srch" id="icSr" placeholder="ค้นหา ชื่อลูกค้า/Invoice" oninput="rIc()"></div>
@@ -752,10 +783,11 @@ body:not([data-role="admin"]) .gate-delete{display:none !important;}
           <th>NO.</th><th>ปี</th><th>ผู้ขาย (ต้นทาง)</th><th>Invoice No.</th>
           <th>QTY (MTS)</th><th>Total</th>
           <th>วันโหลด</th><th>สถานะ / หมายเหตุ</th>
+          <th>สถานะจ่ายเงิน</th>
           <th>Payment Term</th>
           <th>จัดการ</th>
         </tr></thead>
-        <tbody id="icTb"><tr><td colspan="10"><div class="loading"><span class="spin"></span>กำลังโหลด...</div></td></tr></tbody>
+        <tbody id="icTb"><tr><td colspan="11"><div class="loading"><span class="spin"></span>กำลังโหลด...</div></td></tr></tbody>
       </table>
     </div>
     <div class="tFoot"><span id="icCnt">—</span><span id="icTot" style="color:var(--text)">—</span></div>
@@ -838,7 +870,7 @@ body:not([data-role="admin"]) .gate-delete{display:none !important;}
     <div class="srchW"><input class="srch" id="pofinSr" placeholder="ค้นหา PO No. / สัญญา" oninput="rPofin()"></div>
     <select class="sel" id="pofinStF" onchange="rPofin()">
       <option value="">สถานะทั้งหมด</option>
-      <option value="outstanding">🔴 ลงค้าง</option>
+      <option value="outstanding">🔴 คงค้าง</option>
       <option value="pending_update">🟡 รออัพเดท</option>
       <option value="paid">🟢 ชำระแล้ว / ปิดยอด</option>
     </select>
@@ -849,7 +881,7 @@ body:not([data-role="admin"]) .gate-delete{display:none !important;}
       <table>
         <thead><tr>
           <th>No.</th><th>PO No. / สัญญา</th><th>สินค้า</th><th>ธนาคาร</th>
-          <th>ตัน</th><th>ราคา (USD)</th><th>ยอด 70% ($)</th><th>ยอดภูจิง (฿)</th>
+          <th>ตัน</th><th>ราคา (USD)</th><th>ยอด 70% ($)</th><th>ยอดกู้จริง (฿)</th>
           <th>ค้างชำระ $</th><th>ค้างชำระ ฿</th><th>ครบกำหนดตั๋ว</th><th>หมดอายุ 60 วัน</th>
           <th>สถานะ</th><th>จัดการ</th>
         </tr></thead>
@@ -1300,10 +1332,12 @@ body:not([data-role="admin"]) .gate-delete{display:none !important;}
       <div class="fld"><label>ยอดมัดจำ (THB)</label><input type="number" step="any" id="ic_deposit_value_thb"></div>
       <div class="fld"><label>Exchange Rate #1</label><input type="number" step="any" id="ic_exchange_rate1"></div>
       <div class="fld"><label>ยอดมัดจำ (USD)</label><input type="number" step="any" id="ic_deposit_total_usd"></div>
+      <div class="fld"><label>สถานะมัดจำ</label><select id="ic_deposit_paid"><option value="false">⏳ ยังไม่จ่าย</option><option value="true">✅ จ่ายแล้ว</option></select></div>
       <div class="fld"><label>วันที่ชำระยอดคงเหลือ</label><input type="date" id="ic_balance_date"></div>
       <div class="fld"><label>ยอดคงเหลือ (THB)</label><input type="number" step="any" id="ic_balance_total"></div>
       <div class="fld"><label>Exchange Rate #2</label><input type="number" step="any" id="ic_exchange_rate2"></div>
       <div class="fld"><label>ยอดคงเหลือ (USD)</label><input type="number" step="any" id="ic_balance_total_usd2"></div>
+      <div class="fld"><label>สถานะยอดคงเหลือ</label><select id="ic_balance_paid"><option value="false">⏳ ยังไม่จ่าย</option><option value="true">✅ จ่ายแล้ว</option></select></div>
     </div>
 
     <div class="sLbl">การนำเข้า / จัดส่ง</div>
@@ -1416,7 +1450,7 @@ body:not([data-role="admin"]) .gate-delete{display:none !important;}
       <div class="fld"><label>ค้างชำระ (หยวน CNY)</label><input type="number" step="any" id="pf_outstanding_cny"></div>
       <div class="fld"><label>วันครบกำหนดตั๋ว</label><input type="date" id="pf_due_date" onchange="calcPofinExpiry()"></div>
       <div class="fld"><label>หมดอายุ 60 วัน (อัตโนมัติจากวันครบกำหนด)</label><input type="date" id="pf_expire_60d"></div>
-      <div class="fld"><label>สถานะ</label><select id="pf_status"><option value="outstanding">ลงค้าง</option><option value="pending_update">รออัพเดท</option><option value="paid">ชำระแล้ว / ปิดยอด</option></select></div>
+      <div class="fld"><label>สถานะ</label><select id="pf_status"><option value="outstanding">คงค้าง</option><option value="pending_update">รออัพเดท</option><option value="paid">ชำระแล้ว / ปิดยอด</option></select></div>
       <div class="fld s3"><label>หมายเหตุ / รายละเอียด</label><input id="pf_remark"></div>
     </div>
   </div>
@@ -1726,6 +1760,8 @@ body:not([data-role="admin"]) .gate-delete{display:none !important;}
       <div class="fld"><label>หมวดสินค้า *</label><select id="s_category" onchange="toggleStockOther()">
         <option value="starch">แป้งมันสำปะหลัง</option>
         <option value="chip">มันเส้น</option>
+        <option value="coffee_domestic">กาแฟในประเทศ</option>
+        <option value="coffee_import">นำเข้ากาแฟ</option>
         <option value="other">อื่นๆ (ระบุ)</option>
       </select></div>
       <div class="fld" id="s_other_wrap" style="display:none"><label>ระบุชื่อสินค้า *</label><input id="s_category_other" placeholder="เช่น กากมัน, แป้งมันดัดแปร"></div>
@@ -1778,7 +1814,7 @@ async function initAuth(){
 }
 const ROLE_LABEL={admin:'ผู้ดูแลระบบ',coordinator:'Coordinator',marketing:'Marketing',director:'ผู้บริหาร',finance:'ฝ่ายการเงิน'};
 // หน้าที่ Finance เห็นได้เท่านั้น
-const FINANCE_ALLOWED_PAGES=['dash','monthly','fc','pofin','stock'];
+const FINANCE_ALLOWED_PAGES=['kpi','dash','monthly','fc','pofin','stock'];
 async function boot(){
   document.getElementById('loginScreen').style.display='none';
   document.getElementById('app').style.display='block';
@@ -1822,6 +1858,7 @@ function applyRolePermissions(role){
 
 // ─── NAV ───
 const PAGE_META={
+  kpi:{label:'ภาพรวม',sub:'KPI ภาพรวมธุรกิจ'},
   dash:{label:'Dashboard',sub:''},
   dom:{label:'บันทึกข้อมูล',sub:'Domestic Starch'},
   es:{label:'บันทึกข้อมูล',sub:'Export Starch'},
@@ -1858,7 +1895,8 @@ function go(p){
   const sep=document.getElementById('tbSep'),sub=document.getElementById('tbSub');
   if(m.sub){sep.style.display='';sub.textContent=m.sub;}
   else{sep.style.display='none';sub.textContent='';}
-  if(p==='dom')loadDom();
+  if(p==='kpi')loadKpi();
+  else if(p==='dom')loadDom();
   else if(p==='dcoffee')loadDc();
   else if(p==='icoffee')loadIc();
   else if(p==='es')loadEs();
@@ -2154,10 +2192,37 @@ function rIcKpi(){
     <div class="kCard kc-g"><div class="kLbl">ปริมาณรวม</div><div class="kVal">${N(mts,2)}</div><div class="kSub">เมตริกตัน (MTS)</div><div class="kIco">⚖️</div></div>
     <div class="kCard kc-o"><div class="kLbl">มูลค่ารวม (THB)</div><div class="kVal">${N(thb,0)}</div><div class="kSub">บาท</div><div class="kIco">💵</div></div>
   `;
+  // ── ยอดที่ต้องจ่ายออก (มัดจำ+ยอดคงเหลือ ที่ยังไม่ได้จ่าย) ──
+  const today=new Date();const lim=new Date();lim.setDate(lim.getDate()+7);
+  let dueSoonThb=0,dueSoonCnt=0,overdueThb=0,overdueCnt=0;
+  r.forEach(x=>{
+    [['deposit_date','deposit_value_thb','deposit_paid'],['balance_date','balance_total','balance_paid']].forEach(([dF,vF,pF])=>{
+      if(x[pF]||!x[dF])return; // จ่ายแล้ว หรือไม่มีกำหนดวันที่ ข้าม
+      const d=new Date(x[dF]);
+      const amt=Number(x[vF]||0);
+      if(d<today){overdueThb+=amt;overdueCnt++;}
+      else if(d<=lim){dueSoonThb+=amt;dueSoonCnt++;}
+    });
+  });
+  document.getElementById('icPayKpi').innerHTML=`
+    <div class="kCard kc-a"><div class="kLbl">💸 ต้องจ่ายใน 7 วันข้างหน้า (${dueSoonCnt} งวด)</div><div class="kVal">${N(dueSoonThb,0)}</div><div class="kSub">THB · มัดจำ/ยอดคงเหลือที่ยังไม่จ่าย</div></div>
+    <div class="kCard kc-r"><div class="kLbl">⚠️ เลยกำหนดจ่ายแล้ว (${overdueCnt} งวด)</div><div class="kVal">${N(overdueThb,0)}</div><div class="kSub">THB · ต้องติดตามด่วน!</div></div>
+  `;
+}
+function icPayStatus(r){
+  const parts=[];
+  const today=new Date();
+  [['มัดจำ','deposit_date','deposit_paid'],['คงเหลือ','balance_date','balance_paid']].forEach(([lbl,dF,pF])=>{
+    if(!r[dF])return;
+    if(r[pF]){parts.push(`<span style="color:var(--green)">✅ ${lbl}จ่ายแล้ว</span>`);return;}
+    const overdue=new Date(r[dF])<today;
+    parts.push(overdue?`<span style="color:var(--red)">⚠️ ${lbl}เลยกำหนด</span>`:`<span style="color:var(--amber)">⏳ ${lbl}รอจ่าย</span>`);
+  });
+  return parts.join('<br>')||'<span style="color:var(--dim2)">—</span>';
 }
 function rIc(){
   const rows=gIc(),body=document.getElementById('icTb');
-  if(!rows.length){body.innerHTML='<tr><td colspan="10"><div class="empty"><div class="ei">📭</div><p>ไม่พบรายการ</p></div></td></tr>';document.getElementById('icCnt').textContent='ไม่พบรายการ';document.getElementById('icTot').textContent='';return;}
+  if(!rows.length){body.innerHTML='<tr><td colspan="11"><div class="empty"><div class="ei">📭</div><p>ไม่พบรายการ</p></div></td></tr>';document.getElementById('icCnt').textContent='ไม่พบรายการ';document.getElementById('icTot').textContent='';return;}
   const mts=rows.reduce((s,r)=>s+(+r.qty_mts||0),0),thb=rows.reduce((s,r)=>s+(+r.total||0),0);
   document.getElementById('icCnt').textContent=`แสดง ${rows.length} รายการ`;
   document.getElementById('icTot').textContent=`รวม ${N(mts,2)} MTS · ${N(thb,0)} ${'THB'}`;
@@ -2176,13 +2241,15 @@ function rIc(){
     <td style="font-weight:700;color:var(--orange);width:96px">${N(r.total,0)} ${E(r.currency)||''}</td>
     <td style="width:78px">${D(r.loading_date)}</td>
     <td class="td-trunc" style="min-width:150px;max-width:200px;font-size:11px;color:${srColor}">${E(sr)}</td>
+    <td style="min-width:120px;font-size:10.5px">${icPayStatus(r)}</td>
     <td class="td-trunc" style="max-width:130px;color:var(--dim);font-size:10.5px">${E(r.payment_term)}</td>
     <td style="width:56px"><div class="ra"><button class="ib e gate-write" onclick="editIc('${r.id}')">✏</button><button class="ib d gate-delete" onclick="delIc('${r.id}')">🗑</button></div></td>
   </tr>`;}).join('');
 }
 
-const ICF=['year','seq_no','broker_name','comm_rate','total_comm','contact_date','shipment_date','applicant_name','contact_no','packing_kgs','qty_partial','qty_mts','price_fob','price_cfr','price_cif','total','invoice_no','payment_term','status_remark','deposit_date','deposit_value_thb','exchange_rate1','deposit_total_usd','balance_date','balance_total','exchange_rate2','balance_total_usd2','delivery_by','customs_no','from_origin','pass_border','loading_date','delivery_place','delivery_date1','delivery_date2','delivery_date3','final_delivery_date','factory1_name','factory1_po','factory1_price','factory1_total','factory1_before_vat','factory1_vat','factory2_name','factory2_po','factory2_price','factory2_total','factory2_before_vat','factory2_vat','factory3_name','factory3_po','factory3_price','factory3_total','factory3_before_vat','factory3_vat','factory4_name','factory4_po','factory4_price','factory4_total','factory4_before_vat','factory4_vat','packing_name','import_agent_name','import_service_cost','packing_material_cost','pallet_cost','sack_cost','agent_name','freight_cost','survey_name','fumigation_name','survey_fumigation_cost','shipping_name','shipping_cost','insurance_name','insurance_cost','transport_company','transport_cost','doc_delivery_cost','dhl_no','booking_no','bl_truck_no'];
+const ICF=['year','seq_no','broker_name','comm_rate','total_comm','contact_date','shipment_date','applicant_name','contact_no','packing_kgs','qty_partial','qty_mts','price_fob','price_cfr','price_cif','total','invoice_no','payment_term','status_remark','deposit_date','deposit_value_thb','exchange_rate1','deposit_total_usd','deposit_paid','balance_date','balance_total','exchange_rate2','balance_total_usd2','balance_paid','delivery_by','customs_no','from_origin','pass_border','loading_date','delivery_place','delivery_date1','delivery_date2','delivery_date3','final_delivery_date','factory1_name','factory1_po','factory1_price','factory1_total','factory1_before_vat','factory1_vat','factory2_name','factory2_po','factory2_price','factory2_total','factory2_before_vat','factory2_vat','factory3_name','factory3_po','factory3_price','factory3_total','factory3_before_vat','factory3_vat','factory4_name','factory4_po','factory4_price','factory4_total','factory4_before_vat','factory4_vat','packing_name','import_agent_name','import_service_cost','packing_material_cost','pallet_cost','sack_cost','agent_name','freight_cost','survey_name','fumigation_name','survey_fumigation_cost','shipping_name','shipping_cost','insurance_name','insurance_cost','transport_company','transport_cost','doc_delivery_cost','dhl_no','booking_no','bl_truck_no'];
 const ICN=['comm_rate','total_comm','packing_kgs','qty_mts','price_fob','price_cfr','price_cif','total','deposit_value_thb','exchange_rate1','deposit_total_usd','balance_total','exchange_rate2','balance_total_usd2','factory1_price','factory1_total','factory1_before_vat','factory1_vat','factory2_price','factory2_total','factory2_before_vat','factory2_vat','factory3_price','factory3_total','factory3_before_vat','factory3_vat','factory4_price','factory4_total','factory4_before_vat','factory4_vat','import_service_cost','packing_material_cost','pallet_cost','sack_cost','freight_cost','survey_fumigation_cost','shipping_cost','insurance_cost','transport_cost','doc_delivery_cost'];
+const ICB=['deposit_paid','balance_paid'];
 
 function openIc(){
   document.getElementById('mIcT').textContent='เพิ่มรายการ — Import Coffee';
@@ -2190,6 +2257,8 @@ function openIc(){
   ICF.forEach(f=>{const el=document.getElementById('ic_'+f);if(el)el.value='';});
   document.getElementById('ic_year').value=new Date().getFullYear();
   document.getElementById('ic_currency').value='THB';
+  document.getElementById('ic_deposit_paid').value='false';
+  document.getElementById('ic_balance_paid').value='false';
   document.getElementById('mIc').classList.add('show');
 }
 function closeIc(){document.getElementById('mIc').classList.remove('show');}
@@ -2197,7 +2266,7 @@ function editIc(id){
   const r=ICR.find(x=>x.id===id);if(!r)return;
   document.getElementById('mIcT').textContent='แก้ไขรายการ — Import Coffee';
   document.getElementById('ic_id').value=r.id;
-  ICF.forEach(f=>{const el=document.getElementById('ic_'+f);if(el)el.value=(ICN.includes(f)?R2(r[f]):r[f])??'';});
+  ICF.forEach(f=>{const el=document.getElementById('ic_'+f);if(!el)return;if(ICB.includes(f)){el.value=r[f]?'true':'false';return;}el.value=(ICN.includes(f)?R2(r[f]):r[f])??'';});
   document.getElementById('ic_currency').value=r.currency||'THB';
   document.getElementById('mIc').classList.add('show');
 }
@@ -2205,7 +2274,7 @@ async function saveIc(){
   const id=document.getElementById('ic_id').value;
   if(!document.getElementById('ic_applicant_name').value.trim()){toast('กรุณากรอกชื่อผู้ขาย/ต้นทาง',true);return;}
   const p={currency:document.getElementById('ic_currency').value||'THB'};
-  ICF.forEach(f=>{const el=document.getElementById('ic_'+f);if(!el)return;let v=el.value===''?null:el.value;if(ICN.includes(f)&&v!==null)v=R2(parseFloat(v));if(f==='year'&&v)v=parseInt(v);p[f]=v;});
+  ICF.forEach(f=>{const el=document.getElementById('ic_'+f);if(!el)return;if(ICB.includes(f)){p[f]=el.value==='true';return;}let v=el.value===''?null:el.value;if(ICN.includes(f)&&v!==null)v=R2(parseFloat(v));if(f==='year'&&v)v=parseInt(v);p[f]=v;});
   p.updated_by=U.id;p.updated_by_email=U.email;
   let err;
   if(id){({error:err}=await sb.from('import_coffee').update(p).eq('id',id));}
@@ -2645,6 +2714,116 @@ function killChart(id){if(CH[id]){CH[id].destroy();delete CH[id];}}
 const CHCOLORS={thb:'#22c55e',usd:'#3b82f6',cny:'#a855f7',cyan:'#06b6d4',amber:'#f59e0b',orange:'#f97316',dim:'#5a738f'};
 Chart.defaults.color='#5a738f';Chart.defaults.font.family="'Segoe UI',system-ui,sans-serif";Chart.defaults.font.size=11;
 Chart.defaults.plugins.legend.labels.boxWidth=11;Chart.defaults.plugins.legend.labels.padding=10;
+
+// ═══════════ KPI ภาพรวมธุรกิจ (STRATEGIC OVERVIEW) ═══════════
+let KPI_Y=null;
+async function loadKpi(){
+  const[{data:dom},{data:es},{data:ec},{data:dc},{data:ic},{data:fc},{data:stk}]=await Promise.all([
+    sb.from('sales_domestic').select('year,qty_mts,total,applicant_name'),
+    sb.from('export_tapioca_starch').select('year,qty_mts,total,currency,applicant_name'),
+    sb.from('export_tapioca_chip').select('year,qty_mts,total,currency,applicant_name'),
+    sb.from('domestic_coffee').select('year,qty_mts,total,applicant_name'),
+    sb.from('import_coffee').select('year,qty_mts,total,currency,applicant_name'),
+    sb.from('forecast_income').select('*'),
+    sb.from('stock_items').select('*')
+  ]);
+  window.__kpiDom=dom||[];window.__kpiEs=es||[];window.__kpiEc=ec||[];window.__kpiDc=dc||[];window.__kpiIc=ic||[];
+  window.__kpiFc=fc||[];window.__kpiStk=stk||[];
+  const years=[...new Set([...window.__kpiDom,...window.__kpiEs,...window.__kpiEc,...window.__kpiDc,...window.__kpiIc].map(r=>r.year).filter(Boolean))].sort((a,b)=>a-b);
+  if(!KPI_Y||!years.map(String).includes(String(KPI_Y)))KPI_Y=years[years.length-1];
+  buildKpiYP(years);
+  rKpi();
+}
+function buildKpiYP(years){
+  const w=document.getElementById('kpiYP');
+  w.innerHTML='';
+  years.forEach(y=>{
+    const d=document.createElement('div');
+    d.className='yPill'+(String(KPI_Y)===String(y)?' act':'');
+    d.textContent=y;
+    d.onclick=function(){KPI_Y=y;w.querySelectorAll('.yPill').forEach(e=>e.classList.remove('act'));this.classList.add('act');rKpi();};
+    w.appendChild(d);
+  });
+}
+function kpiPct(now,prev){
+  if(!prev)return null;
+  return (now-prev)/prev*100;
+}
+function kpiTrendHtml(pct){
+  if(pct==null)return '<span style="color:var(--dim2);font-size:12px">— ไม่มีข้อมูลปีก่อนเทียบ</span>';
+  const up=pct>=0;
+  const color=up?'var(--green)':'var(--red)';
+  const arrow=up?'▲':'▼';
+  return `<span style="color:${color};font-weight:700;font-size:13px">${arrow} ${Math.abs(pct).toFixed(1)}%</span> <span style="font-size:11px;color:var(--dim2)">เทียบปีก่อน</span>`;
+}
+function rKpi(){
+  const Y=KPI_Y,PY=Number(KPI_Y)-1;
+  const scopeY=(arr,y)=>arr.filter(r=>String(r.year)===String(y));
+  const D=scopeY(window.__kpiDom,Y),PD=scopeY(window.__kpiDom,PY);
+  const E=scopeY(window.__kpiEs,Y),PE=scopeY(window.__kpiEs,PY);
+  const C=scopeY(window.__kpiEc,Y),PC=scopeY(window.__kpiEc,PY);
+  const DCo=scopeY(window.__kpiDc,Y),PDCo=scopeY(window.__kpiDc,PY);
+  const ICo=scopeY(window.__kpiIc,Y),PICo=scopeY(window.__kpiIc,PY);
+
+  const sumMts=arr=>arr.reduce((s,r)=>s+(+r.qty_mts||0),0);
+  const totMtsNow=sumMts(D)+sumMts(E)+sumMts(C)+sumMts(DCo)+sumMts(ICo);
+  const totMtsPrev=sumMts(PD)+sumMts(PE)+sumMts(PC)+sumMts(PDCo)+sumMts(PICo);
+
+  document.getElementById('kpiVolCard').innerHTML=`
+    <div class="kCard kc-g"><div class="kLbl">ปริมาณขายรวมทุกหมวด (MTS)</div><div class="kVal">${N(totMtsNow,2)}</div><div class="kSub">${kpiTrendHtml(kpiPct(totMtsNow,totMtsPrev))}</div><div class="kIco">⚖️</div></div>
+  `;
+
+  const thbNow=D.reduce((s,r)=>s+(+r.total||0),0)+DCo.reduce((s,r)=>s+(+r.total||0),0);
+  const thbPrev=PD.reduce((s,r)=>s+(+r.total||0),0)+PDCo.reduce((s,r)=>s+(+r.total||0),0);
+  const usdNow=E.filter(r=>r.currency==='USD').reduce((s,r)=>s+(+r.total||0),0)+C.reduce((s,r)=>s+(+r.total||0),0)+ICo.filter(r=>r.currency==='USD').reduce((s,r)=>s+(+r.total||0),0);
+  const usdPrev=PE.filter(r=>r.currency==='USD').reduce((s,r)=>s+(+r.total||0),0)+PC.reduce((s,r)=>s+(+r.total||0),0)+PICo.filter(r=>r.currency==='USD').reduce((s,r)=>s+(+r.total||0),0);
+  const cnyNow=E.filter(r=>r.currency==='CNY').reduce((s,r)=>s+(+r.total||0),0);
+  const cnyPrev=PE.filter(r=>r.currency==='CNY').reduce((s,r)=>s+(+r.total||0),0);
+
+  document.getElementById('kpiRevCard').innerHTML=`
+    <div class="kCard kc-b"><div class="kLbl">ยอดขาย THB</div><div class="kVal">${N(thbNow,0)}</div><div class="kSub">${kpiTrendHtml(kpiPct(thbNow,thbPrev))}</div><div class="kIco">💵</div></div>
+    <div class="kCard kc-b"><div class="kLbl">ยอดขาย USD</div><div class="kVal">${N(usdNow,0)}</div><div class="kSub">${kpiTrendHtml(kpiPct(usdNow,usdPrev))}</div><div class="kIco">💵</div></div>
+    <div class="kCard kc-p"><div class="kLbl">ยอดขาย CNY</div><div class="kVal">${N(cnyNow,0)}</div><div class="kSub">${kpiTrendHtml(kpiPct(cnyNow,cnyPrev))}</div><div class="kIco">💴</div></div>
+  `;
+
+  killChart('kpiMix');
+  CH.kpiMix=new Chart(document.getElementById('kpiMixChart'),{type:'doughnut',data:{labels:['Domestic Starch','Export Starch','Export Chip','Domestic Coffee','Import Coffee'],datasets:[{data:[sumMts(D),sumMts(E),sumMts(C),sumMts(DCo),sumMts(ICo)],backgroundColor:[CHCOLORS.thb,CHCOLORS.usd,CHCOLORS.orange,CHCOLORS.amber,'#ef4444'],borderColor:'#131c2b',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}});
+
+  // ── ลูกค้า Top 3 (สัดส่วนความเสี่ยงกระจุกตัว) ──
+  const custMts={};
+  [...D,...E,...C,...DCo,...ICo].forEach(r=>{
+    const k=(r.applicant_name||'ไม่ระบุ').trim();
+    custMts[k]=(custMts[k]||0)+(+r.qty_mts||0);
+  });
+  const custSorted=Object.entries(custMts).sort((a,b)=>b[1]-a[1]);
+  const top3=custSorted.slice(0,3);
+  const top3Sum=top3.reduce((s,x)=>s+x[1],0);
+  const top3Pct=totMtsNow?top3Sum/totMtsNow*100:0;
+  document.getElementById('kpiTopSub').textContent=`Top 3 คิดเป็น ${N(top3Pct,1)}% ของปริมาณขายรวม · ${Y}`;
+  killChart('kpiTop');
+  CH.kpiTop=new Chart(document.getElementById('kpiTopChart'),{type:'bar',data:{labels:top3.map(x=>x[0].length>22?x[0].slice(0,22)+'…':x[0]),datasets:[{label:'MTS',data:top3.map(x=>x[1]),backgroundColor:CHCOLORS.cyan,borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'#1e2d42'}},y:{grid:{display:false}}}}});
+
+  // ── เงินค้างรับเลยกำหนด (คำนวณแบบเดียวกับ Dashboard) ──
+  const today=new Date();
+  const over=window.__kpiFc.filter(r=>fcSt(r)==='overdue');
+  const overByCur={};
+  over.forEach(r=>{
+    const k=r.currency||'THB';
+    const total=Number(r.total||0),recv=Number(r.received_amount||0);
+    overByCur[k]=(overByCur[k]||0)+(total>0?total-recv:0);
+  });
+  const overHtml=Object.entries(overByCur).length?Object.entries(overByCur).map(([cur,amt])=>`<span style="display:block">${N(amt,0)} <span style="font-size:11px;opacity:.7">${cur}</span></span>`).join(''):'<span style="display:block">0.00</span>';
+
+  // ── มูลค่าสต๊อกรวม (นำมาคำนวณเท่านั้น) ──
+  const stockInc=window.__kpiStk.filter(r=>r.included!==false);
+  const stockVal=stockInc.reduce((s,r)=>s+(+r.amount||0),0);
+
+  document.getElementById('kpiRiskCard').innerHTML=`
+    <div class="kCard kc-r" style="cursor:pointer" onclick="go('fc')" title="คลิกเพื่อดู Forecast Income"><div class="kLbl">⚠️ เงินค้างรับเลยกำหนด</div><div class="kVal" style="font-size:20px;line-height:1.3">${overHtml}</div><div class="kSub">${over.length} รายการ · ทุกหมวดรวมกัน</div></div>
+    <div class="kCard kc-a" style="cursor:pointer" onclick="go('stock')" title="คลิกเพื่อดู Stock สินค้า"><div class="kLbl">📦 มูลค่าสต๊อกรวม</div><div class="kVal">$${N(stockVal,2)}</div><div class="kSub">USD · เฉพาะรายการที่นำมาคำนวณ</div></div>
+    <div class="kCard kc-p"><div class="kLbl">👥 ความเสี่ยงกระจุกตัวลูกค้า</div><div class="kVal">${N(top3Pct,1)}%</div><div class="kSub">จากลูกค้า Top 3 ราย · ${Y}</div></div>
+  `;
+}
 
 async function loadDash(){
   const[{data:dom},{data:fc},{data:es},{data:ec},{data:dc},{data:ic}]=await Promise.all([
@@ -3344,6 +3523,8 @@ async function delStock(id){
 function stockLabel(r){
   if(r.category==='starch')return 'แป้งมันสำปะหลัง';
   if(r.category==='chip')return 'มันเส้น';
+  if(r.category==='coffee_domestic')return 'กาแฟในประเทศ';
+  if(r.category==='coffee_import')return 'นำเข้ากาแฟ';
   return r.category_other||'อื่นๆ';
 }
 async function loadStock(){
@@ -3465,7 +3646,7 @@ function rBrk(){
 // ═══════════ PO FINANCING (SCB / TTB) ═══════════
 let PF=[], PFBankRpt={}, PFBank='all';
 const PF_PRODUCT_LBL={starch:'แป้งมัน',chip:'มันเส้น',other:'อื่นๆ'};
-const PF_STATUS_BDG={outstanding:'<span class="bdg bdg-r">🔴 ลงค้าง</span>',pending_update:'<span class="bdg bdg-a">🟡 รออัพเดท</span>',paid:'<span class="bdg bdg-g">🟢 ชำระแล้ว / ปิดยอด</span>'};
+const PF_STATUS_BDG={outstanding:'<span class="bdg bdg-r">🔴 คงค้าง</span>',pending_update:'<span class="bdg bdg-a">🟡 รออัพเดท</span>',paid:'<span class="bdg bdg-g">🟢 ชำระแล้ว / ปิดยอด</span>'};
 async function loadPoFin(){
   document.getElementById('pofinTb').innerHTML='<tr><td colspan="14"><div class="loading"><span class="spin"></span>กำลังโหลด...</div></td></tr>';
   const[{data:pf,error:e1},{data:br,error:e2}]=await Promise.all([
