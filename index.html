@@ -921,9 +921,9 @@ body:not([data-role="admin"]) .gate-delete{display:none !important;}
       <table>
         <thead><tr>
           <th>เดือน</th><th>MTS Domestic</th><th>MTS Export Starch</th><th>MTS Export Chip</th><th>MTS กาแฟในประเทศ</th><th>MTS นำเข้ากาแฟ</th><th>MTS รวม</th>
-          <th>THB</th><th>USD</th><th>CNY</th><th>กาแฟ (THB)</th>
+          <th>THB</th><th>USD</th><th>CNY</th><th>กาแฟในประเทศ (THB)</th><th>นำเข้ากาแฟ (THB)</th>
         </tr></thead>
-        <tbody id="mbTb"><tr><td colspan="11"><div class="loading"><span class="spin"></span>กำลังโหลดข้อมูล...</div></td></tr></tbody>
+        <tbody id="mbTb"><tr><td colspan="12"><div class="loading"><span class="spin"></span>กำลังโหลดข้อมูล...</div></td></tr></tbody>
       </table>
     </div>
   </div>
@@ -3042,7 +3042,7 @@ let MB_Y=null;
 const MB_MONTHS=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 const mOf=dt=>{if(!dt)return null;return new Date(dt).getMonth();};
 async function loadMb(){
-  document.getElementById('mbTb').innerHTML='<tr><td colspan="11"><div class="loading"><span class="spin"></span>กำลังโหลดข้อมูล...</div></td></tr>';
+  document.getElementById('mbTb').innerHTML='<tr><td colspan="12"><div class="loading"><span class="spin"></span>กำลังโหลดข้อมูล...</div></td></tr>';
   const[{data:dom,error:e1},{data:es,error:e2},{data:ec,error:e3},{data:dc,error:e4},{data:ic,error:e5}]=await Promise.all([
     fetchAllRows('sales_domestic'),
     fetchAllRows('export_tapioca_starch'),
@@ -3085,13 +3085,13 @@ function rMb(){
 
   const totMts=mtsDom.reduce((a,b)=>a+b,0)+mtsEs.reduce((a,b)=>a+b,0)+mtsEc.reduce((a,b)=>a+b,0)+mtsDc.reduce((a,b)=>a+b,0)+mtsIc.reduce((a,b)=>a+b,0);
   const totThb=thbM.reduce((a,b)=>a+b,0),totUsd=usdM.reduce((a,b)=>a+b,0),totCny=cnyM.reduce((a,b)=>a+b,0);
-  const totCoffee=coffeeDcM.reduce((a,b)=>a+b,0)+coffeeIcM.reduce((a,b)=>a+b,0);
   document.getElementById('mbKpi').innerHTML=`
     <div class="kCard kc-g"><div class="kLbl">ปริมาณรวมทั้งปี</div><div class="kVal">${N(totMts,2)}</div><div class="kSub">MTS · ${MB_Y}</div><div class="kIco">⚖️</div></div>
     <div class="kCard kc-g"><div class="kLbl">ยอดขาย THB</div><div class="kVal">${N(totThb,0)}</div><div class="kSub">Domestic · ${MB_Y}</div><div class="kIco">💵</div></div>
     <div class="kCard kc-b"><div class="kLbl">ยอดขาย USD</div><div class="kVal">${N(totUsd,0)}</div><div class="kSub">Export Starch + Chip · ${MB_Y}</div><div class="kIco">💵</div></div>
     <div class="kCard kc-p"><div class="kLbl">ยอดขาย CNY</div><div class="kVal">${N(totCny,0)}</div><div class="kSub">Export Starch · ${MB_Y}</div><div class="kIco">💴</div></div>
-    <div class="kCard kc-a"><div class="kLbl">กาแฟ (THB)</div><div class="kVal">${N(totCoffee,0)}</div><div class="kSub">Domestic + Import · ${MB_Y}</div><div class="kIco">☕</div></div>
+    <div class="kCard kc-a"><div class="kLbl">กาแฟในประเทศ (THB)</div><div class="kVal">${N(coffeeDcM.reduce((a,b)=>a+b,0),0)}</div><div class="kSub">Domestic Coffee · ${MB_Y}</div><div class="kIco">☕</div></div>
+    <div class="kCard kc-r"><div class="kLbl">นำเข้ากาแฟ (THB)</div><div class="kVal">${N(coffeeIcM.reduce((a,b)=>a+b,0),0)}</div><div class="kSub">Import Coffee · ${MB_Y}</div><div class="kIco">🚛</div></div>
   `;
 
   killChart('mbVol');
@@ -3134,10 +3134,9 @@ function rMb(){
 
   document.getElementById('mbTb').innerHTML=MB_MONTHS.map((mLbl,m)=>{
     const tot=mtsDom[m]+mtsEs[m]+mtsEc[m]+mtsDc[m]+mtsIc[m];
-    const coffeeThb=coffeeDcM[m]+coffeeIcM[m];
-    if(!tot&&!thbM[m]&&!usdM[m]&&!cnyM[m]&&!coffeeThb)return `<tr style="opacity:.4"><td>${mLbl}</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>`;
-    return `<tr><td>${mLbl}</td><td>${N(mtsDom[m],2)}</td><td>${N(mtsEs[m],2)}</td><td>${N(mtsEc[m],2)}</td><td>${N(mtsDc[m],2)}</td><td>${N(mtsIc[m],2)}</td><td><b>${N(tot,2)}</b></td><td>${N(thbM[m],0)}</td><td>${N(usdM[m],0)}</td><td>${N(cnyM[m],0)}</td><td>${N(coffeeThb,0)}</td></tr>`;
-  }).join('')+`<tr style="font-weight:700;border-top:2px solid var(--border2)"><td>รวมทั้งปี</td><td>${N(mtsDom.reduce((a,b)=>a+b,0),2)}</td><td>${N(mtsEs.reduce((a,b)=>a+b,0),2)}</td><td>${N(mtsEc.reduce((a,b)=>a+b,0),2)}</td><td>${N(mtsDc.reduce((a,b)=>a+b,0),2)}</td><td>${N(mtsIc.reduce((a,b)=>a+b,0),2)}</td><td>${N(totMts,2)}</td><td>${N(totThb,0)}</td><td>${N(totUsd,0)}</td><td>${N(totCny,0)}</td><td>${N(totCoffee,0)}</td></tr>`;
+    if(!tot&&!thbM[m]&&!usdM[m]&&!cnyM[m]&&!coffeeDcM[m]&&!coffeeIcM[m])return `<tr style="opacity:.4"><td>${mLbl}</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>`;
+    return `<tr><td>${mLbl}</td><td>${N(mtsDom[m],2)}</td><td>${N(mtsEs[m],2)}</td><td>${N(mtsEc[m],2)}</td><td>${N(mtsDc[m],2)}</td><td>${N(mtsIc[m],2)}</td><td><b>${N(tot,2)}</b></td><td>${N(thbM[m],0)}</td><td>${N(usdM[m],0)}</td><td>${N(cnyM[m],0)}</td><td>${N(coffeeDcM[m],0)}</td><td>${N(coffeeIcM[m],0)}</td></tr>`;
+  }).join('')+`<tr style="font-weight:700;border-top:2px solid var(--border2)"><td>รวมทั้งปี</td><td>${N(mtsDom.reduce((a,b)=>a+b,0),2)}</td><td>${N(mtsEs.reduce((a,b)=>a+b,0),2)}</td><td>${N(mtsEc.reduce((a,b)=>a+b,0),2)}</td><td>${N(mtsDc.reduce((a,b)=>a+b,0),2)}</td><td>${N(mtsIc.reduce((a,b)=>a+b,0),2)}</td><td>${N(totMts,2)}</td><td>${N(totThb,0)}</td><td>${N(totUsd,0)}</td><td>${N(totCny,0)}</td><td>${N(coffeeDcM.reduce((a,b)=>a+b,0),0)}</td><td>${N(coffeeIcM.reduce((a,b)=>a+b,0),0)}</td></tr>`;
 }
 
 // ═══════════ PACKING ANALYSIS ═══════════
