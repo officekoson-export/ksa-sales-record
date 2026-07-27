@@ -272,6 +272,8 @@ tbody tr:hover td{background:var(--panel2);}
 body[data-role="finance"] .gate-write,
 body[data-role="director"] .gate-write{display:none !important;}
 body:not([data-role="admin"]) .gate-delete{display:none !important;}
+/* ─── admin-only: สำรองข้อมูล/รีเซ็ต/นำเข้าข้อมูล ใช้ได้เฉพาะ admin เท่านั้น ─── */
+body:not([data-role="admin"]) .admin-only{display:none !important;}
 </style>
 </head>
 <body>
@@ -448,6 +450,16 @@ body:not([data-role="admin"]) .gate-delete{display:none !important;}
     <span class="ico">🗄</span>
     <div class="lbl">Stock สินค้า
       <span class="sub">คงเหลือ · มูลค่าสต๊อก</span>
+    </div>
+    <span class="pill pill-green">Live</span>
+  </div>
+
+  <!-- ระบบ (admin เท่านั้น) -->
+  <div class="sbGrp admin-only">ระบบ</div>
+  <div class="sbItem admin-only" id="sn-backup" onclick="go('backup')">
+    <span class="ico">💾</span>
+    <div class="lbl">สำรองข้อมูล
+      <span class="sub">Export ข้อมูลทั้งหมด · Admin เท่านั้น</span>
     </div>
     <span class="pill pill-green">Live</span>
   </div>
@@ -1118,6 +1130,19 @@ body:not([data-role="admin"]) .gate-delete{display:none !important;}
         </tr></thead>
         <tbody id="stockTb"><tr><td colspan="8"><div class="loading"><span class="spin"></span>กำลังโหลดข้อมูล...</div></td></tr></tbody>
       </table>
+    </div>
+  </div>
+</div>
+
+<div class="pg" id="pg-backup">
+  <div class="ph"><div class="phL"><h2>💾 สำรองข้อมูล (Backup)</h2><div class="phS"><span class="d" style="background:var(--cyan)"></span>Export ข้อมูลทั้งหมดในระบบเป็นไฟล์เดียว · เฉพาะ Admin</div></div></div>
+  <div class="chCard" style="max-width:640px">
+    <h4>📦 ดาวน์โหลดข้อมูลทั้งหมด</h4>
+    <div class="chSub">รวมทุกตาราง (การขาย/นำเข้า/forecast/PO Financing/สต๊อค/ผู้ใช้งาน) เป็นไฟล์ .json ไฟล์เดียว — เก็บไว้ใน Google Drive หรือที่ปลอดภัยอื่นๆ เป็นระยะๆ เผื่อข้อมูลสูญหาย</div>
+    <div style="margin:18px 0"><button class="btn btn-p" id="backupBtn" onclick="exportAllData()">⬇ ดาวน์โหลดข้อมูลทั้งหมด (.json)</button></div>
+    <div id="backupStatus" style="font-size:12.5px;color:var(--dim)"></div>
+    <div style="margin-top:16px;padding:12px;background:var(--panel2);border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--dim)">
+      ⚠️ ไฟล์นี้เป็นข้อมูลดิบสำหรับ "เก็บสำรอง" เท่านั้น ไม่ได้ออกแบบมาให้เปิดอ่านใน Excel โดยตรง — แนะนำให้ดาวน์โหลดเก็บไว้เดือนละ 1-2 ครั้ง หรือหลังมีการอัปเดตข้อมูลเยอะๆ
     </div>
   </div>
 </div>
@@ -1859,6 +1884,7 @@ function applyRolePermissions(role){
 // ─── NAV ───
 const PAGE_META={
   kpi:{label:'ภาพรวม',sub:'KPI ภาพรวมธุรกิจ'},
+  backup:{label:'ระบบ',sub:'สำรองข้อมูล'},
   dash:{label:'Dashboard',sub:''},
   dom:{label:'บันทึกข้อมูล',sub:'Domestic Starch'},
   es:{label:'บันทึกข้อมูล',sub:'Export Starch'},
@@ -3572,6 +3598,43 @@ function rStock(){
     <td>${r.included===false?'🚫 ไม่นับ':'✅ นับ'}</td><td>${E(r.remark)}</td>
     <td><div class="ra"><button class="ib e gate-write" onclick="editStock('${r.id}')">✏</button><button class="ib d gate-delete" onclick="delStock('${r.id}')">🗑</button></div></td>
   </tr>`).join(''):'<tr><td colspan="8" style="color:var(--dim);text-align:center">ยังไม่มีรายการสต๊อค</td></tr>';
+}
+
+// ═══════════ สำรองข้อมูล (BACKUP) ═══════════
+async function exportAllData(){
+  const btn=document.getElementById('backupBtn');
+  const status=document.getElementById('backupStatus');
+  btn.disabled=true;btn.textContent='⏳ กำลังรวบรวมข้อมูล...';
+  status.textContent='';
+  try{
+    const tables=['sales_domestic','export_tapioca_starch','export_tapioca_chip','domestic_coffee','import_coffee','forecast_income','po_financing','po_financing_bank_report','stock_items','profiles'];
+    const results={};
+    const counts=[];
+    for(const t of tables){
+      const{data,error}=await fetchAllRows(t);
+      if(error){counts.push(`${t}: โหลดไม่สำเร็จ (${error.message})`);results[t]=[];continue;}
+      results[t]=data||[];
+      counts.push(`${t}: ${(data||[]).length} แถว`);
+    }
+    const payload={
+      exported_at:new Date().toISOString(),
+      exported_by:U?.email||'unknown',
+      app:'KS AGRO Sales Management',
+      tables:results
+    };
+    const json=JSON.stringify(payload,null,2);
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([json],{type:'application/json'}));
+    a.download=`ksagro_backup_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    status.innerHTML=`✅ ดาวน์โหลดสำเร็จเมื่อ ${new Date().toLocaleString('th-TH')}<br>${counts.join(' · ')}`;
+    toast('✅ ดาวน์โหลดไฟล์สำรองข้อมูลเรียบร้อย');
+  }catch(e){
+    status.textContent='❌ เกิดข้อผิดพลาด: '+e.message;
+    toast('เกิดข้อผิดพลาดระหว่างสำรองข้อมูล',true);
+  }finally{
+    btn.disabled=false;btn.textContent='⬇ ดาวน์โหลดข้อมูลทั้งหมด (.json)';
+  }
 }
 
 // ═══════════ BROKERS & BUYERS ═══════════
