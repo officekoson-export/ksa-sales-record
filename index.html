@@ -1464,12 +1464,12 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
         <option value="other_pending">เงินอื่นรอเข้า</option>
         <option value="other">อื่นๆ</option>
       </select></div>
-      <div class="fld"><label>สินค้า</label><select id="pf_product"><option value="starch">แป้งมัน</option><option value="chip">มันเส้น</option><option value="other">อื่นๆ</option></select></div>
+      <div class="fld"><label>สินค้า</label><select id="pf_product"><option value="starch">แป้งมัน</option><option value="chip">มันเส้น</option><option value="coffee">กาแฟนำเข้า</option><option value="other">อื่นๆ</option></select></div>
       <div class="fld s3"><label>PO No. / เลขที่สัญญา</label><input id="pf_po_no" placeholder="เช่น PO2026/03-001"></div>
       <div class="fld"><label>จำนวน (ตัน)</label><input type="number" step="any" id="pf_qty_ton" oninput="calcPofin70()"></div>
       <div class="fld"><label>ราคา/ตัน (USD)</label><input type="number" step="any" id="pf_price_usd" oninput="calcPofin70()"></div>
       <div class="fld"><label>ยอด 70% (USD · คำนวณอัตโนมัติ)</label><input type="number" step="any" id="pf_amount_70pct_usd"></div>
-      <div class="fld"><label>ยอดภูจิง (บาท)</label><input type="number" step="any" id="pf_actual_loan_thb"></div>
+      <div class="fld"><label>ยอดกู้จริง (บาท)</label><input type="number" step="any" id="pf_actual_loan_thb"></div>
       <div class="fld"><label>ค้างชำระ (USD $)</label><input type="number" step="any" id="pf_outstanding_usd"></div>
       <div class="fld"><label>ค้างชำระ (บาท ฿)</label><input type="number" step="any" id="pf_outstanding_thb"></div>
       <div class="fld"><label>ค้างชำระ (หยวน CNY)</label><input type="number" step="any" id="pf_outstanding_cny"></div>
@@ -3708,7 +3708,7 @@ function rBrk(){
 
 // ═══════════ PO FINANCING (SCB / TTB) ═══════════
 let PF=[], PFBankRpt={}, PFBank='all';
-const PF_PRODUCT_LBL={starch:'แป้งมัน',chip:'มันเส้น',other:'อื่นๆ'};
+const PF_PRODUCT_LBL={starch:'แป้งมัน',chip:'มันเส้น',coffee:'กาแฟนำเข้า',other:'อื่นๆ'};
 const PF_STATUS_BDG={outstanding:'<span class="bdg bdg-r">🔴 คงค้าง</span>',pending_update:'<span class="bdg bdg-a">🟡 รออัพเดท</span>',paid:'<span class="bdg bdg-g">🟢 ชำระแล้ว / ปิดยอด</span>'};
 async function loadPoFin(){
   document.getElementById('pofinTb').innerHTML='<tr><td colspan="14"><div class="loading"><span class="spin"></span>กำลังโหลด...</div></td></tr>';
