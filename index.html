@@ -7,6 +7,7 @@
 <title>KS AGRO | Sales Management System</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
 <style>
 :root{
   --bg:#0b0f18;--sb:#0e1520;--sb-w:256px;
@@ -274,6 +275,11 @@ body[data-role="director"] .gate-write{display:none !important;}
 body:not([data-role="admin"]) .gate-delete{display:none !important;}
 /* ─── admin-only: สำรองข้อมูล/รีเซ็ต/นำเข้าข้อมูล ใช้ได้เฉพาะ admin เท่านั้น ─── */
 body:not([data-role="admin"]) .admin-only{display:none !important;}
+#pdfFab{position:fixed;right:22px;bottom:22px;z-index:45;background:var(--green);color:#04140b;border:none;border-radius:999px;padding:12px 18px;font-size:13px;font-weight:800;cursor:pointer;box-shadow:0 6px 20px rgba(34,197,94,.35);transition:transform .14s,box-shadow .14s;}
+#pdfFab:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(34,197,94,.45);}
+#pdfFab:active{transform:translateY(0);}
+#pdfFab[disabled]{opacity:.6;cursor:wait;transform:none;}
+@media(max-width:560px){#pdfFab{right:14px;bottom:14px;padding:10px 14px;font-size:12px;}}
 </style>
 </head>
 <body>
@@ -299,6 +305,8 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
 <!-- APP -->
 <div id="app">
 <div class="shell">
+
+<button id="pdfFab" onclick="downloadCurrentPagePDF()" title="ดาวน์โหลดหน้านี้เป็น PDF">📄 ดาวน์โหลด PDF</button>
 
 <!-- ═══ SIDEBAR ═══ -->
 <div class="sb">
@@ -1858,7 +1866,7 @@ async function boot(){
   document.getElementById('sbUr').textContent=ROLE_LABEL[U.role]||U.role;
 
   applyRolePermissions(U.role);
-  go('dash');
+  go('kpi');
   loadFcBadge();
 }
 function applyRolePermissions(role){
@@ -1887,6 +1895,8 @@ const PAGE_META={
   backup:{label:'ระบบ',sub:'สำรองข้อมูล'},
   dash:{label:'Dashboard',sub:''},
   dom:{label:'บันทึกข้อมูล',sub:'Domestic Starch'},
+  dcoffee:{label:'กาแฟ',sub:'Domestic Coffee'},
+  icoffee:{label:'กาแฟ',sub:'Import Coffee'},
   es:{label:'บันทึกข้อมูล',sub:'Export Starch'},
   ec:{label:'บันทึกข้อมูล',sub:'Export Chip'},
   fc:{label:'การเงิน',sub:'Forecast Income Receiving'},
@@ -3598,6 +3608,78 @@ function rStock(){
     <td>${r.included===false?'🚫 ไม่นับ':'✅ นับ'}</td><td>${E(r.remark)}</td>
     <td><div class="ra"><button class="ib e gate-write" onclick="editStock('${r.id}')">✏</button><button class="ib d gate-delete" onclick="delStock('${r.id}')">🗑</button></div></td>
   </tr>`).join(''):'<tr><td colspan="8" style="color:var(--dim);text-align:center">ยังไม่มีรายการสต๊อค</td></tr>';
+}
+
+// ═══════════ ดาวน์โหลดหน้าปัจจุบันเป็น PDF (ใช้ได้ทุกเมนู) ═══════════
+async function downloadCurrentPagePDF(){
+  const active=document.querySelector('.pg.show');
+  if(!active){toast('ไม่พบหน้าที่จะดาวน์โหลด',true);return;}
+  if(typeof html2pdf==='undefined'){toast('โหลดตัวสร้าง PDF ไม่สำเร็จ ลองรีเฟรชหน้าเว็บแล้วลองใหม่',true);return;}
+  const pageId=active.id.replace(/^pg-/,'');
+  const meta=PAGE_META[pageId]||{label:'',sub:''};
+  const title=(meta.sub&&meta.sub!==meta.label?meta.sub:meta.label)||pageId;
+  const fab=document.getElementById('pdfFab');
+  fab.disabled=true;const fabOrigText=fab.textContent;fab.textContent='⏳ กำลังสร้าง PDF...';
+  toast('⏳ กำลังสร้างไฟล์ PDF ของหน้า "'+title+'"...');
+
+  let wrap;
+  try{
+    const clone=active.cloneNode(true);
+    // canvas (กราฟ) ต้องแปลงเป็นรูปภาพก่อน เพราะ cloneNode ไม่ก็อปปี้พิกเซลที่วาดไว้
+    const origCanvases=active.querySelectorAll('canvas');
+    const cloneCanvases=clone.querySelectorAll('canvas');
+    origCanvases.forEach((c,i)=>{
+      try{
+        const img=document.createElement('img');
+        img.src=c.toDataURL('image/png',1.0);
+        img.style.width='100%';
+        img.style.background='#0f1826';
+        cloneCanvases[i]?.replaceWith(img);
+      }catch(e){/* ข้ามถ้าแปลงไม่ได้ */}
+    });
+    // เอาปุ่ม/ตัวควบคุมที่ไม่จำเป็นในรายงานออก
+    clone.querySelectorAll('.tb,.phR,.yPills,.pTabs,.srchW,button,.ra,select').forEach(el=>el.remove());
+    // เอาคอลัมน์ "จัดการ" ออกจากทุกตาราง
+    clone.querySelectorAll('table').forEach(tbl=>{
+      const headRow=tbl.querySelector('thead tr');
+      if(!headRow)return;
+      const ths=[...headRow.children];
+      const idx=ths.findIndex(th=>th.textContent.trim()==='จัดการ');
+      if(idx>-1){
+        headRow.children[idx]?.remove();
+        tbl.querySelectorAll('tbody tr').forEach(tr=>{tr.children[idx]?.remove();});
+      }
+    });
+    clone.classList.add('show');
+    clone.style.display='block';
+
+    wrap=document.createElement('div');
+    wrap.style.cssText='position:fixed;left:-99999px;top:0;width:1100px;background:#0b121e;color:#e8edf5;padding:24px;font-family:inherit;';
+    wrap.innerHTML=`
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #2a3a52;padding-bottom:12px;margin-bottom:18px;">
+        <div><div style="font-size:21px;font-weight:800;color:#22c55e;">KS AGRO — Sales Management</div><div style="font-size:12px;color:#8199b8;margin-top:2px;">${title}</div></div>
+        <div style="text-align:right;font-size:11px;color:#8199b8;">พิมพ์เมื่อ ${new Date().toLocaleString('th-TH')}<br>โดย ${U?.username||U?.email||''}</div>
+      </div>
+    `;
+    wrap.appendChild(clone);
+    document.body.appendChild(wrap);
+
+    await html2pdf().set({
+      margin:8,
+      filename:`KSAGRO_${title.replace(/[^a-zA-Zก-๙0-9]+/g,'_')}_${new Date().toISOString().slice(0,10)}.pdf`,
+      image:{type:'jpeg',quality:0.95},
+      html2canvas:{scale:2,backgroundColor:'#0b121e',useCORS:true,windowWidth:1100},
+      jsPDF:{unit:'mm',format:'a4',orientation:'landscape'},
+      pagebreak:{mode:['css','avoid-all']}
+    }).from(wrap).save();
+    toast('✅ ดาวน์โหลด PDF เรียบร้อย');
+  }catch(e){
+    console.error(e);
+    toast('เกิดข้อผิดพลาดระหว่างสร้าง PDF: '+e.message,true);
+  }finally{
+    wrap?.remove();
+    fab.disabled=false;fab.textContent=fabOrigText;
+  }
 }
 
 // ═══════════ สำรองข้อมูล (BACKUP) ═══════════
