@@ -40,6 +40,13 @@ button{cursor:pointer;font-family:inherit;}
 .lSub{font-size:12.5px;color:var(--dim);margin-bottom:28px;}
 .lLabel{font-size:11.5px;color:var(--dim);margin-bottom:5px;font-weight:500;}
 .lInput{width:100%;padding:11px 13px;background:var(--panel2);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-size:13.5px;margin-bottom:14px;transition:border-color .15s;}
+.lPwdWrap{position:relative;}
+.lPwdWrap .lInput{padding-right:42px;margin-bottom:0;}
+.lEyeBtn{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--dim);font-size:16px;padding:6px;line-height:1;}
+.lEyeBtn:hover{color:var(--text);}
+.lRow2{display:flex;justify-content:flex-end;margin:8px 0 6px;}
+.lForgotBtn{background:none;border:none;color:var(--blue);font-size:12px;cursor:pointer;padding:2px 0;text-decoration:underline;}
+.lForgotBtn:hover{color:var(--text);}
 .lInput:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-bg);}
 .lBtn{width:100%;padding:12px;background:linear-gradient(135deg,var(--green),var(--green-d));border:none;border-radius:var(--r);color:#fff;font-weight:700;font-size:14px;margin-top:6px;letter-spacing:.3px;}
 .lBtn:hover{opacity:.9;}
@@ -305,9 +312,37 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
   <div class="lLabel">อีเมล</div>
   <input class="lInput" type="email" id="liE" placeholder="name@ksagro.com" autocomplete="username">
   <div class="lLabel">รหัสผ่าน</div>
-  <input class="lInput" type="password" id="liP" placeholder="••••••••" autocomplete="current-password">
+  <div class="lPwdWrap">
+    <input class="lInput" type="password" id="liP" placeholder="••••••••" autocomplete="current-password">
+    <button type="button" class="lEyeBtn" id="lEyeBtn" onclick="togglePwdVisibility()" title="แสดง/ซ่อนรหัสผ่าน">👁</button>
+  </div>
+  <div class="lRow2"><button type="button" class="lForgotBtn" onclick="doForgotPassword()">ลืมรหัสผ่าน?</button></div>
   <button class="lBtn" onclick="doLogin()">เข้าสู่ระบบ</button>
   <div id="lErr"></div>
+</div>
+</div>
+
+<!-- RESET PASSWORD (เปิดอัตโนมัติเมื่อคลิกลิงก์จากอีเมล) -->
+<div class="mbg" id="mResetPwd">
+<div class="mc" style="max-width:420px">
+  <div class="mH"><h3>ตั้งรหัสผ่านใหม่</h3><div class="ms">กรอกรหัสผ่านใหม่ที่ต้องการใช้เข้าสู่ระบบ</div></div>
+  <div class="mB">
+    <div class="lLabel">รหัสผ่านใหม่</div>
+    <div class="lPwdWrap">
+      <input class="lInput" type="password" id="rpNew" placeholder="อย่างน้อย 6 ตัวอักษร" autocomplete="new-password">
+      <button type="button" class="lEyeBtn" onclick="togglePwdVisibility('rpNew',this)" title="แสดง/ซ่อนรหัสผ่าน">👁</button>
+    </div>
+    <div class="lLabel">ยืนยันรหัสผ่านใหม่</div>
+    <div class="lPwdWrap">
+      <input class="lInput" type="password" id="rpConfirm" placeholder="พิมพ์อีกครั้ง" autocomplete="new-password">
+      <button type="button" class="lEyeBtn" onclick="togglePwdVisibility('rpConfirm',this)" title="แสดง/ซ่อนรหัสผ่าน">👁</button>
+    </div>
+    <div id="rpErr" style="color:var(--red);font-size:12px;margin-top:4px;min-height:16px"></div>
+  </div>
+  <div class="mF">
+    <button class="btn btn-o" onclick="cancelResetPwd()">ยกเลิก</button>
+    <button class="btn btn-p" onclick="submitNewPassword()">💾 บันทึกรหัสผ่านใหม่</button>
+  </div>
 </div>
 </div>
 
@@ -1826,7 +1861,9 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
 // ═══ CONFIG — แก้ 2 บรรทัดนี้ ═══
 const SURL = 'https://jatsfhakldgipkikomch.supabase.co';
 const SKEY = 'sb_publishable_GvpWyQ-UhjdkEOe1HfKsRQ_nOwShiof';
-const sb = supabase.createClient(SURL, SKEY);
+const sb = supabase.createClient(SURL, SKEY, {
+  auth: { persistSession: false }
+});
 
 let U=null, DR=[], FR=[];
 let DY='all', DK='all', FCT='export_starch';
@@ -1839,6 +1876,45 @@ document.getElementById('tbDate').textContent=new Date().toLocaleDateString('th-
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDom();closeFc();}});
 
 // ─── AUTH ───
+function togglePwdVisibility(inputId,btnEl){
+  const input=document.getElementById(inputId||'liP');
+  const btn=btnEl||document.getElementById('lEyeBtn');
+  const show=input.type==='password';
+  input.type=show?'text':'password';
+  btn.textContent=show?'🙈':'👁';
+}
+async function doForgotPassword(){
+  const e=document.getElementById('liE').value.trim();
+  const er=document.getElementById('lErr');
+  if(!e){er.textContent='กรุณากรอกอีเมลที่ใช้ล็อกอินก่อน แล้วกด "ลืมรหัสผ่าน?" อีกครั้ง';return;}
+  er.textContent='';
+  const{error}=await sb.auth.resetPasswordForEmail(e,{redirectTo:window.location.origin+window.location.pathname});
+  if(error){er.textContent='ส่งอีเมลไม่สำเร็จ: '+error.message;return;}
+  toast('✅ ส่งลิงก์ตั้งรหัสผ่านใหม่ไปที่ '+e+' แล้ว เช็คอีเมล (รวมถึงถังขยะ/สแปม)');
+}
+sb.auth.onAuthStateChange((event,session)=>{
+  if(event==='PASSWORD_RECOVERY'){
+    document.getElementById('mResetPwd').classList.add('show');
+  }
+});
+function cancelResetPwd(){
+  document.getElementById('mResetPwd').classList.remove('show');
+  sb.auth.signOut();
+  location.href=window.location.origin+window.location.pathname;
+}
+async function submitNewPassword(){
+  const p1=document.getElementById('rpNew').value;
+  const p2=document.getElementById('rpConfirm').value;
+  const er=document.getElementById('rpErr');
+  er.textContent='';
+  if(!p1||p1.length<6){er.textContent='รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร';return;}
+  if(p1!==p2){er.textContent='รหัสผ่านทั้งสองช่องไม่ตรงกัน';return;}
+  const{error}=await sb.auth.updateUser({password:p1});
+  if(error){er.textContent='บันทึกไม่สำเร็จ: '+error.message;return;}
+  toast('✅ ตั้งรหัสผ่านใหม่เรียบร้อย กรุณาเข้าสู่ระบบอีกครั้ง');
+  await sb.auth.signOut();
+  setTimeout(()=>{location.href=window.location.origin+window.location.pathname;},1200);
+}
 async function doLogin(){
   const e=document.getElementById('liE').value.trim(),p=document.getElementById('liP').value;
   const er=document.getElementById('lErr');er.textContent='';
@@ -1849,6 +1925,8 @@ async function doLogin(){
 }
 async function doLogout(){await sb.auth.signOut();location.reload();}
 async function initAuth(){
+  const isRecovery=window.location.hash.includes('type=recovery');
+  if(isRecovery)return; // ปล่อยให้ onAuthStateChange (PASSWORD_RECOVERY) จัดการเปิด modal ตั้งรหัสผ่านใหม่แทน
   const{data}=await sb.auth.getSession();
   if(data.session){U=data.session.user;boot();}
 }
