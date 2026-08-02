@@ -295,6 +295,19 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
   th,td{border:1px solid #ccc !important;padding:4px 6px !important;font-size:11px;}
   .chWrap{height:auto !important;page-break-inside:avoid;}
   .kCard,.chCard,.tCard{page-break-inside:avoid;margin-bottom:10px;}
+
+  /* ─── โหมดพิมพ์รายละเอียดสัญญาเดียว (จากป๊อบอัพ) ─── */
+  body.print-modal .pg.show, body.print-modal .pg.show *{visibility:hidden;}
+  body.print-modal .mbg.show{display:block !important;visibility:visible;position:absolute;inset:0;background:#fff !important;padding:14px;}
+  body.print-modal .mbg.show *{visibility:visible;color:#111 !important;}
+  body.print-modal .mbg.show .mF{display:none !important;}
+  body.print-modal .mbg.show input,body.print-modal .mbg.show select{
+    display:inline-block !important;visibility:visible;border:none !important;background:transparent !important;
+    color:#111 !important;padding:1px 0 !important;font-size:11.5px;width:auto;min-width:60px;
+  }
+  body.print-modal .mbg.show .mc{max-width:100% !important;box-shadow:none !important;border:none !important;}
+  body.print-modal .mbg.show .fld{margin-bottom:4px;}
+  body.print-modal .mbg.show .sLbl{page-break-after:avoid;margin-top:10px;}
 }
 </style>
 </head>
@@ -1293,6 +1306,11 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
     <button class="btn btn-o" onclick="closeDom()">ยกเลิก</button>
     <button class="btn btn-p" onclick="saveDom()">💾 บันทึก</button>
   </div>
+  <div class="mF viewFooter" style="display:none">
+    <button class="btn btn-o" onclick="closeDom()">ปิด</button>
+    <button class="btn btn-o" onclick="printModalDetail('mDom')">🖨 พิมพ์</button>
+    <button class="btn btn-p" onclick="printModalDetail('mDom')">⬇ ดาวน์โหลด PDF</button>
+  </div>
 </div>
 </div>
 
@@ -1367,6 +1385,11 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
   <div class="mF">
     <button class="btn btn-o" onclick="closeDc()">ยกเลิก</button>
     <button class="btn btn-p" onclick="saveDc()">💾 บันทึก</button>
+  </div>
+  <div class="mF viewFooter" style="display:none">
+    <button class="btn btn-o" onclick="closeDc()">ปิด</button>
+    <button class="btn btn-o" onclick="printModalDetail('mDc')">🖨 พิมพ์</button>
+    <button class="btn btn-p" onclick="printModalDetail('mDc')">⬇ ดาวน์โหลด PDF</button>
   </div>
 </div>
 </div>
@@ -1493,6 +1516,11 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
   <div class="mF">
     <button class="btn btn-o" onclick="closeIc()">ยกเลิก</button>
     <button class="btn btn-p" onclick="saveIc()">💾 บันทึก</button>
+  </div>
+  <div class="mF viewFooter" style="display:none">
+    <button class="btn btn-o" onclick="closeIc()">ปิด</button>
+    <button class="btn btn-o" onclick="printModalDetail('mIc')">🖨 พิมพ์</button>
+    <button class="btn btn-p" onclick="printModalDetail('mIc')">⬇ ดาวน์โหลด PDF</button>
   </div>
 </div>
 </div>
@@ -1653,6 +1681,11 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
     <button class="btn btn-o" onclick="closeEs()">ยกเลิก</button>
     <button class="btn btn-p" onclick="saveEs()">💾 บันทึก</button>
   </div>
+  <div class="mF viewFooter" style="display:none">
+    <button class="btn btn-o" onclick="closeEs()">ปิด</button>
+    <button class="btn btn-o" onclick="printModalDetail('mEs')">🖨 พิมพ์</button>
+    <button class="btn btn-p" onclick="printModalDetail('mEs')">⬇ ดาวน์โหลด PDF</button>
+  </div>
 </div>
 </div>
 
@@ -1761,6 +1794,11 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
   <div class="mF">
     <button class="btn btn-o" onclick="closeEc()">ยกเลิก</button>
     <button class="btn btn-p" onclick="saveEc()">💾 บันทึก</button>
+  </div>
+  <div class="mF viewFooter" style="display:none">
+    <button class="btn btn-o" onclick="closeEc()">ปิด</button>
+    <button class="btn btn-o" onclick="printModalDetail('mEc')">🖨 พิมพ์</button>
+    <button class="btn btn-p" onclick="printModalDetail('mEc')">⬇ ดาวน์โหลด PDF</button>
   </div>
 </div>
 </div>
@@ -2047,6 +2085,52 @@ function calcComm(p){
 }
 function D(s){if(!s)return'—';return new Date(s).toLocaleDateString('th-TH',{day:'2-digit',month:'short',year:'2-digit'});}
 function E(s){if(!s&&s!==0)return'<span style="color:var(--dim2)">—</span>';return String(s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));}
+
+// ═══════════ ดูรายละเอียดสัญญา (คลิกที่แถว) + พิมพ์/ดาวน์โหลดเฉพาะรายการนั้น ═══════════
+const VIEW_CFG={
+  dom:{editFn:'editDom',closeFn:'closeDom',modalId:'mDom',titleId:'mDomT',titleEdit:'แก้ไขรายการ — Domestic Starch',titleView:'📄 รายละเอียดสัญญา — Domestic Starch'},
+  es:{editFn:'editEs',closeFn:'closeEs',modalId:'mEs',titleId:'mEsT',titleEdit:'แก้ไขรายการ — Export Starch',titleView:'📄 รายละเอียดสัญญา — Export Starch'},
+  ec:{editFn:'editEc',closeFn:'closeEc',modalId:'mEc',titleId:'mEcT',titleEdit:'แก้ไขรายการ — Export Chip',titleView:'📄 รายละเอียดสัญญา — Export Chip'},
+  dc:{editFn:'editDc',closeFn:'closeDc',modalId:'mDc',titleId:'mDcT',titleEdit:'แก้ไขรายการ — Domestic Coffee',titleView:'📄 รายละเอียดสัญญา — Domestic Coffee'},
+  ic:{editFn:'editIc',closeFn:'closeIc',modalId:'mIc',titleId:'mIcT',titleEdit:'แก้ไขรายการ — Import Coffee',titleView:'📄 รายละเอียดสัญญา — Import Coffee'}
+};
+function rowClick(cat,id,ev){
+  if(ev && ev.target.closest('.ra'))return; // คลิกโดนปุ่มแก้ไข/ลบ ไม่ต้องเปิด view mode ซ้อน
+  viewDetail(cat,id);
+}
+function viewDetail(cat,id){
+  const cfg=VIEW_CFG[cat];if(!cfg)return;
+  window[cfg.editFn](id); // เปิด modal แบบเดิม (เติมข้อมูลให้ครบทุกฟิลด์)
+  enterViewMode(cfg);
+}
+function enterViewMode(cfg){
+  const modal=document.getElementById(cfg.modalId);
+  modal.querySelectorAll('input,select').forEach(el=>el.disabled=true);
+  document.getElementById(cfg.titleId).textContent=cfg.titleView;
+  modal.querySelector('.mF:not(.viewFooter)').style.display='none';
+  modal.querySelector('.mF.viewFooter').style.display='';
+  modal.dataset.mode='view';
+}
+function exitViewMode(cfg){
+  const modal=document.getElementById(cfg.modalId);
+  if(modal.dataset.mode!=='view')return;
+  modal.querySelectorAll('input,select').forEach(el=>el.disabled=false);
+  document.getElementById(cfg.titleId).textContent=cfg.titleEdit;
+  modal.querySelector('.mF:not(.viewFooter)').style.display='';
+  modal.querySelector('.mF.viewFooter').style.display='none';
+  modal.dataset.mode='edit';
+}
+function printModalDetail(modalId){
+  document.body.classList.add('print-modal');
+  document.body.dataset.printModalId=modalId;
+  window.print();
+}
+window.addEventListener('afterprint',()=>{
+  document.body.classList.remove('print-modal');
+  delete document.body.dataset.printModalId;
+});
+
+
 function toast(m,err=false){const t=document.getElementById('toast');t.textContent=m;t.className='toast show'+(err?' err':'');setTimeout(()=>t.className='toast',3200);}
 
 // ═══════════ DOMESTIC ═══════════
@@ -2121,7 +2205,7 @@ function rDom(){
     const isPending=sr.includes('รอ')||sr.includes('วางบิล')||sr.includes('ส่งของ')||sr.includes('รอวางบิล')||sr.includes('รอส่ง');
     const srColor=isCancel||isOverdue?'var(--red)':isDone?'var(--green)':isPending?'var(--amber)':'var(--dim)';
     const invColor=inv.includes('ยกเลิก')?'var(--red)':'inherit';
-    return`<tr>
+    return`<tr onclick="rowClick('dom','${r.id}',event)" style="cursor:pointer">
     <td style="color:var(--blue);width:44px;font-size:11px;font-weight:700">${E(r.seq_no)||String(i+1)}</td>
     <td style="width:44px"><strong style="color:var(--blue)">${r.year||'—'}</strong></td>
     <td class="td-trunc" style="font-weight:600;max-width:140px">${E(r.applicant_name)}</td>
@@ -2150,6 +2234,7 @@ function openDom(){
 }
 function closeDom(){document.getElementById('mDom').classList.remove('show');}
 function editDom(id){
+  exitViewMode(VIEW_CFG.dom);
   const r=DR.find(x=>x.id===id);if(!r)return;
   document.getElementById('mDomT').textContent='แก้ไขรายการ — Domestic Tapioca Starch';
   document.getElementById('d_id').value=r.id;
@@ -2228,7 +2313,7 @@ function rDc(){
     const isDone=sr.includes('ครบ')||sr.includes('เข้าแล้ว');
     const isPending=sr.includes('รอ');
     const srColor=isCancel?'var(--red)':isDone?'var(--green)':isPending?'var(--amber)':'var(--dim)';
-    return`<tr>
+    return`<tr onclick="rowClick('dc','${r.id}',event)" style="cursor:pointer">
     <td style="color:var(--blue);width:44px;font-size:11px;font-weight:700">${E(r.seq_no)||String(i+1)}</td>
     <td style="width:44px"><strong style="color:var(--blue)">${r.year||'—'}</strong></td>
     <td class="td-trunc" style="font-weight:600;max-width:160px">${E(r.applicant_name)}</td>
@@ -2256,6 +2341,7 @@ function openDc(){
 }
 function closeDc(){document.getElementById('mDc').classList.remove('show');}
 function editDc(id){
+  exitViewMode(VIEW_CFG.dc);
   const r=DCR.find(x=>x.id===id);if(!r)return;
   document.getElementById('mDcT').textContent='แก้ไขรายการ — Domestic Coffee';
   document.getElementById('dc_id').value=r.id;
@@ -2354,7 +2440,7 @@ function rIc(){
     const isDone=sr.includes('ครบ')||sr.includes('เข้าแล้ว');
     const isPending=sr.includes('รอ');
     const srColor=isCancel?'var(--red)':isDone?'var(--green)':isPending?'var(--amber)':'var(--dim)';
-    return`<tr>
+    return`<tr onclick="rowClick('ic','${r.id}',event)" style="cursor:pointer">
     <td style="color:var(--blue);width:44px;font-size:11px;font-weight:700">${E(r.seq_no)||String(i+1)}</td>
     <td style="width:44px"><strong style="color:var(--blue)">${r.year||'—'}</strong></td>
     <td class="td-trunc" style="font-weight:600;max-width:170px">${E(r.applicant_name)}</td>
@@ -2385,6 +2471,7 @@ function openIc(){
 }
 function closeIc(){document.getElementById('mIc').classList.remove('show');}
 function editIc(id){
+  exitViewMode(VIEW_CFG.ic);
   const r=ICR.find(x=>x.id===id);if(!r)return;
   document.getElementById('mIcT').textContent='แก้ไขรายการ — Import Coffee';
   document.getElementById('ic_id').value=r.id;
@@ -2479,7 +2566,7 @@ function rEs(){
     const isDone=sr.includes('เงินเข้าแล้ว');
     const isPending=sr.includes('รอ')||sr.includes('วางบิล')||sr.includes('ส่งของ');
     const srColor=isCancel||isOverdue?'var(--red)':isDone?'var(--green)':isPending?'var(--amber)':'var(--dim)';
-    return`<tr>
+    return`<tr onclick="rowClick('es','${r.id}',event)" style="cursor:pointer">
       <td style="color:var(--blue);width:44px;font-size:11px;font-weight:700">${E(r.seq_no)||String(i+1)}</td>
       <td style="width:52px">${E(r.year)}</td>
       <td class="td-trunc" style="max-width:170px;font-weight:600">${E(r.applicant_name)}</td>
@@ -2507,6 +2594,7 @@ function openEs(){
 }
 function closeEs(){document.getElementById('mEs').classList.remove('show');}
 function editEs(id){
+  exitViewMode(VIEW_CFG.es);
   const r=ES.find(x=>x.id===id);if(!r)return;
   document.getElementById('mEsT').textContent='แก้ไขรายการ — Export Tapioca Starch';
   document.getElementById('e_id').value=r.id;
@@ -2587,7 +2675,7 @@ function rEc(){
     const isDone=sr.includes('เงินเข้าแล้ว');
     const isPending=sr.includes('รอ')||sr.includes('วางบิล')||sr.includes('ส่งของ');
     const srColor=isCancel||isOverdue?'var(--red)':isDone?'var(--green)':isPending?'var(--amber)':'var(--dim)';
-    return`<tr>
+    return`<tr onclick="rowClick('ec','${r.id}',event)" style="cursor:pointer">
       <td style="color:var(--blue);width:44px;font-size:11px;font-weight:700">${E(r.seq_no)||String(i+1)}</td>
       <td style="width:52px">${E(r.year)}</td>
       <td class="td-trunc" style="max-width:190px;font-weight:600">${E(r.applicant_name)}</td>
@@ -2615,6 +2703,7 @@ function openEc(){
 }
 function closeEc(){document.getElementById('mEc').classList.remove('show');}
 function editEc(id){
+  exitViewMode(VIEW_CFG.ec);
   const r=ECD.find(x=>x.id===id);if(!r)return;
   document.getElementById('mEcT').textContent='แก้ไขรายการ — Export Tapioca Chip';
   document.getElementById('c_id').value=r.id;
