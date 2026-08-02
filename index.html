@@ -3263,7 +3263,7 @@ function rTx(){
     const ref=r._cat==='dom'?(r.invoice_no||r.contact_no||'—'):(r.sales_contract||r.invoice_no||'—');
     const editFn=r._cat==='dom'?'editDom':r._cat==='es'?'editEs':r._cat==='ec'?'editEc':r._cat==='dc'?'editDc':'editIc';
     const delFn=r._cat==='dom'?'delDom':r._cat==='es'?'delEs':r._cat==='ec'?'delEc':r._cat==='dc'?'delDc':'delIc';
-    return`<tr>
+    return`<tr onclick="rowClick('${r._cat}','${r.id}',event)" style="cursor:pointer">
       <td style="width:96px"><span class="bdg ${TX_CAT_CLS[r._cat]}">${TX_CAT_LBL[r._cat]}</span></td>
       <td style="width:52px">${E(r.year)}</td>
       <td style="width:52px;color:var(--blue);font-weight:700;font-size:11px">${E(r.seq_no)||'—'}</td>
