@@ -283,6 +283,8 @@ body:not([data-role="admin"]) .gate-delete{display:none !important;}
 body:not([data-role="admin"]) .admin-only{display:none !important;}
 .pdfBtn{background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:7px 13px;font-size:12.5px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .14s;}
 .pdfBtn:hover{border-color:var(--green-bd);color:var(--green);background:var(--green-bg);}
+.mapZoomBtn{width:28px;height:28px;border-radius:6px;background:rgba(15,24,38,.85);border:1px solid var(--border2);color:var(--text);font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;backdrop-filter:blur(2px);}
+.mapZoomBtn:hover{background:var(--panel2);border-color:var(--green-bd);color:var(--green);}
 /* ─── โหมดพิมพ์ / บันทึกเป็น PDF: โชว์แค่เนื้อหาของหน้าปัจจุบัน ไม่มีเมนู/ปุ่ม ─── */
 @media print{
   body *{visibility:hidden;}
@@ -481,6 +483,13 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
 
   <!-- วิเคราะห์เชิงลึก -->
   <div class="sbGrp">วิเคราะห์เชิงลึก</div>
+  <div class="sbItem" id="sn-port" onclick="go('port')">
+    <span class="ico">🚢</span>
+    <div class="lbl">Port วิเคราะห์การส่งออก
+      <span class="sub">ท่าเรือปลายทาง · Export Starch/Chip</span>
+    </div>
+    <span class="pill pill-green">Live</span>
+  </div>
   <div class="sbItem" id="sn-packing" onclick="go('packing')">
     <span class="ico">📦</span>
     <div class="lbl">Packing Analysis
@@ -1035,6 +1044,45 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
     </div>
   </div>
 </div>
+<div class="pg" id="pg-port">
+  <div class="ph"><div class="phL"><h2>🚢 Port วิเคราะห์การส่งออก</h2><div class="phS"><span class="d" style="background:var(--cyan)"></span>ท่าเรือปลายทาง · Export Starch + Export Chip · เรียงจากมากไปน้อย</div></div></div>
+  <div class="kGrid" id="portKpi"></div>
+  <div class="yPills" id="portYP"></div>
+  <div class="chGrid2">
+    <div class="chCard">
+      <h4>🗺️ แผนที่ Port ที่ส่งออก</h4>
+      <div class="chSub">จุดสีแดง = ท่าเรือที่มีการส่งออก · ขนาดจุดใหญ่ตามปริมาณ MTS · เลื่อนเมาส์สกอลล์/ปุ่ม +− เพื่อซูม ลากเพื่อเลื่อนดู</div>
+      <div id="portMapWrap" onwheel="portMapWheel(event)" onmousedown="portMapMouseDown(event)" style="position:relative;width:100%;aspect-ratio:2/1;border-radius:10px;overflow:hidden;background:#0f1826;border:1px solid var(--border);cursor:default;">
+        <div id="portMapInner" style="position:absolute;inset:0;transform-origin:0 0;">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Equirectangular_projection_SW.jpg" style="width:100%;height:100%;object-fit:cover;filter:brightness(.55) saturate(.7);pointer-events:none;user-select:none;" alt="world map" draggable="false">
+          <div id="portMapDots" style="position:absolute;inset:0;"></div>
+        </div>
+        <div style="position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:5px;z-index:5;">
+          <button class="mapZoomBtn" onclick="portMapZoomBtn(1.4)" title="ซูมเข้า">＋</button>
+          <button class="mapZoomBtn" onclick="portMapZoomBtn(1/1.4)" title="ซูมออก">－</button>
+          <button class="mapZoomBtn" onclick="portMapZoomReset()" title="รีเซ็ตซูม">⟲</button>
+        </div>
+      </div>
+      <div id="portMapNote" style="font-size:11px;color:var(--dim2);margin-top:8px"></div>
+    </div>
+    <div class="chCard">
+      <h4>🥧 สัดส่วน Port (ตามปริมาณ MTS)</h4>
+      <div class="chSub">Export Starch + Export Chip รวมกัน</div>
+      <div class="chWrap"><canvas id="portMixChart"></canvas></div>
+    </div>
+  </div>
+  <div class="tCard">
+    <div class="tWrap">
+      <table>
+        <thead><tr>
+          <th>อันดับ</th><th>Port</th><th>ปริมาณ (MTS)</th><th>จำนวนตู้</th><th>% ของทั้งหมด</th>
+        </tr></thead>
+        <tbody id="portTb"><tr><td colspan="5"><div class="loading"><span class="spin"></span>กำลังโหลดข้อมูล...</div></td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <div class="pg" id="pg-packing">
   <div class="ph"><div class="phL"><h2>Packing Analysis</h2><div class="phS"><span class="d" style="background:var(--purple)"></span>สัดส่วนขนาดบรรจุภัณฑ์ · Export Starch 25/50/850 kgs · Domestic 25/30/50/850 kgs · Export Chip BULK</div></div></div>
   <div class="yPills" id="pkYP"></div>
@@ -2029,6 +2077,7 @@ const PAGE_META={
   'rs-dom':{label:'รายงานยอดขาย',sub:'Domestic Starch'},
   monthly:{label:'ภาพรวม',sub:'Monthly Breakdown'},
   packing:{label:'วิเคราะห์เชิงลึก',sub:'Packing Analysis'},
+  port:{label:'วิเคราะห์เชิงลึก',sub:'Port วิเคราะห์การส่งออก'},
   brokers:{label:'วิเคราะห์เชิงลึก',sub:'Brokers & Buyers'},
   txn:{label:'วิเคราะห์เชิงลึก',sub:'Transaction Detail'},
   currency:{label:'วิเคราะห์เชิงลึก',sub:'Currency USD/CNY/THB'},
@@ -2071,6 +2120,7 @@ function go(p){
   else if(p==='brokers')loadBrk();
   else if(p==='monthly')loadMb();
   else if(p==='packing')loadPk();
+  else if(p==='port')loadPort();
   else if(p==='currency')loadCur();
   else if(p==='stock')loadStock();
 }
@@ -3528,6 +3578,170 @@ function rMb(){
     return `<tr><td>${mLbl}</td><td>${N(mtsDom[m],2)}</td><td>${N(mtsEs[m],2)}</td><td>${N(mtsEc[m],2)}</td><td>${N(mtsDc[m],2)}</td><td>${N(mtsIc[m],2)}</td><td><b>${N(tot,2)}</b></td><td>${N(thbM[m],0)}</td><td>${N(usdM[m],0)}</td><td>${N(cnyM[m],0)}</td><td>${N(coffeeDcM[m],0)}</td><td>${N(coffeeIcM[m],0)}</td></tr>`;
   }).join('')+`<tr style="font-weight:700;border-top:2px solid var(--border2)"><td>รวมทั้งปี</td><td>${N(mtsDom.reduce((a,b)=>a+b,0),2)}</td><td>${N(mtsEs.reduce((a,b)=>a+b,0),2)}</td><td>${N(mtsEc.reduce((a,b)=>a+b,0),2)}</td><td>${N(mtsDc.reduce((a,b)=>a+b,0),2)}</td><td>${N(mtsIc.reduce((a,b)=>a+b,0),2)}</td><td>${N(totMts,2)}</td><td>${N(totThb,0)}</td><td>${N(totUsd,0)}</td><td>${N(totCny,0)}</td><td>${N(coffeeDcM.reduce((a,b)=>a+b,0),0)}</td><td>${N(coffeeIcM.reduce((a,b)=>a+b,0),0)}</td></tr>`;
 }
+
+// ═══════════ PORT วิเคราะห์การส่งออก ═══════════
+// พิกัดท่าเรือปลายทางที่พบบ่อยสำหรับการส่งออกแป้งมัน/มันเส้นไทย
+// (จับคู่แบบ keyword-matching เพราะชื่อ Port เป็นฟิลด์ข้อความอิสระ พิมพ์ไม่ตรงกันทุกครั้ง)
+const PORT_COORDS=[
+  {kw:['QINGDAO'],lat:36.07,lng:120.38},
+  {kw:['SHANGHAI'],lat:31.23,lng:121.47},
+  {kw:['NINGBO'],lat:29.87,lng:121.55},
+  {kw:['XIAMEN'],lat:24.48,lng:118.09},
+  {kw:['SHENZHEN','YANTIAN','SHEKOU'],lat:22.54,lng:114.06},
+  {kw:['GUANGZHOU','NANSHA'],lat:23.10,lng:113.32},
+  {kw:['TIANJIN','XINGANG'],lat:39.13,lng:117.20},
+  {kw:['DALIAN'],lat:38.91,lng:121.61},
+  {kw:['ZHANJIANG'],lat:21.27,lng:110.36},
+  {kw:['FANGCHENG'],lat:21.69,lng:108.35},
+  {kw:['QINZHOU'],lat:21.98,lng:108.62},
+  {kw:['HO CHI MINH','CAT LAI','SAIGON','CAI MEP'],lat:10.82,lng:106.75},
+  {kw:['HAI PHONG','HAIPHONG'],lat:20.86,lng:106.68},
+  {kw:['JAKARTA','TANJUNG PRIOK'],lat:-6.10,lng:106.88},
+  {kw:['SURABAYA'],lat:-7.21,lng:112.73},
+  {kw:['MANILA'],lat:14.58,lng:120.98},
+  {kw:['BUSAN','PUSAN'],lat:35.10,lng:129.04},
+  {kw:['INCHEON'],lat:37.46,lng:126.71},
+  {kw:['TOKYO'],lat:35.68,lng:139.77},
+  {kw:['YOKOHAMA'],lat:35.44,lng:139.64},
+  {kw:['KAOHSIUNG'],lat:22.61,lng:120.28},
+  {kw:['KEELUNG'],lat:25.13,lng:121.74},
+  {kw:['NHAVA SHEVA','MUMBAI'],lat:18.95,lng:72.95},
+  {kw:['CHENNAI'],lat:13.08,lng:80.29},
+  {kw:['LAEM CHABANG'],lat:13.09,lng:100.88},
+  {kw:['BANGKOK'],lat:13.70,lng:100.57},
+  {kw:['PORT KLANG','KLANG'],lat:3.00,lng:101.39},
+  {kw:['SINGAPORE'],lat:1.29,lng:103.85}
+];
+function findPortCoord(name){
+  const n=(name||'').toUpperCase();
+  for(const p of PORT_COORDS){if(p.kw.some(k=>n.includes(k)))return p;}
+  return null;
+}
+async function loadPort(){
+  document.getElementById('portTb').innerHTML='<tr><td colspan="5"><div class="loading"><span class="spin"></span>กำลังโหลดข้อมูล...</div></td></tr>';
+  const[{data:es,error:e1},{data:ec,error:e2}]=await Promise.all([
+    fetchAllRows('export_tapioca_starch'),
+    fetchAllRows('export_tapioca_chip')
+  ]);
+  if(e1||e2){toast('โหลดไม่สำเร็จ: '+(e1||e2).message,true);return;}
+  window.__portEs=es||[];window.__portEc=ec||[];
+  const years=[...new Set([...window.__portEs,...window.__portEc].map(r=>r.year).filter(Boolean))].sort((a,b)=>b-a);
+  buildPortYP(years);
+  rPort();
+}
+let PORT_Y='all';
+function buildPortYP(years){
+  const w=document.getElementById('portYP');
+  w.innerHTML=`<div class="yPill ${PORT_Y==='all'?'act':''}" onclick="setPortY('all',this)">ทุกปี</div>`;
+  years.forEach(y=>{const d=document.createElement('div');d.className='yPill'+(String(PORT_Y)===String(y)?' act':'');d.textContent=y;d.onclick=function(){setPortY(y,this);};w.appendChild(d);});
+}
+function setPortY(y,el){PORT_Y=y;el.parentElement.querySelectorAll('.yPill').forEach(e=>e.classList.remove('act'));el.classList.add('act');rPort();}
+function rPort(){
+  const scope=arr=>PORT_Y==='all'?arr:arr.filter(r=>String(r.year)===String(PORT_Y));
+  const rows=[...scope(window.__portEs).map(r=>({port:r.port,qty_mts:r.qty_mts,conts:r.unit_conts})),...scope(window.__portEc).map(r=>({port:r.port,qty_mts:r.qty_mts,conts:0}))];
+  const groups={};
+  rows.forEach(r=>{
+    const raw=(r.port||'').trim();
+    if(!raw)return;
+    const key=raw.toUpperCase();
+    if(!groups[key])groups[key]={label:raw,mts:0,conts:0};
+    groups[key].mts+=(+r.qty_mts||0);
+    groups[key].conts+=(+r.conts||0);
+  });
+  const list=Object.values(groups).sort((a,b)=>b.mts-a.mts);
+  const totalMts=list.reduce((s,g)=>s+g.mts,0)||1;
+  const totalConts=list.reduce((s,g)=>s+g.conts,0);
+
+  document.getElementById('portKpi').innerHTML=`
+    <div class="kCard kc-b"><div class="kLbl">จำนวน Port ทั้งหมด</div><div class="kVal">${list.length}</div><div class="kSub">ท่าเรือปลายทางที่เคยส่งออก</div><div class="kIco">🚢</div></div>
+    <div class="kCard kc-g"><div class="kLbl">Port อันดับ 1</div><div class="kVal" style="font-size:16px">${list[0]?E(list[0].label):'—'}</div><div class="kSub">${list[0]?N(list[0].mts/totalMts*100,1)+'% ของปริมาณรวม':'—'}</div><div class="kIco">🥇</div></div>
+    <div class="kCard kc-p"><div class="kLbl">ปริมาณรวม</div><div class="kVal">${N(totalMts,2)}</div><div class="kSub">MTS ทุก Port</div><div class="kIco">⚖️</div></div>
+    <div class="kCard kc-o"><div class="kLbl">จำนวนตู้รวม</div><div class="kVal">${N(totalConts,0)}</div><div class="kSub">ตู้ (นับเฉพาะ Export Starch)</div><div class="kIco">📦</div></div>
+  `;
+
+  const top=list.slice(0,8);
+  const otherSum=list.slice(8).reduce((s,g)=>s+g.mts,0);
+  const labels=top.map(g=>g.label).concat(otherSum>0?['อื่นๆ']:[]);
+  const dataVals=top.map(g=>g.mts).concat(otherSum>0?[otherSum]:[]);
+  const palette=[CHCOLORS.usd,CHCOLORS.thb,CHCOLORS.amber,CHCOLORS.cny,CHCOLORS.orange,CHCOLORS.cyan,'#ef4444','#8b5cf6','#64748b'];
+  killChart('portMix');
+  CH.portMix=new Chart(document.getElementById('portMixChart'),{type:'doughnut',data:{labels,datasets:[{data:dataVals,backgroundColor:palette,borderColor:'#131c2b',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:10}}}}}});
+
+  const dotsWrap=document.getElementById('portMapDots');
+  dotsWrap.innerHTML='';
+  let unmatchedCount=0;
+  list.forEach(g=>{
+    const coord=findPortCoord(g.label);
+    if(!coord){unmatchedCount++;return;}
+    const x=(coord.lng+180)/360*100;
+    const y=(90-coord.lat)/180*100;
+    const size=5;
+    const dot=document.createElement('div');
+    dot.title=`${g.label}: ${N(g.mts,2)} MTS (${N(g.mts/totalMts*100,1)}%)`;
+    dot.style.cssText=`position:absolute;left:${x}%;top:${y}%;width:${size}px;height:${size}px;margin-left:${-size/2}px;margin-top:${-size/2}px;background:#e11d1d;border-radius:50%;cursor:pointer;`;
+    dotsWrap.appendChild(dot);
+  });
+  document.getElementById('portMapNote').textContent=unmatchedCount>0?`⚠️ มี ${unmatchedCount} ท่าเรือที่ระบบยังไม่มีพิกัดในแผนที่ (ยังแสดงในตารางด้านล่างตามปกติ)`:'';
+
+  document.getElementById('portTb').innerHTML=list.length?list.map((g,i)=>`<tr>
+    <td style="width:60px;font-weight:700;color:var(--blue)">#${i+1}</td>
+    <td style="font-weight:600">${E(g.label)}</td>
+    <td>${N(g.mts,2)}</td>
+    <td>${g.conts?N(g.conts,0):'—'}</td>
+    <td>${N(g.mts/totalMts*100,1)}%</td>
+  </tr>`).join(''):'<tr><td colspan="5" style="color:var(--dim);text-align:center">ไม่มีข้อมูล</td></tr>';
+}
+
+// ─── ซูม/แพนแผนที่ Port ─── 
+let portMapScale=1,portMapX=0,portMapY=0,portMapDragging=false,portDragSX=0,portDragSY=0,portMapSX=0,portMapSY=0;
+function applyPortMapTransform(){
+  document.getElementById('portMapInner').style.transform=`translate(${portMapX}px,${portMapY}px) scale(${portMapScale})`;
+}
+function clampPortMapPan(){
+  const wrap=document.getElementById('portMapWrap');
+  const w=wrap.clientWidth,h=wrap.clientHeight;
+  const minX=w-w*portMapScale,minY=h-h*portMapScale;
+  portMapX=Math.min(0,Math.max(minX,portMapX));
+  portMapY=Math.min(0,Math.max(minY,portMapY));
+}
+function portMapZoomAt(factor,clientX,clientY){
+  const wrap=document.getElementById('portMapWrap');
+  const rect=wrap.getBoundingClientRect();
+  const px=clientX!=null?clientX-rect.left:rect.width/2;
+  const py=clientY!=null?clientY-rect.top:rect.height/2;
+  const newScale=Math.min(6,Math.max(1,portMapScale*factor));
+  const realFactor=newScale/portMapScale;
+  portMapX=px-(px-portMapX)*realFactor;
+  portMapY=py-(py-portMapY)*realFactor;
+  portMapScale=newScale;
+  clampPortMapPan();
+  applyPortMapTransform();
+  document.getElementById('portMapWrap').style.cursor=portMapScale>1?'grab':'default';
+}
+function portMapZoomBtn(factor){portMapZoomAt(factor);}
+function portMapZoomReset(){portMapScale=1;portMapX=0;portMapY=0;applyPortMapTransform();document.getElementById('portMapWrap').style.cursor='default';}
+function portMapWheel(e){
+  e.preventDefault();
+  portMapZoomAt(e.deltaY<0?1.15:1/1.15,e.clientX,e.clientY);
+}
+function portMapMouseDown(e){
+  if(portMapScale<=1)return;
+  portMapDragging=true;portDragSX=e.clientX;portDragSY=e.clientY;portMapSX=portMapX;portMapSY=portMapY;
+  document.getElementById('portMapWrap').style.cursor='grabbing';
+}
+document.addEventListener('mousemove',e=>{
+  if(!portMapDragging)return;
+  portMapX=portMapSX+(e.clientX-portDragSX);
+  portMapY=portMapSY+(e.clientY-portDragSY);
+  clampPortMapPan();
+  applyPortMapTransform();
+});
+document.addEventListener('mouseup',()=>{
+  if(!portMapDragging)return;
+  portMapDragging=false;
+  const wrap=document.getElementById('portMapWrap');
+  if(wrap)wrap.style.cursor=portMapScale>1?'grab':'default';
+});
 
 // ═══════════ PACKING ANALYSIS ═══════════
 let PK_Y='all';
