@@ -2256,7 +2256,7 @@ function rDom(){
     const srColor=isCancel||isOverdue?'var(--red)':isDone?'var(--green)':isPending?'var(--amber)':'var(--dim)';
     const invColor=inv.includes('ยกเลิก')?'var(--red)':'inherit';
     return`<tr onclick="rowClick('dom','${r.id}',event)" style="cursor:pointer">
-    <td style="color:var(--blue);width:44px;font-size:11px;font-weight:700">${E(r.seq_no)||String(i+1)}</td>
+    <td style="color:var(--blue);width:44px;font-size:11px;font-weight:700">${r.seq_no?E(r.seq_no):'NO.'+(i+1)}</td>
     <td style="width:44px"><strong style="color:var(--blue)">${r.year||'—'}</strong></td>
     <td class="td-trunc" style="font-weight:600;max-width:140px">${E(r.applicant_name)}</td>
     <td class="td-trunc" style="min-width:130px;max-width:160px;font-size:11px;color:var(--dim)">${E(r.contact_no)}</td>
@@ -2364,7 +2364,7 @@ function rDc(){
     const isPending=sr.includes('รอ');
     const srColor=isCancel?'var(--red)':isDone?'var(--green)':isPending?'var(--amber)':'var(--dim)';
     return`<tr onclick="rowClick('dc','${r.id}',event)" style="cursor:pointer">
-    <td style="color:var(--blue);width:44px;font-size:11px;font-weight:700">${E(r.seq_no)||String(i+1)}</td>
+    <td style="color:var(--blue);width:44px;font-size:11px;font-weight:700">${r.seq_no?E(r.seq_no):'NO.'+(i+1)}</td>
     <td style="width:44px"><strong style="color:var(--blue)">${r.year||'—'}</strong></td>
     <td class="td-trunc" style="font-weight:600;max-width:160px">${E(r.applicant_name)}</td>
     <td class="td-trunc" style="min-width:110px;max-width:150px;font-size:11px">${E(r.invoice_no)}</td>
@@ -2491,7 +2491,7 @@ function rIc(){
     const isPending=sr.includes('รอ');
     const srColor=isCancel?'var(--red)':isDone?'var(--green)':isPending?'var(--amber)':'var(--dim)';
     return`<tr onclick="rowClick('ic','${r.id}',event)" style="cursor:pointer">
-    <td style="color:var(--blue);width:44px;font-size:11px;font-weight:700">${E(r.seq_no)||String(i+1)}</td>
+    <td style="color:var(--blue);width:44px;font-size:11px;font-weight:700">${r.seq_no?E(r.seq_no):'NO.'+(i+1)}</td>
     <td style="width:44px"><strong style="color:var(--blue)">${r.year||'—'}</strong></td>
     <td class="td-trunc" style="font-weight:600;max-width:170px">${E(r.applicant_name)}</td>
     <td class="td-trunc" style="min-width:110px;max-width:150px;font-size:11px">${E(r.invoice_no)}</td>
@@ -2617,7 +2617,7 @@ function rEs(){
     const isPending=sr.includes('รอ')||sr.includes('วางบิล')||sr.includes('ส่งของ');
     const srColor=isCancel||isOverdue?'var(--red)':isDone?'var(--green)':isPending?'var(--amber)':'var(--dim)';
     return`<tr onclick="rowClick('es','${r.id}',event)" style="cursor:pointer">
-      <td style="color:var(--blue);width:44px;font-size:11px;font-weight:700">${E(r.seq_no)||String(i+1)}</td>
+      <td style="color:var(--blue);width:44px;font-size:11px;font-weight:700">${r.seq_no?E(r.seq_no):'NO.'+(i+1)}</td>
       <td style="width:52px">${E(r.year)}</td>
       <td class="td-trunc" style="max-width:170px;font-weight:600">${E(r.applicant_name)}</td>
       <td class="td-trunc" style="max-width:120px;font-size:10.5px">${E(r.sales_contract)}</td>
@@ -2726,7 +2726,7 @@ function rEc(){
     const isPending=sr.includes('รอ')||sr.includes('วางบิล')||sr.includes('ส่งของ');
     const srColor=isCancel||isOverdue?'var(--red)':isDone?'var(--green)':isPending?'var(--amber)':'var(--dim)';
     return`<tr onclick="rowClick('ec','${r.id}',event)" style="cursor:pointer">
-      <td style="color:var(--blue);width:44px;font-size:11px;font-weight:700">${E(r.seq_no)||String(i+1)}</td>
+      <td style="color:var(--blue);width:44px;font-size:11px;font-weight:700">${r.seq_no?E(r.seq_no):'NO.'+(i+1)}</td>
       <td style="width:52px">${E(r.year)}</td>
       <td class="td-trunc" style="max-width:190px;font-weight:600">${E(r.applicant_name)}</td>
       <td class="td-trunc" style="max-width:130px;font-size:10.5px">${E(r.sales_contract)}</td>
@@ -2792,7 +2792,7 @@ async function loadFc(){
   document.getElementById('fcTb').innerHTML='<tr><td colspan="16"><div class="loading"><span class="spin"></span>กำลังโหลด...</div></td></tr>';
   const{data,error}=await sb.from('forecast_income').select('*').order('category').order('seq_no');
   if(error){toast('โหลดไม่สำเร็จ',true);return;}
-  FR=(data||[]).sort((a,b)=>{const na=seqNum(a.seq_no),nb=seqNum(b.seq_no);return na-nb;});buildFcCT();rFcKpi();rFc();
+  FR=(data||[]).sort((a,b)=>{const na=seqNum(a.seq_no),nb=seqNum(b.seq_no);if(na!==nb)return na-nb;return (a.sales_contract||'').localeCompare(b.sales_contract||'',undefined,{numeric:true,sensitivity:'base'});});buildFcCT();rFcKpi();rFc();
 }
 async function loadFcBadge(){
   const{data}=await sb.from('forecast_income').select('forecast_received_date,received_date');
@@ -2898,9 +2898,9 @@ function rFc(){
     };
     const bdg=bdgMap[st]||bdgMap.pending;
     return`<tr>
-      <td style="color:var(--blue);width:44px;font-size:11px;font-weight:700">${E(r.seq_no)||String(i+1)}</td>
+      <td style="color:var(--blue);width:44px;font-size:11px;font-weight:700">${r.seq_no?E(r.seq_no):'NO.'+(i+1)}</td>
       <td class="td-trunc" style="max-width:150px;font-weight:600">${E(r.applicant_name)}</td>
-      <td class="td-trunc" style="max-width:120px;font-size:10.5px">${E(r.sales_contract)}</td>
+      <td style="font-size:10.5px;white-space:nowrap">${E(r.sales_contract)}</td>
       <td style="font-size:11px">${E(r.invoice_no)}</td>
       <td style="width:60px">${N(r.qty_mts,2)}</td>
       <td style="width:48px"><span class="bdg bdg-b">${E(r.currency)}</span></td>
