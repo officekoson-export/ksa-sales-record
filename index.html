@@ -1860,6 +1860,7 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
     <div class="sLbl">ข้อมูลทั่วไป</div>
     <div class="fg">
       <div class="fld"><label>หมวดหมู่ *</label><select id="f_category"><option value="export_starch">ขายแป้งมันส่งออก</option><option value="export_chip">ขายมันเส้นส่งออก</option><option value="domestic">ขายแป้งมันในประเทศ</option><option value="domestic_coffee">ขายกาแฟในประเทศ</option></select></div>
+      <div class="fld"><label>NO. ลำดับที่</label><input id="f_seq_no" placeholder="NO.1, NO.2... (เว้นว่างได้ ระบบรันให้อัตโนมัติ)"></div>
       <div class="fld"><label>Broker</label><input id="f_broker_name"></div>
       <div class="fld"><label>ลูกค้า *</label><input id="f_applicant_name"></div>
       <div class="fld"><label>Sales Contract</label><input id="f_sales_contract"></div>
@@ -2916,7 +2917,7 @@ function rFc(){
     </tr>`;
   }).join('');
 }
-const FF=['category','broker_name','applicant_name','sales_contract','invoice_no','packing_kgs','qty_mts','price_fob','price_cfr','price_cif','currency','total','cfs_loading_date','etd','eta','forecast_received_date','received_amount','diff_amount','received_date','exchange_rate','bank','remark','status'];
+const FF=['category','seq_no','broker_name','applicant_name','sales_contract','invoice_no','packing_kgs','qty_mts','price_fob','price_cfr','price_cif','currency','total','cfs_loading_date','etd','eta','forecast_received_date','received_amount','diff_amount','received_date','exchange_rate','bank','remark','status'];
 const FN=['qty_mts','price_fob','price_cfr','price_cif','total','received_amount','diff_amount','exchange_rate'];
 function openFc(){
   document.getElementById('mFcT').textContent='เพิ่มรายการ Forecast Income';
