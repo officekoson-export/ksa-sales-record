@@ -2961,6 +2961,13 @@ function xFc(){
   a.download=`forecast_${FCT}_${new Date().toISOString().slice(0,10)}.csv`;a.click();
 }
 
+async function goForecastPending(cat){
+  go('fc');
+  await loadFc();
+  if(cat){FCT=cat;buildFcCT();rFcKpi();}
+  document.getElementById('fcStF').value='';
+  setFcRange(0,21);
+}
 async function goForecastOverdue(cat){
   go('fc');
   await loadFc();
@@ -3134,6 +3141,20 @@ async function loadDash(){
     <div class="kCard kc-r"><div class="kLbl">ปริมาณนำเข้ากาแฟ</div><div class="kVal">${N(icM,2)}</div><div class="kSub">MTS รวมทุกปี</div><div class="kIco">⚖️</div></div>
   `;
 
+  const pendByCurCat={};
+  pend.forEach(r=>{
+    const k=r.currency||'THB';
+    pendByCurCat[k]=(pendByCurCat[k]||0)+(+r.total||0);
+  });
+  const pendByCat={};
+  pend.forEach(r=>{pendByCat[r.category]=(pendByCat[r.category]||0)+(+r.total||0);});
+  const pendCatEntries=Object.keys(pendByCat);
+  const topPendCat=Object.entries(pendByCat).sort((a,b)=>b[1]-a[1])[0]?.[0]||'';
+  const pendAmtHtml=Object.entries(pendByCurCat).length
+    ?Object.entries(pendByCurCat).map(([cur,amt])=>`<span style="display:block">${N(amt,0)} <span style="font-size:11px;opacity:.7">${cur}</span></span>`).join('')
+    :'<span style="display:block">0.00</span>';
+  const pendCatNote=pendCatEntries.length===1?` (${FCL[pendCatEntries[0]]||pendCatEntries[0]})`:pendCatEntries.length>1?' (หลายหมวดรวมกัน)':'';
+
   const overByCurCat={};
   over.forEach(r=>{
     const k=r.currency||'THB';
@@ -3149,7 +3170,7 @@ async function loadDash(){
     ?Object.entries(overByCurCat).map(([cur,amt])=>`<span style="display:block">${N(amt,0)} <span style="font-size:11px;opacity:.7">${cur}</span></span>`).join('')
     :'<span style="display:block">0.00</span>';
   document.getElementById('dashKpiFc').innerHTML=`
-    <div class="kCard kc-a"><div class="kLbl">Forecast — คาดรับ 3 สัปดาห์</div><div class="kVal">${pend.length}</div><div class="kSub">รายการรอรับเงิน · ทุกหมวด</div><div class="kIco">📅</div></div>
+    <div class="kCard kc-a" style="cursor:pointer" onclick="goForecastPending('${pendCatEntries.length===1?topPendCat:''}')" title="คลิกเพื่อดูรายการใน Forecast Income"><div class="kLbl">Forecast — คาดรับ 3 สัปดาห์${pendCatNote}</div><div class="kVal" style="font-size:22px;line-height:1.35">${pendAmtHtml}</div><div class="kSub">${pend.length} รายการ · คลิกเพื่อดูรายการ</div><div class="kIco">📅</div></div>
     <div class="kCard kc-r" style="cursor:pointer" onclick="goForecastOverdue('${topOverCat}')" title="คลิกเพื่อดูรายการเลยกำหนดใน Forecast Income"><div class="kLbl">⚠️ Forecast — เลยกำหนดรับ</div><div class="kVal" style="font-size:22px;line-height:1.35">${overAmtHtml}</div><div class="kSub">${over.length} รายการ · คลิกเพื่อดูรายการ</div><div class="kIco">⚠️</div></div>
   `;
 
