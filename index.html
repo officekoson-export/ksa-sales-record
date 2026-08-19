@@ -383,6 +383,13 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
     </div>
     <span class="pill pill-green">Live</span>
   </div>
+  <div class="sbItem" id="sn-finoverview" onclick="go('finoverview')">
+    <span class="ico">💰</span>
+    <div class="lbl">Financial Overview
+      <span class="sub">สถานะการเงินล่าสุด</span>
+    </div>
+    <span class="pill pill-green">Live</span>
+  </div>
   <div class="sbItem" id="sn-dash" onclick="go('dash')">
     <span class="ico">⊞</span>
     <div class="lbl">Dashboard
@@ -585,6 +592,45 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
   </div>
 
   <div class="kGrid" id="kpiRiskCard"></div>
+</div>
+
+<div class="pg" id="pg-finoverview">
+  <div class="ph">
+    <div class="phL"><h2>💰 Financial Overview — ภาพรวมสถานะทางการเงิน</h2><div class="phS"><span class="d" style="background:var(--green)"></span>สรุปสถานะการเงินล่าสุด · Forecast + ภาระหนี้ + สต๊อค · สำหรับฝ่ายบริหาร</div></div>
+    <div class="phR"><button class="btn btn-o btn-sm" onclick="loadFinOverview()">⟳ รีเฟรช</button></div>
+  </div>
+
+  <div class="sLbl" style="cursor:pointer" onclick="go('fc')">⏰ Forecast - รายรับ <span style="font-size:11px;color:var(--blue);font-weight:400">(คลิกดูรายละเอียด →)</span></div>
+  <div class="kGrid" id="finFcKpi"></div>
+
+  <div class="sLbl" style="cursor:pointer" onclick="go('pofin')">🏦 ภาระหนี้ PO Financing · SCB / TTB <span style="font-size:11px;color:var(--blue);font-weight:400">(คลิกดูรายละเอียด →)</span></div>
+  <div class="phS" style="margin:-6px 0 12px;font-weight:600;">ภาระหนี้เงินสด — แยกยอด KS AGRO บันทึก กับ ยอดธนาคารแจ้ง (ไม่รวมข้ามสกุลเงิน)</div>
+  <div class="kGrid" id="finPofinKpi"></div>
+  <div id="finPofinNote" class="note-amber" style="margin:10px 0 18px;padding:10px 14px;border-radius:8px;background:var(--amber-bg);border:1px solid var(--amber-bd);color:var(--amber);font-size:12px;"></div>
+
+  <div class="sLbl" style="cursor:pointer" onclick="go('stock')">📦 Stock สินค้า <span style="font-size:11px;color:var(--blue);font-weight:400">(คลิกดูรายละเอียด →)</span></div>
+  <div class="phS" style="margin:-6px 0 12px;font-weight:600;">สินค้าคงเหลือ · มูลค่าสต๊อก · หน่วย MTS / USD</div>
+  <div class="kGrid" id="finStockKpi"></div>
+  <div class="chGrid2">
+    <div class="chCard">
+      <h4>📦 รายละเอียดสต๊อค</h4><div class="chSub">รายการที่นำมาคำนวณมูลค่าสต๊อครวม</div>
+      <div class="tWrap">
+        <table>
+          <thead><tr><th>STOCK</th><th>QTY MTS</th><th>PRICE</th><th>AMOUNT</th></tr></thead>
+          <tbody id="finStockIncTb"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="chCard">
+      <h4>📦 รายละเอียดสต๊อคที่ไม่ได้นำมาคำนวณ</h4><div class="chSub">รายการที่ไม่รวมในมูลค่าสต๊อครวม</div>
+      <div class="tWrap">
+        <table>
+          <thead><tr><th>STOCK</th><th>QTY</th><th>PRICE</th><th>AMOUNT</th></tr></thead>
+          <tbody id="finStockExcTb"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="pg" id="pg-dash">
@@ -2027,7 +2073,7 @@ async function initAuth(){
 }
 const ROLE_LABEL={admin:'ผู้ดูแลระบบ',coordinator:'Coordinator',marketing:'Marketing',director:'ผู้บริหาร',finance:'ฝ่ายการเงิน'};
 // หน้าที่ Finance เห็นได้เท่านั้น
-const FINANCE_ALLOWED_PAGES=['kpi','dash','monthly','fc','pofin','stock'];
+const FINANCE_ALLOWED_PAGES=['kpi','finoverview','dash','monthly','fc','pofin','stock'];
 async function boot(){
   document.getElementById('loginScreen').style.display='none';
   document.getElementById('app').style.display='block';
@@ -2072,6 +2118,7 @@ function applyRolePermissions(role){
 // ─── NAV ───
 const PAGE_META={
   kpi:{label:'ภาพรวม',sub:'KPI ภาพรวมธุรกิจ'},
+  finoverview:{label:'ภาพรวม',sub:'Financial Overview'},
   backup:{label:'ระบบ',sub:'สำรองข้อมูล'},
   dash:{label:'Dashboard',sub:''},
   dom:{label:'บันทึกข้อมูล',sub:'Domestic Starch'},
@@ -2114,6 +2161,7 @@ function go(p){
   if(m.sub){sep.style.display='';sub.textContent=m.sub;}
   else{sep.style.display='none';sub.textContent='';}
   if(p==='kpi')loadKpi();
+  else if(p==='finoverview')loadFinOverview();
   else if(p==='dom')loadDom();
   else if(p==='dcoffee')loadDc();
   else if(p==='icoffee')loadIc();
@@ -3122,6 +3170,87 @@ function rKpi(){
     <div class="kCard kc-r" style="cursor:pointer" onclick="go('fc')" title="คลิกเพื่อดู Forecast Income"><div class="kLbl">⚠️ เงินค้างรับเลยกำหนด</div><div class="kVal" style="font-size:20px;line-height:1.3">${overHtml}</div><div class="kSub">${over.length} รายการ · ทุกหมวดรวมกัน</div></div>
     <div class="kCard kc-a" style="cursor:pointer" onclick="go('stock')" title="คลิกเพื่อดู Stock สินค้า"><div class="kLbl">📦 มูลค่าสต๊อกรวม</div><div class="kVal">$${N(stockVal,2)}</div><div class="kSub">USD · เฉพาะรายการที่นำมาคำนวณ</div></div>
     <div class="kCard kc-p"><div class="kLbl">👥 ความเสี่ยงกระจุกตัวลูกค้า</div><div class="kVal">${N(top3Pct,1)}%</div><div class="kSub">จากลูกค้า Top 3 ราย · ${Y}</div></div>
+  `;
+}
+
+// ═══════════ FINANCIAL OVERVIEW (รวม Forecast + PO Financing + Stock) ═══════════
+async function loadFinOverview(){
+  const[{data:fc},{data:pf},{data:br},{data:stk}]=await Promise.all([
+    sb.from('forecast_income').select('*'),
+    sb.from('po_financing').select('*'),
+    sb.from('po_financing_bank_report').select('*'),
+    sb.from('stock_items').select('*')
+  ]);
+  rFinFc(fc||[]);
+  rFinPofin(pf||[],br||[]);
+  rFinStock(stk||[]);
+}
+function rFinFc(F){
+  const today=new Date();const lim=new Date();lim.setDate(lim.getDate()+21);
+  const pend=F.filter(r=>!r.archived&&fcSt(r)==='pending'&&r.forecast_received_date&&new Date(r.forecast_received_date)>=today&&new Date(r.forecast_received_date)<=lim);
+  const over=F.filter(r=>!r.archived&&fcSt(r)==='overdue');
+
+  const pendByCurCat={};
+  pend.forEach(r=>{const k=r.currency||'THB';pendByCurCat[k]=(pendByCurCat[k]||0)+(+r.total||0);});
+  const pendByCat={};
+  pend.forEach(r=>{pendByCat[r.category]=(pendByCat[r.category]||0)+(+r.total||0);});
+  const pendCatEntries=Object.keys(pendByCat);
+  const topPendCat=Object.entries(pendByCat).sort((a,b)=>b[1]-a[1])[0]?.[0]||'';
+  const pendAmtHtml=Object.entries(pendByCurCat).length
+    ?Object.entries(pendByCurCat).map(([cur,amt])=>`<span style="display:block">${N(amt,0)} <span style="font-size:11px;opacity:.7">${cur}</span></span>`).join('')
+    :'<span style="display:block">0.00</span>';
+  const pendCatNote=pendCatEntries.length===1?` (${FCL[pendCatEntries[0]]||pendCatEntries[0]})`:pendCatEntries.length>1?' (หลายหมวดรวมกัน)':'';
+
+  const overByCurCat={};
+  over.forEach(r=>{
+    const k=r.currency||'THB';
+    const total=Number(r.total||0),recv=Number(r.received_amount||0);
+    overByCurCat[k]=(overByCurCat[k]||0)+(total>0?total-recv:0);
+  });
+  const overByCat={};
+  over.forEach(r=>{overByCat[r.category]=(overByCat[r.category]||0)+(+r.total||0);});
+  const topOverCat=Object.entries(overByCat).sort((a,b)=>b[1]-a[1])[0]?.[0]||'domestic';
+  const overAmtHtml=Object.entries(overByCurCat).length
+    ?Object.entries(overByCurCat).map(([cur,amt])=>`<span style="display:block">${N(amt,0)} <span style="font-size:11px;opacity:.7">${cur}</span></span>`).join('')
+    :'<span style="display:block">0.00</span>';
+
+  document.getElementById('finFcKpi').innerHTML=`
+    <div class="kCard kc-a" style="cursor:pointer" onclick="goForecastPending('${pendCatEntries.length===1?topPendCat:''}')" title="คลิกเพื่อดูรายการใน Forecast Income"><div class="kLbl">FORECAST — คาดรับ 3 สัปดาห์${pendCatNote}</div><div class="kVal" style="font-size:22px;line-height:1.35">${pendAmtHtml}</div><div class="kSub">${pend.length} รายการ · คลิกเพื่อดูรายการ</div><div class="kIco">📅</div></div>
+    <div class="kCard kc-r" style="cursor:pointer" onclick="goForecastOverdue('${topOverCat}')" title="คลิกเพื่อดูรายการเลยกำหนดใน Forecast Income"><div class="kLbl">⚠️ FORECAST — เลยกำหนดรับ</div><div class="kVal" style="font-size:22px;line-height:1.35">${overAmtHtml}</div><div class="kSub">${over.length} รายการ · คลิกเพื่อดูรายการ</div><div class="kIco">⚠️</div></div>
+  `;
+}
+function rFinPofin(pf,br){
+  const bankRpt={};br.forEach(r=>bankRpt[r.bank]=r);
+  const thbKpi=pf.reduce((s,r)=>s+(+r.outstanding_thb||0),0);
+  const usdKpi=pf.reduce((s,r)=>s+(+r.outstanding_usd||0),0);
+  const cnyKpi=pf.reduce((s,r)=>s+(+r.outstanding_cny||0),0);
+  const scbRpt=bankRpt['SCB']?.reported_amount||0;
+  const diff=usdKpi-scbRpt;
+  document.getElementById('finPofinKpi').innerHTML=`
+    <div class="kCard kc-g" style="cursor:pointer" onclick="go('pofin')"><div class="kLbl">บาท (THB)</div><div class="kVal">${N(thbKpi,0)}</div><div class="kSub">KS AGRO บันทึก</div><div class="kIco">฿</div></div>
+    <div class="kCard kc-b" style="cursor:pointer" onclick="go('pofin')">
+      <div class="kLbl">ดอลลาร์ (USD)</div><div class="kVal" style="font-size:19px;">${N(usdKpi,2)}</div><div class="kSub">KS AGRO บันทึก</div>
+      <div style="margin-top:9px;padding-top:9px;border-top:1px solid var(--border);font-size:11px;color:var(--dim);display:flex;justify-content:space-between;gap:8px;"><span>ยอดธนาคารแจ้ง (SCB)</span><span style="color:var(--text);font-weight:700;">${N(scbRpt,2)}</span></div>
+      <div style="font-size:11px;color:var(--dim);display:flex;justify-content:space-between;margin-top:4px;gap:8px;"><span>ส่วนต่าง (Diff)</span><span style="color:${Math.abs(diff)<1?'var(--dim)':diff<0?'var(--red)':'var(--green)'};font-weight:700;">${N(diff,2)}</span></div>
+      <div class="kIco">$</div>
+    </div>
+    <div class="kCard kc-p" style="cursor:pointer" onclick="go('pofin')"><div class="kLbl">หยวน (CNY)</div><div class="kVal">${N(cnyKpi,0)}</div><div class="kSub">${cnyKpi?'KS AGRO บันทึก':'ไม่มียอดค้าง'}</div><div class="kIco">¥</div></div>
+  `;
+  document.getElementById('finPofinNote').innerHTML=`⚠️ ยอดที่ KS AGRO บันทึกกับยอดธนาคารแจ้งอาจไม่ตรงกัน ใช้เป็น reference — ยอดในตารางคือยอดหลัก · <a href="javascript:void(0)" onclick="go('pofin')" style="color:var(--blue);text-decoration:underline;">ดูรายละเอียดที่ PO Financing →</a>`;
+}
+function rFinStock(rows){
+  const inc=rows.filter(r=>r.included!==false);
+  const exc=rows.filter(r=>r.included===false);
+  const incG=stockGroup(inc),excG=stockGroup(exc);
+  document.getElementById('finStockIncTb').innerHTML=stockRowsHtml(incG);
+  document.getElementById('finStockExcTb').innerHTML=stockRowsHtml(excG);
+  const incQty=incG.reduce((s,g)=>s+g.qty,0),incAmt=incG.reduce((s,g)=>s+g.amount,0);
+  const excQty=excG.reduce((s,g)=>s+g.qty,0),excAmt=excG.reduce((s,g)=>s+g.amount,0);
+  document.getElementById('finStockKpi').innerHTML=`
+    <div class="kCard kc-g" style="cursor:pointer" onclick="go('stock')"><div class="kLbl">มูลค่าสต๊อครวม</div><div class="kVal">$${N(incAmt,2)}</div><div class="kSub">USD · นำมาคำนวณ</div><div class="kIco">💰</div></div>
+    <div class="kCard kc-g" style="cursor:pointer" onclick="go('stock')"><div class="kLbl">ปริมาณสต๊อครวม</div><div class="kVal">${N(incQty,2)}</div><div class="kSub">MTS · นำมาคำนวณ</div><div class="kIco">⚖️</div></div>
+    <div class="kCard kc-a" style="cursor:pointer" onclick="go('stock')"><div class="kLbl">มูลค่าที่ไม่นำมาคำนวณ</div><div class="kVal">$${N(excAmt,2)}</div><div class="kSub">USD</div><div class="kIco">🚫</div></div>
+    <div class="kCard kc-a" style="cursor:pointer" onclick="go('stock')"><div class="kLbl">ปริมาณที่ไม่นำมาคำนวณ</div><div class="kVal">${N(excQty,2)}</div><div class="kSub">MTS</div><div class="kIco">🚫</div></div>
   `;
 }
 
