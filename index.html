@@ -450,7 +450,7 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
   <div class="sbItem" id="sn-fc" onclick="go('fc')">
     <span class="ico">💰</span>
     <div class="lbl">Forecast Income
-      <span class="sub">ประมาณการรายรับ 3 สัปดาห์</span>
+      <span class="sub">ประมาณการรายรับ 4 สัปดาห์</span>
     </div>
     <span class="pill pill-amber" id="fcBadge"></span>
   </div>
@@ -927,7 +927,7 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
 <!-- FORECAST -->
 <div class="pg" id="pg-fc">
   <div class="ph">
-    <div class="phL"><h2>Forecast Income Receiving</h2><div class="phS"><span class="d" style="background:var(--amber)"></span>ประมาณการรายรับที่คาดจะได้รับใน 3 สัปดาห์ข้างหน้า</div></div>
+    <div class="phL"><h2>Forecast Income Receiving</h2><div class="phS"><span class="d" style="background:var(--amber)"></span>ประมาณการรายรับที่คาดจะได้รับใน 4 สัปดาห์ข้างหน้า</div></div>
     <div class="phR">
       <button class="btn btn-o btn-sm" onclick="xFc()">⬇ Export CSV</button>
       <button class="btn btn-o btn-sm gate-write" onclick="bulkArchiveCompletedFc()">📦 เก็บเข้าคลังรายการที่จบแล้ว</button>
@@ -945,7 +945,7 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
       <label style="font-size:11.5px;color:var(--dim);">ถึง</label>
       <input type="date" id="fcDateTo" style="padding:6px 10px;background:var(--panel2);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-size:12.5px;" onchange="rFc()">
     </div>
-    <button class="btn btn-o btn-sm" onclick="setFcRange(0,21)">3 สัปดาห์หน้า</button>
+    <button class="btn btn-o btn-sm" onclick="setFcRange(0,28)">4 สัปดาห์หน้า</button>
     <button class="btn btn-o btn-sm" onclick="setFcRange(0,7)">7 วันหน้า</button>
     <button class="btn btn-o btn-sm" onclick="setFcRange(-30,0)">30 วันที่ผ่านมา</button>
     <button class="btn btn-o btn-sm" onclick="clearFcRange()">ทั้งหมด</button>
@@ -2855,7 +2855,7 @@ async function loadFcBadge(){
   const{data}=await sb.from('forecast_income').select('forecast_received_date,received_date');
   if(!data)return;
   const today=new Date();today.setHours(0,0,0,0);
-  const lim=new Date();lim.setDate(lim.getDate()+21);
+  const lim=new Date();lim.setDate(lim.getDate()+28);
   const over=data.filter(r=>!r.received_date&&r.forecast_received_date&&new Date(r.forecast_received_date)<today).length;
   const el=document.getElementById('fcBadge');
   if(over>0){el.textContent=over+'!';el.style.display='';}else el.style.display='none';
@@ -2902,7 +2902,7 @@ function rFcKpi(){
   const rows=FR.filter(r=>r.category===FCT);
   const currencies=[...new Set(rows.map(r=>(r.currency||'THB').toUpperCase()))];
   const byCur=cur=>rows.filter(r=>(r.currency||'THB').toUpperCase()===cur);
-  const today=new Date();const lim=new Date();lim.setDate(lim.getDate()+21);
+  const today=new Date();const lim=new Date();lim.setDate(lim.getDate()+28);
 
   const rcvByC=currencies.map(cur=>({cur,v:byCur(cur).reduce((s,r)=>s+(+r.received_amount||0),0)}));
   const pendByC=currencies.map(cur=>{
@@ -2922,7 +2922,7 @@ function rFcKpi(){
   document.getElementById('fcKpi').innerHTML=`
     <div class="kCard kc-b"><div class="kLbl">รายการทั้งหมด</div><div class="kVal">${rows.length}</div><div class="kSub">รายการ</div></div>
     <div class="kCard kc-g"><div class="kLbl">รับเงินแล้ว</div><div class="kVal" style="font-size:15px;line-height:1.7">${multiLine(rcvByC)}</div></div>
-    <div class="kCard kc-a"><div class="kLbl">คาดรับใน 3 สัปดาห์ (${totalPendCnt} รายการ)</div><div class="kVal" style="font-size:15px;line-height:1.7">${multiLine(pendByC)}</div></div>
+    <div class="kCard kc-a"><div class="kLbl">คาดรับใน 4 สัปดาห์ (${totalPendCnt} รายการ)</div><div class="kVal" style="font-size:15px;line-height:1.7">${multiLine(pendByC)}</div></div>
     <div class="kCard kc-r"><div class="kLbl">⚠️ เลยกำหนดรับ (${totalOverCnt} รายการ)</div><div class="kVal" style="font-size:15px;line-height:1.7">${multiLine(overByC)}</div><div class="kSub">${overdueSubHtml}</div></div>
   `;
 }
@@ -3045,7 +3045,7 @@ async function goForecastPending(cat){
   await loadFc();
   if(cat){FCT=cat;buildFcCT();rFcKpi();}
   document.getElementById('fcStF').value='';
-  setFcRange(0,21);
+  setFcRange(0,28);
 }
 async function goForecastOverdue(cat){
   go('fc');
@@ -3186,7 +3186,7 @@ async function loadFinOverview(){
   rFinStock(stk||[]);
 }
 function rFinFc(F){
-  const today=new Date();const lim=new Date();lim.setDate(lim.getDate()+21);
+  const today=new Date();const lim=new Date();lim.setDate(lim.getDate()+28);
   const pend=F.filter(r=>!r.archived&&fcSt(r)==='pending'&&r.forecast_received_date&&new Date(r.forecast_received_date)>=today&&new Date(r.forecast_received_date)<=lim);
   const over=F.filter(r=>!r.archived&&fcSt(r)==='overdue');
 
@@ -3215,7 +3215,7 @@ function rFinFc(F){
     :'<span style="display:block">0.00</span>';
 
   document.getElementById('finFcKpi').innerHTML=`
-    <div class="kCard kc-a" style="cursor:pointer" onclick="goForecastPending('${pendCatEntries.length===1?topPendCat:''}')" title="คลิกเพื่อดูรายการใน Forecast Income"><div class="kLbl">FORECAST — คาดรับ 3 สัปดาห์${pendCatNote}</div><div class="kVal" style="font-size:22px;line-height:1.35">${pendAmtHtml}</div><div class="kSub">${pend.length} รายการ · คลิกเพื่อดูรายการ</div><div class="kIco">📅</div></div>
+    <div class="kCard kc-a" style="cursor:pointer" onclick="goForecastPending('${pendCatEntries.length===1?topPendCat:''}')" title="คลิกเพื่อดูรายการใน Forecast Income"><div class="kLbl">FORECAST — คาดรับ 4 สัปดาห์${pendCatNote}</div><div class="kVal" style="font-size:22px;line-height:1.35">${pendAmtHtml}</div><div class="kSub">${pend.length} รายการ · คลิกเพื่อดูรายการ</div><div class="kIco">📅</div></div>
     <div class="kCard kc-r" style="cursor:pointer" onclick="goForecastOverdue('${topOverCat}')" title="คลิกเพื่อดูรายการเลยกำหนดใน Forecast Income"><div class="kLbl">⚠️ FORECAST — เลยกำหนดรับ</div><div class="kVal" style="font-size:22px;line-height:1.35">${overAmtHtml}</div><div class="kSub">${over.length} รายการ · คลิกเพื่อดูรายการ</div><div class="kIco">⚠️</div></div>
   `;
 }
@@ -3268,7 +3268,7 @@ async function loadDash(){
   // ── KPI (เดิม) ──
   const dT=D.reduce((s,r)=>s+(+r.total||0),0);
   const dM=D.reduce((s,r)=>s+(+r.qty_mts||0),0);
-  const today=new Date();const lim=new Date();lim.setDate(lim.getDate()+21);
+  const today=new Date();const lim=new Date();lim.setDate(lim.getDate()+28);
   const pend=F.filter(r=>fcSt(r)==='pending'&&r.forecast_received_date&&new Date(r.forecast_received_date)>=today&&new Date(r.forecast_received_date)<=lim);
   const over=F.filter(r=>fcSt(r)==='overdue');
   document.getElementById('dashKpiDom').innerHTML=`
@@ -3330,7 +3330,7 @@ async function loadDash(){
     ?Object.entries(overByCurCat).map(([cur,amt])=>`<span style="display:block">${N(amt,0)} <span style="font-size:11px;opacity:.7">${cur}</span></span>`).join('')
     :'<span style="display:block">0.00</span>';
   document.getElementById('dashKpiFc').innerHTML=`
-    <div class="kCard kc-a" style="cursor:pointer" onclick="goForecastPending('${pendCatEntries.length===1?topPendCat:''}')" title="คลิกเพื่อดูรายการใน Forecast Income"><div class="kLbl">Forecast — คาดรับ 3 สัปดาห์${pendCatNote}</div><div class="kVal" style="font-size:22px;line-height:1.35">${pendAmtHtml}</div><div class="kSub">${pend.length} รายการ · คลิกเพื่อดูรายการ</div><div class="kIco">📅</div></div>
+    <div class="kCard kc-a" style="cursor:pointer" onclick="goForecastPending('${pendCatEntries.length===1?topPendCat:''}')" title="คลิกเพื่อดูรายการใน Forecast Income"><div class="kLbl">Forecast — คาดรับ 4 สัปดาห์${pendCatNote}</div><div class="kVal" style="font-size:22px;line-height:1.35">${pendAmtHtml}</div><div class="kSub">${pend.length} รายการ · คลิกเพื่อดูรายการ</div><div class="kIco">📅</div></div>
     <div class="kCard kc-r" style="cursor:pointer" onclick="goForecastOverdue('${topOverCat}')" title="คลิกเพื่อดูรายการเลยกำหนดใน Forecast Income"><div class="kLbl">⚠️ Forecast — เลยกำหนดรับ</div><div class="kVal" style="font-size:22px;line-height:1.35">${overAmtHtml}</div><div class="kSub">${over.length} รายการ · คลิกเพื่อดูรายการ</div><div class="kIco">⚠️</div></div>
   `;
 
