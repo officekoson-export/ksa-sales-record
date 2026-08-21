@@ -3215,8 +3215,8 @@ function rFinFc(F){
     :'<span style="display:block">0.00</span>';
 
   document.getElementById('finFcKpi').innerHTML=`
-    <div class="kCard kc-a" style="cursor:pointer" onclick="goForecastPending('${pendCatEntries.length===1?topPendCat:''}')" title="คลิกเพื่อดูรายการใน Forecast Income"><div class="kLbl">FORECAST — คาดรับ 4 สัปดาห์${pendCatNote}</div><div class="kVal" style="font-size:22px;line-height:1.35">${pendAmtHtml}</div><div class="kSub">${pend.length} รายการ · คลิกเพื่อดูรายการ</div><div class="kIco">📅</div></div>
-    <div class="kCard kc-r" style="cursor:pointer" onclick="goForecastOverdue('${topOverCat}')" title="คลิกเพื่อดูรายการเลยกำหนดใน Forecast Income"><div class="kLbl">⚠️ FORECAST — เลยกำหนดรับ</div><div class="kVal" style="font-size:22px;line-height:1.35">${overAmtHtml}</div><div class="kSub">${over.length} รายการ · คลิกเพื่อดูรายการ</div><div class="kIco">⚠️</div></div>
+    <div class="kCard kc-a" style="cursor:pointer" onclick="goForecastPending('${pendCatEntries.length===1?topPendCat:''}')" title="คลิกเพื่อดูรายการใน Forecast Income"><div class="kLbl">FORECAST — คาดรับ 4 สัปดาห์${pendCatNote}</div><div class="kVal" style="font-size:22px;line-height:1.35">${pendAmtHtml}</div><div class="kSub">${pend.length} รายการ · คลิกเพื่อดูรายการ</div></div>
+    <div class="kCard kc-r" style="cursor:pointer" onclick="goForecastOverdue('${topOverCat}')" title="คลิกเพื่อดูรายการเลยกำหนดใน Forecast Income"><div class="kLbl">⚠️ FORECAST — เลยกำหนดรับ</div><div class="kVal" style="font-size:22px;line-height:1.35">${overAmtHtml}</div><div class="kSub">${over.length} รายการ · คลิกเพื่อดูรายการ</div></div>
   `;
 }
 function rFinPofin(pf,br){
@@ -3232,7 +3232,6 @@ function rFinPofin(pf,br){
       <div class="kLbl">ดอลลาร์ (USD)</div><div class="kVal" style="font-size:19px;">${N(usdKpi,2)}</div><div class="kSub">KS AGRO บันทึก</div>
       <div style="margin-top:9px;padding-top:9px;border-top:1px solid var(--border);font-size:11px;color:var(--dim);display:flex;justify-content:space-between;gap:8px;"><span>ยอดธนาคารแจ้ง (SCB)</span><span style="color:var(--text);font-weight:700;">${N(scbRpt,2)}</span></div>
       <div style="font-size:11px;color:var(--dim);display:flex;justify-content:space-between;margin-top:4px;gap:8px;"><span>ส่วนต่าง (Diff)</span><span style="color:${Math.abs(diff)<1?'var(--dim)':diff<0?'var(--red)':'var(--green)'};font-weight:700;">${N(diff,2)}</span></div>
-      <div class="kIco">$</div>
     </div>
     <div class="kCard kc-p" style="cursor:pointer" onclick="go('pofin')"><div class="kLbl">หยวน (CNY)</div><div class="kVal">${N(cnyKpi,0)}</div><div class="kSub">${cnyKpi?'KS AGRO บันทึก':'ไม่มียอดค้าง'}</div><div class="kIco">¥</div></div>
   `;
@@ -3330,8 +3329,8 @@ async function loadDash(){
     ?Object.entries(overByCurCat).map(([cur,amt])=>`<span style="display:block">${N(amt,0)} <span style="font-size:11px;opacity:.7">${cur}</span></span>`).join('')
     :'<span style="display:block">0.00</span>';
   document.getElementById('dashKpiFc').innerHTML=`
-    <div class="kCard kc-a" style="cursor:pointer" onclick="goForecastPending('${pendCatEntries.length===1?topPendCat:''}')" title="คลิกเพื่อดูรายการใน Forecast Income"><div class="kLbl">Forecast — คาดรับ 4 สัปดาห์${pendCatNote}</div><div class="kVal" style="font-size:22px;line-height:1.35">${pendAmtHtml}</div><div class="kSub">${pend.length} รายการ · คลิกเพื่อดูรายการ</div><div class="kIco">📅</div></div>
-    <div class="kCard kc-r" style="cursor:pointer" onclick="goForecastOverdue('${topOverCat}')" title="คลิกเพื่อดูรายการเลยกำหนดใน Forecast Income"><div class="kLbl">⚠️ Forecast — เลยกำหนดรับ</div><div class="kVal" style="font-size:22px;line-height:1.35">${overAmtHtml}</div><div class="kSub">${over.length} รายการ · คลิกเพื่อดูรายการ</div><div class="kIco">⚠️</div></div>
+    <div class="kCard kc-a" style="cursor:pointer" onclick="goForecastPending('${pendCatEntries.length===1?topPendCat:''}')" title="คลิกเพื่อดูรายการใน Forecast Income"><div class="kLbl">Forecast — คาดรับ 4 สัปดาห์${pendCatNote}</div><div class="kVal" style="font-size:22px;line-height:1.35">${pendAmtHtml}</div><div class="kSub">${pend.length} รายการ · คลิกเพื่อดูรายการ</div></div>
+    <div class="kCard kc-r" style="cursor:pointer" onclick="goForecastOverdue('${topOverCat}')" title="คลิกเพื่อดูรายการเลยกำหนดใน Forecast Income"><div class="kLbl">⚠️ Forecast — เลยกำหนดรับ</div><div class="kVal" style="font-size:22px;line-height:1.35">${overAmtHtml}</div><div class="kSub">${over.length} รายการ · คลิกเพื่อดูรายการ</div></div>
   `;
 
   const years=[...new Set([...D,...E,...C].map(r=>r.year).filter(Boolean))].sort((a,b)=>a-b);
@@ -4344,7 +4343,6 @@ function rPofinKpi(){
       <div class="kLbl">ดอลลาร์ (USD)</div><div class="kVal" style="font-size:19px;">${N(usdKpi,2)}</div><div class="kSub">KS AGRO บันทึก</div>
       <div style="margin-top:9px;padding-top:9px;border-top:1px solid var(--border);font-size:11px;color:var(--dim);display:flex;justify-content:space-between;gap:8px;"><span>ยอดธนาคารแจ้ง (SCB)</span><span style="color:var(--text);font-weight:700;">${N(scbRpt,2)}</span></div>
       <div style="font-size:11px;color:var(--dim);display:flex;justify-content:space-between;margin-top:4px;gap:8px;"><span>ส่วนต่าง (Diff)</span><span style="color:${Math.abs(diff)<1?'var(--dim)':diff<0?'var(--red)':'var(--green)'};font-weight:700;">${N(diff,2)}</span></div>
-      <div class="kIco">$</div>
     </div>
     <div class="kCard kc-p"><div class="kLbl">หยวน (CNY)</div><div class="kVal">${N(cnyKpi,0)}</div><div class="kSub">${cnyKpi?'KS AGRO บันทึก':'ไม่มียอดค้าง'}</div><div class="kIco">¥</div></div>
   `;
