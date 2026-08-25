@@ -5,6 +5,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>KS AGRO | Sales Management System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <style>
@@ -23,7 +26,7 @@
   --r:8px;--r2:12px;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;}
+body{font-family:'IBM Plex Sans Thai','Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;}
 ::-webkit-scrollbar{width:4px;height:4px;}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
 a{color:inherit;text-decoration:none;}
@@ -361,6 +364,35 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
 </div>
 </div>
 
+<!-- CHANGE PASSWORD (สำหรับผู้ใช้ที่ล็อกอินอยู่แล้ว เปลี่ยนรหัสผ่านของตัวเอง) -->
+<div class="mbg" id="mChangePwd">
+<div class="mc" style="max-width:420px">
+  <div class="mH"><h3>🔑 เปลี่ยนรหัสผ่าน</h3><div class="ms">ยืนยันรหัสผ่านเดิม แล้วตั้งรหัสผ่านใหม่</div></div>
+  <div class="mB">
+    <div class="lLabel">รหัสผ่านเดิม</div>
+    <div class="lPwdWrap">
+      <input class="lInput" type="password" id="cpOld" placeholder="รหัสผ่านปัจจุบัน" autocomplete="current-password">
+      <button type="button" class="lEyeBtn" onclick="togglePwdVisibility('cpOld',this)" title="แสดง/ซ่อนรหัสผ่าน">👁</button>
+    </div>
+    <div class="lLabel">รหัสผ่านใหม่</div>
+    <div class="lPwdWrap">
+      <input class="lInput" type="password" id="cpNew" placeholder="อย่างน้อย 6 ตัวอักษร" autocomplete="new-password">
+      <button type="button" class="lEyeBtn" onclick="togglePwdVisibility('cpNew',this)" title="แสดง/ซ่อนรหัสผ่าน">👁</button>
+    </div>
+    <div class="lLabel">ยืนยันรหัสผ่านใหม่</div>
+    <div class="lPwdWrap">
+      <input class="lInput" type="password" id="cpConfirm" placeholder="พิมพ์อีกครั้ง" autocomplete="new-password">
+      <button type="button" class="lEyeBtn" onclick="togglePwdVisibility('cpConfirm',this)" title="แสดง/ซ่อนรหัสผ่าน">👁</button>
+    </div>
+    <div id="cpErr" style="color:var(--red);font-size:12px;margin-top:4px;min-height:16px"></div>
+  </div>
+  <div class="mF">
+    <button class="btn btn-o" onclick="closeChangePwd()">ยกเลิก</button>
+    <button class="btn btn-p" onclick="submitChangePwd()">💾 เปลี่ยนรหัสผ่าน</button>
+  </div>
+</div>
+</div>
+
 <!-- APP -->
 <div id="app">
 <div class="shell">
@@ -548,6 +580,7 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
       <div class="av" id="sbAv">K</div>
       <div><div class="un" id="sbUn">-</div><div class="ur" id="sbUr">-</div></div>
     </div>
+    <button class="sbLogout" style="background:var(--panel2);color:var(--dim);margin-bottom:6px;" onclick="openChangePwd()">🔑 เปลี่ยนรหัสผ่าน</button>
     <button class="sbLogout" onclick="doLogout()">ออกจากระบบ</button>
   </div>
 </div>
@@ -572,7 +605,7 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
 
 <!-- DASHBOARD -->
 <div class="pg" id="pg-kpi">
-  <div class="ph"><div class="phL"><h2>🎯 KPI ภาพรวมธุรกิจ</h2><div class="phS"><span class="d" style="background:var(--cyan)"></span>สรุประดับกลยุทธ์ · เทียบปีต่อปี · ทุกหมวดสินค้า</div></div></div>
+  <div class="ph"><div class="phL"><h2>🎯 KPI ภาพรวมธุรกิจ</h2><div class="phS"><span class="d" style="background:var(--cyan)"></span>สรุประดับกลยุทธ์ · เทียบปีต่อปี · ทุกหมวดสินค้า</div></div><div class="phR"><span id="kpiUpdated" style="font-size:11px;color:var(--dim2)"></span></div></div>
   <div class="yPills" id="kpiYP"></div>
 
   <div class="kGrid" id="kpiVolCard"></div>
@@ -597,7 +630,7 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
 <div class="pg" id="pg-finoverview">
   <div class="ph">
     <div class="phL"><h2>💰 Financial Overview — ภาพรวมสถานะทางการเงิน</h2><div class="phS"><span class="d" style="background:var(--green)"></span>สรุปสถานะการเงินล่าสุด · Forecast + ภาระหนี้ + สต๊อค · สำหรับฝ่ายบริหาร</div></div>
-    <div class="phR"><button class="btn btn-o btn-sm" onclick="loadFinOverview()">⟳ รีเฟรช</button></div>
+    <div class="phR"><span id="finUpdated" style="font-size:11px;color:var(--dim2);margin-right:4px"></span><button class="btn btn-o btn-sm" onclick="loadFinOverview()">⟳ รีเฟรช</button></div>
   </div>
 
   <div class="sLbl" style="cursor:pointer" onclick="go('fc')">⏰ Forecast - รายรับ <span style="font-size:11px;color:var(--blue);font-weight:400">(คลิกดูรายละเอียด →)</span></div>
@@ -636,6 +669,7 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
 <div class="pg" id="pg-dash">
   <div class="ph">
     <div class="phL"><h2>Dashboard ภาพรวม</h2><div class="phS"><span class="d" style="background:var(--green)"></span>KS AGRO · Sales Management System</div></div>
+    <div class="phR"><span id="dashUpdated" style="font-size:11px;color:var(--dim2)"></span></div>
   </div>
   <div class="sLbl">🏠 ขายในประเทศ (THB)</div>
   <div class="kGrid" id="dashKpiDom"></div>
@@ -2056,6 +2090,31 @@ async function submitNewPassword(){
   await sb.auth.signOut();
   setTimeout(()=>{location.href=window.location.origin+window.location.pathname;},1200);
 }
+function openChangePwd(){
+  document.getElementById('cpOld').value='';
+  document.getElementById('cpNew').value='';
+  document.getElementById('cpConfirm').value='';
+  document.getElementById('cpErr').textContent='';
+  document.getElementById('mChangePwd').classList.add('show');
+}
+function closeChangePwd(){document.getElementById('mChangePwd').classList.remove('show');}
+async function submitChangePwd(){
+  const oldP=document.getElementById('cpOld').value;
+  const p1=document.getElementById('cpNew').value;
+  const p2=document.getElementById('cpConfirm').value;
+  const er=document.getElementById('cpErr');
+  er.textContent='';
+  if(!oldP){er.textContent='กรุณากรอกรหัสผ่านเดิม';return;}
+  if(!p1||p1.length<6){er.textContent='รหัสผ่านใหม่ต้องมีอย่างน้อย 6 ตัวอักษร';return;}
+  if(p1!==p2){er.textContent='รหัสผ่านใหม่ทั้งสองช่องไม่ตรงกัน';return;}
+  // ยืนยันตัวตนด้วยรหัสผ่านเดิมก่อน เพื่อความปลอดภัย
+  const{error:verifyErr}=await sb.auth.signInWithPassword({email:U.email,password:oldP});
+  if(verifyErr){er.textContent='รหัสผ่านเดิมไม่ถูกต้อง';return;}
+  const{error}=await sb.auth.updateUser({password:p1});
+  if(error){er.textContent='เปลี่ยนรหัสผ่านไม่สำเร็จ: '+error.message;return;}
+  toast('✅ เปลี่ยนรหัสผ่านเรียบร้อย');
+  closeChangePwd();
+}
 async function doLogin(){
   const e=document.getElementById('liE').value.trim(),p=document.getElementById('liP').value;
   const er=document.getElementById('lErr');er.textContent='';
@@ -3065,6 +3124,10 @@ Chart.defaults.plugins.legend.labels.boxWidth=11;Chart.defaults.plugins.legend.l
 
 // ═══════════ KPI ภาพรวมธุรกิจ (STRATEGIC OVERVIEW) ═══════════
 let KPI_Y=null;
+function stampUpdated(elId){
+  const el=document.getElementById(elId);
+  if(el)el.textContent='🕐 อัปเดตล่าสุด '+new Date().toLocaleString('th-TH',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'short'});
+}
 async function loadKpi(){
   const[{data:dom},{data:es},{data:ec},{data:dc},{data:ic},{data:fc},{data:stk}]=await Promise.all([
     sb.from('sales_domestic').select('year,qty_mts,total,applicant_name'),
@@ -3081,6 +3144,7 @@ async function loadKpi(){
   if(!KPI_Y||!years.map(String).includes(String(KPI_Y)))KPI_Y=years[years.length-1];
   buildKpiYP(years);
   rKpi();
+  stampUpdated('kpiUpdated');
 }
 function buildKpiYP(years){
   const w=document.getElementById('kpiYP');
@@ -3184,6 +3248,7 @@ async function loadFinOverview(){
   rFinFc(fc||[]);
   rFinPofin(pf||[],br||[]);
   rFinStock(stk||[]);
+  stampUpdated('finUpdated');
 }
 function rFinFc(F){
   const today=new Date();const lim=new Date();lim.setDate(lim.getDate()+28);
@@ -3415,6 +3480,7 @@ async function loadDash(){
   renderRank('rkFactory',freq(all,['factory1_name','factory2_name','factory3_name','factory4_name']));
   renderRank('rkShipping',freq(all,['shipping_name']));
   renderRank('rkSurvey',freq(all,['survey_name','fumigation_name']));
+  stampUpdated('dashUpdated');
 }
 
 // ═══════════ TRANSACTION DETAIL ═══════════
