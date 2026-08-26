@@ -25,6 +25,27 @@
   --orange:#f97316;--orange-bg:rgba(249,115,22,.1);
   --r:8px;--r2:12px;
 }
+body[data-theme="light"]{
+  --bg:#f3f5f9;--sb:#ffffff;
+  --panel:#ffffff;--panel2:#f0f2f7;--panel3:#e6e9f0;
+  --border:#e1e5ee;--border2:#cdd4e2;
+  --text:#1a2233;--dim:#64748b;--dim2:#94a3b8;
+  --green:#16a34a;--green-d:#15803d;--green-bg:rgba(22,163,74,.09);--green-bd:rgba(22,163,74,.25);
+  --blue:#2563eb;--blue-d:#1d4ed8;--blue-bg:rgba(37,99,235,.09);--blue-bd:rgba(37,99,235,.25);
+  --amber:#d97706;--amber-bg:rgba(217,119,6,.1);--amber-bd:rgba(217,119,6,.25);
+  --red:#dc2626;--red-bg:rgba(220,38,38,.09);--red-bd:rgba(220,38,38,.25);
+  --purple:#9333ea;--purple-bg:rgba(147,51,234,.09);--purple-bd:rgba(147,51,234,.25);
+  --cyan:#0891b2;--cyan-bg:rgba(8,145,178,.09);
+  --orange:#ea580c;--orange-bg:rgba(234,88,12,.09);
+}
+body[data-theme="light"] #loginScreen{background:radial-gradient(ellipse at 25% 40%,#eef2fb 0%,#f3f5f9 65%);}
+body[data-theme="light"] .lCard{box-shadow:0 24px 60px rgba(30,45,80,.12);}
+body[data-theme="light"] .kCard,
+body[data-theme="light"] .chCard,
+body[data-theme="light"] .tCard,
+body[data-theme="light"] .mc{box-shadow:0 1px 3px rgba(30,45,80,.06);}
+.themeToggle{background:var(--panel2);border:1px solid var(--border2);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;transition:all .14s;}
+.themeToggle:hover{border-color:var(--green-bd);background:var(--green-bg);}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'IBM Plex Sans Thai','Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;}
 ::-webkit-scrollbar{width:14px;height:14px;}
@@ -321,6 +342,7 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
 </style>
 </head>
 <body>
+<script>(function(){try{var t=localStorage.getItem('ksagro_theme');if(t==='light')document.body.setAttribute('data-theme','light');}catch(e){}})();</script>
 
 <!-- LOGIN -->
 <div id="loginScreen">
@@ -599,6 +621,7 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
     <span class="tbSub" id="tbSub"></span>
   </div>
   <div class="tbRight">
+    <button class="themeToggle" id="themeToggleBtn" onclick="toggleTheme()" title="สลับธีมสว่าง/มืด">🌙</button>
     <span class="tbDate" id="tbDate"></span>
     <div class="tbStatus"><span class="dot"></span>Online</div>
   </div>
@@ -2055,6 +2078,21 @@ document.getElementById('tbDate').textContent=new Date().toLocaleDateString('th-
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDom();closeFc();}});
 
 // ─── AUTH ───
+// ─── ธีมสว่าง/มืด ───
+function setTheme(theme){
+  document.body.setAttribute('data-theme',theme);
+  try{localStorage.setItem('ksagro_theme',theme);}catch(e){}
+  const btn=document.getElementById('themeToggleBtn');
+  if(btn)btn.textContent=theme==='light'?'☀️':'🌙';
+}
+function toggleTheme(){
+  const cur=document.body.getAttribute('data-theme')==='light'?'dark':'light';
+  setTheme(cur);
+}
+(function(){
+  const btn=document.getElementById('themeToggleBtn');
+  if(btn)btn.textContent=document.body.getAttribute('data-theme')==='light'?'☀️':'🌙';
+})();
 function togglePwdVisibility(inputId,btnEl){
   const input=document.getElementById(inputId||'liP');
   const btn=btnEl||document.getElementById('lEyeBtn');
