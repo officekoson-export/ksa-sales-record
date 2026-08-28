@@ -1050,7 +1050,7 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
 <div class="pg" id="pg-pofin">
   <div class="ph">
     <div class="phL"><h2>ภาระหนี้ PO Financing · SCB / TTB</h2><div class="phS"><span class="d" style="background:var(--amber)"></span>รายการ PO ที่นำไปขึ้นเงินกับธนาคาร · ตัวเลขแยก USD/THB/CNY · ตรวจครบกำหนด + หมดอายุ 60 วัน</div></div>
-    <div class="phR"><button class="btn btn-o btn-sm" onclick="loadPoFin()">⟳ รีเฟรช</button><button class="btn btn-p btn-sm gate-write" onclick="openPoFin()">+ เพิ่มรายการภาระหนี้</button></div>
+    <div class="phR"><button class="btn btn-o btn-sm" onclick="loadPoFin()">⟳ รีเฟรช</button><button class="btn btn-o btn-sm gate-write" onclick="bulkArchiveCompletedPoFin()">📦 เก็บเข้าคลังรายการที่ปิดยอดแล้ว</button><button class="btn btn-p btn-sm gate-write" onclick="openPoFin()">+ เพิ่มรายการภาระหนี้</button></div>
   </div>
   <div class="phS" style="margin:-10px 0 14px;font-weight:600;">ภาระหนี้เงินสด — แยกยอด KS AGRO บันทึก กับ ยอดธนาคารแจ้ง (ไม่รวมข้ามสกุลเงิน)</div>
   <div class="kGrid" id="pofinKpi"></div>
@@ -1070,6 +1070,9 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
       <option value="paid">🟢 ชำระแล้ว / ปิดยอด</option>
     </select>
     <div class="sp"></div>
+    <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--dim);cursor:pointer;user-select:none;">
+      <input type="checkbox" id="pofinShowArchived" onchange="toggleShowArchivedPoFin(this)"> 📦 แสดงรายการที่เก็บเข้าคลัง
+    </label>
   </div>
   <div class="tCard">
     <div class="tWrap">
@@ -4472,9 +4475,30 @@ async function editBankReport(){
   if(error){toast('อัพเดทไม่สำเร็จ',true);return;}
   toast('✅ อัพเดทยอดธนาคารแจ้งเรียบร้อย');loadPoFin();
 }
+let SHOW_ARCHIVED_PF=false;
+function toggleShowArchivedPoFin(el){SHOW_ARCHIVED_PF=el.checked;rPofin();}
+async function archivePoFinRow(id,archived){
+  const{error}=await sb.from('po_financing').update({archived}).eq('id',id);
+  if(error){toast('อัพเดทไม่สำเร็จ: '+error.message,true);return;}
+  const r=PF.find(x=>x.id===id);if(r)r.archived=archived;
+  toast(archived?'📦 เก็บเข้าคลังแล้ว':'↩ นำออกจากคลังแล้ว');
+  rPofin();
+}
+async function bulkArchiveCompletedPoFin(){
+  let rows=PF.filter(r=>!r.archived&&r.status==='paid');
+  if(PFBank!=='all')rows=rows.filter(r=>r.bank===PFBank);
+  if(!rows.length){toast('ไม่พบรายการ "ชำระแล้ว / ปิดยอด" ที่ยังไม่ได้เก็บเข้าคลัง',true);return;}
+  if(!confirm(`ยืนยันเก็บเข้าคลัง ${rows.length} รายการที่สถานะ "ชำระแล้ว / ปิดยอด"?\nข้อมูลจะไม่หายไป แค่ถูกซ่อนจากมุมมองปกติ กดดูย้อนหลังได้ทุกเมื่อ`))return;
+  const ids=rows.map(r=>r.id);
+  const{error}=await sb.from('po_financing').update({archived:true}).in('id',ids);
+  if(error){toast('เก็บเข้าคลังไม่สำเร็จ: '+error.message,true);return;}
+  rows.forEach(r=>r.archived=true);
+  toast(`📦 เก็บเข้าคลัง ${rows.length} รายการเรียบร้อย`);
+  rPofin();
+}
 function setPofinBank(b,el){PFBank=b;document.querySelectorAll('#pofinBankT .pTab').forEach(e=>e.classList.remove('act'));el.classList.add('act');rPofin();}
 function rPofin(){
-  let rows=PF;
+  let rows=PF.filter(r=>SHOW_ARCHIVED_PF||!r.archived);
   if(PFBank!=='all')rows=rows.filter(r=>r.bank===PFBank);
   const stF=document.getElementById('pofinStF').value;
   if(stF)rows=rows.filter(r=>r.status===stF);
@@ -4486,9 +4510,12 @@ function rPofin(){
   const today=new Date();today.setHours(0,0,0,0);
   body.innerHTML=rows.map((r,i)=>{
     const overdue=r.due_date&&new Date(r.due_date)<today&&r.status!=='paid';
-    return`<tr>
+    const archBtn=r.status==='paid'||r.archived
+      ?`<button class="ib gate-write" style="color:${r.archived?'var(--amber)':'var(--dim)'}" title="${r.archived?'นำออกจากคลัง':'เก็บเข้าคลัง'}" onclick="archivePoFinRow('${r.id}',${!r.archived})">${r.archived?'↩':'📦'}</button>`
+      :'';
+    return`<tr style="${r.archived?'opacity:.55':''}">
       <td style="color:var(--dim)">${i+1}</td>
-      <td style="font-weight:600">${E(r.po_no)}</td>
+      <td style="font-weight:600">${E(r.po_no)}${r.archived?' <span class="bdg" style="background:var(--panel2);color:var(--dim2);font-size:9.5px">📦 คลัง</span>':''}</td>
       <td>${PF_PRODUCT_LBL[r.product]||r.product||'—'}</td>
       <td><span class="bdg bdg-b">${E(r.bank)}</span></td>
       <td>${r.qty_ton?N(r.qty_ton,0):'—'}</td>
@@ -4500,7 +4527,7 @@ function rPofin(){
       <td style="color:${overdue?'var(--red)':'var(--text)'};font-weight:${overdue?700:400}">${D(r.due_date)}${overdue?' ⚠️':''}</td>
       <td>${D(r.expire_60d)}</td>
       <td>${PF_STATUS_BDG[r.status]||E(r.status)}</td>
-      <td><div class="ra"><button class="ib e gate-write" onclick="editPoFin('${r.id}')">✏</button><button class="ib d gate-delete" onclick="delPoFin('${r.id}')">🗑</button></div></td>
+      <td><div class="ra">${archBtn}<button class="ib e gate-write" onclick="editPoFin('${r.id}')">✏</button><button class="ib d gate-delete" onclick="delPoFin('${r.id}')">🗑</button></div></td>
     </tr>`;
   }).join('');
 }
