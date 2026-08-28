@@ -1033,7 +1033,7 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
     <div class="tWrap">
       <table>
         <thead><tr>
-          <th>#</th><th>ลูกค้า</th><th>Sales Contract</th><th>Invoice No.</th>
+          <th>#</th><th id="fcCatTh" style="display:none">ประเภท</th><th>ลูกค้า</th><th>Sales Contract</th><th>Invoice No.</th>
           <th>QTY MTS</th><th>สกุลเงิน</th><th>Total</th>
           <th>คาดรับเงิน</th><th>ยอดรับจริง</th><th>ส่วนต่าง</th>
           <th>วันรับจริง</th><th>ธนาคาร</th><th>สถานะ</th><th>หมายเหตุ</th>
@@ -2073,7 +2073,7 @@ const sb = supabase.createClient(SURL, SKEY, {
 });
 
 let U=null, DR=[], FR=[];
-let DY='all', DK='all', FCT='export_starch';
+let DY='all', DK='all', FCT='all';
 let ES=[], EY='all', EK='all', EC='all';
 let ECD=[], ECY='all';
 const FCL={export_starch:'ขายแป้งมันส่งออก',export_chip:'ขายมันเส้นส่งออก',domestic:'ขายแป้งมันในประเทศ',domestic_coffee:'ขายกาแฟในประเทศ'};
@@ -2614,7 +2614,7 @@ function rIcKpi(){
     <div class="kCard kc-o"><div class="kLbl">มูลค่ารวม (THB)</div><div class="kVal">${N(thb,0)}</div><div class="kSub">บาท</div><div class="kIco">💵</div></div>
   `;
   // ── ยอดที่ต้องจ่ายออก (มัดจำ+ยอดคงเหลือ ที่ยังไม่ได้จ่าย) ──
-  const today=new Date();const lim=new Date();lim.setDate(lim.getDate()+7);
+  const today=new Date();today.setHours(0,0,0,0);const lim=new Date();lim.setHours(0,0,0,0);lim.setDate(lim.getDate()+7);
   let dueSoonThb=0,dueSoonCnt=0,overdueThb=0,overdueCnt=0;
   r.forEach(x=>{
     [['deposit_date','deposit_value_thb','deposit_paid'],['balance_date','balance_total','balance_paid']].forEach(([dF,vF,pF])=>{
@@ -2982,7 +2982,9 @@ function clearFcRange(){
 }
 function buildFcCT(){
   const w=document.getElementById('fcCT');w.innerHTML='';
+  const allTab=document.createElement('div');allTab.className='pTab'+(FCT==='all'?' act':'');allTab.textContent='ทั้งหมด';allTab.onclick=function(){FCT='all';buildFcCT();rFcKpi();rFc();};w.appendChild(allTab);
   Object.entries(FCL).forEach(([k,v])=>{const d=document.createElement('div');d.className='pTab'+(k===FCT?' act':'');d.textContent=v;d.onclick=function(){FCT=k;buildFcCT();rFcKpi();rFc();};w.appendChild(d);});
+  const catTh=document.getElementById('fcCatTh');if(catTh)catTh.style.display=FCT==='all'?'':'none';
 }
 function fcSt(r){
   if(r.status==='cancelled')return'cancelled';
@@ -3005,10 +3007,10 @@ function fcSt(r){
   return'pending';
 }
 function rFcKpi(){
-  const rows=FR.filter(r=>r.category===FCT);
+  const rows=FR.filter(r=>FCT==='all'||r.category===FCT);
   const currencies=[...new Set(rows.map(r=>(r.currency||'THB').toUpperCase()))];
   const byCur=cur=>rows.filter(r=>(r.currency||'THB').toUpperCase()===cur);
-  const today=new Date();const lim=new Date();lim.setDate(lim.getDate()+28);
+  const today=new Date();today.setHours(0,0,0,0);const lim=new Date();lim.setHours(0,0,0,0);lim.setDate(lim.getDate()+28);
 
   const rcvByC=currencies.map(cur=>({cur,v:byCur(cur).reduce((s,r)=>s+(+r.received_amount||0),0)}));
   const pendByC=currencies.map(cur=>{
@@ -3057,7 +3059,7 @@ function rFc(){
   const sf=document.getElementById('fcStF')?.value||'';
   const dfrom=document.getElementById('fcDateFrom')?.value||'';
   const dto=document.getElementById('fcDateTo')?.value||'';
-  let rows=FR.filter(r=>r.category===FCT&&(SHOW_ARCHIVED_FC||!r.archived));
+  let rows=FR.filter(r=>(FCT==='all'||r.category===FCT)&&(SHOW_ARCHIVED_FC||!r.archived));
   if(s)rows=rows.filter(r=>(r.applicant_name||'').toLowerCase().includes(s)||(r.invoice_no||'').toLowerCase().includes(s)||(r.broker_name||'').toLowerCase().includes(s));
   if(sf)rows=rows.filter(r=>fcSt(r)===sf);
   if(dfrom)rows=rows.filter(r=>r.forecast_received_date&&r.forecast_received_date>=dfrom);
@@ -3085,6 +3087,7 @@ function rFc(){
       :'';
     return`<tr style="${r.archived?'opacity:.55':''}">
       <td style="color:var(--blue);width:44px;font-size:11px;font-weight:700">${r.seq_no?E(r.seq_no):'NO.'+(i+1)}</td>
+      <td style="${FCT==='all'?'':'display:none'};font-size:10.5px;color:var(--dim);white-space:nowrap">${E(FCL[r.category]||r.category)}</td>
       <td class="td-trunc" style="max-width:150px;font-weight:600">${E(r.applicant_name)}${r.archived?' <span class="bdg" style="background:var(--panel2);color:var(--dim2);font-size:9.5px">📦 คลัง</span>':''}</td>
       <td style="font-size:10.5px;white-space:nowrap">${E(r.sales_contract)}</td>
       <td style="font-size:11px">${E(r.invoice_no)}</td>
@@ -3298,7 +3301,7 @@ async function loadFinOverview(){
   stampUpdated('finUpdated');
 }
 function rFinFc(F){
-  const today=new Date();const lim=new Date();lim.setDate(lim.getDate()+28);
+  const today=new Date();today.setHours(0,0,0,0);const lim=new Date();lim.setHours(0,0,0,0);lim.setDate(lim.getDate()+28);
   const pend=F.filter(r=>!r.archived&&fcSt(r)==='pending'&&r.forecast_received_date&&new Date(r.forecast_received_date)>=today&&new Date(r.forecast_received_date)<=lim);
   const over=F.filter(r=>!r.archived&&fcSt(r)==='overdue');
 
@@ -3379,7 +3382,7 @@ async function loadDash(){
   // ── KPI (เดิม) ──
   const dT=D.reduce((s,r)=>s+(+r.total||0),0);
   const dM=D.reduce((s,r)=>s+(+r.qty_mts||0),0);
-  const today=new Date();const lim=new Date();lim.setDate(lim.getDate()+28);
+  const today=new Date();today.setHours(0,0,0,0);const lim=new Date();lim.setHours(0,0,0,0);lim.setDate(lim.getDate()+28);
   const pend=F.filter(r=>fcSt(r)==='pending'&&r.forecast_received_date&&new Date(r.forecast_received_date)>=today&&new Date(r.forecast_received_date)<=lim);
   const over=F.filter(r=>fcSt(r)==='overdue');
   document.getElementById('dashKpiDom').innerHTML=`
