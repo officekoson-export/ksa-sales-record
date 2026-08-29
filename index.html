@@ -3012,7 +3012,11 @@ function rFcKpi(){
   const byCur=cur=>rows.filter(r=>(r.currency||'THB').toUpperCase()===cur);
   const today=new Date();today.setHours(0,0,0,0);const lim=new Date();lim.setHours(0,0,0,0);lim.setDate(lim.getDate()+28);
 
-  const rcvByC=currencies.map(cur=>({cur,v:byCur(cur).reduce((s,r)=>s+(+r.received_amount||0),0)}));
+  const outByC=currencies.map(cur=>{
+    const rs=byCur(cur).filter(r=>!['received','cancelled'].includes(fcSt(r)));
+    const sum=rs.reduce((s,r)=>{const total=Number(r.total||0);const recv=Number(r.received_amount||0);return s+(total>0?total-recv:total);},0);
+    return{cur,cnt:rs.length,v:sum};
+  });
   const pendByC=currencies.map(cur=>{
     const rs=byCur(cur).filter(r=>{if(!r.forecast_received_date||r.received_date)return false;const d=new Date(r.forecast_received_date);return d>=today&&d<=lim;});
     return{cur,cnt:rs.length,v:rs.reduce((s,r)=>s+(+r.total||0),0)};
@@ -3022,14 +3026,14 @@ function rFcKpi(){
     const sum=rs.reduce((s,r)=>{const total=Number(r.total||0);const recv=Number(r.received_amount||0);return s+(total>0?total-recv:0);},0);
     return{cur,cnt:rs.length,v:sum};
   });
+  const totalOutCnt=outByC.reduce((s,x)=>s+x.cnt,0);
   const totalPendCnt=pendByC.reduce((s,x)=>s+x.cnt,0);
   const totalOverCnt=overByC.reduce((s,x)=>s+x.cnt,0);
   const overdueSubHtml=totalOverCnt>0?'ต้องติดตามด่วน!':'ไม่มีรายการเลยกำหนด';
   const multiLine=list=>list.map(x=>`<span style="display:block">${N(x.v,2)} <span style="font-size:10.5px;opacity:.6">${x.cur}</span></span>`).join('')||`<span style="display:block">0.00</span>`;
 
   document.getElementById('fcKpi').innerHTML=`
-    <div class="kCard kc-b"><div class="kLbl">รายการทั้งหมด</div><div class="kVal">${rows.length}</div><div class="kSub">รายการ</div></div>
-    <div class="kCard kc-g"><div class="kLbl">รับเงินแล้ว</div><div class="kVal" style="font-size:15px;line-height:1.7">${multiLine(rcvByC)}</div></div>
+    <div class="kCard kc-b"><div class="kLbl">ยอดค้างรับสะสมทั้งหมด (${totalOutCnt} รายการ)</div><div class="kVal" style="font-size:15px;line-height:1.7">${multiLine(outByC)}</div><div class="kSub">ทุกรายการที่ยังไม่ปิดยอด · ไม่จำกัดช่วงเวลา</div></div>
     <div class="kCard kc-a"><div class="kLbl">คาดรับใน 4 สัปดาห์ (${totalPendCnt} รายการ)</div><div class="kVal" style="font-size:15px;line-height:1.7">${multiLine(pendByC)}</div></div>
     <div class="kCard kc-r"><div class="kLbl">⚠️ เลยกำหนดรับ (${totalOverCnt} รายการ)</div><div class="kVal" style="font-size:15px;line-height:1.7">${multiLine(overByC)}</div><div class="kSub">${overdueSubHtml}</div></div>
   `;
@@ -3066,9 +3070,12 @@ function rFc(){
   if(dto)rows=rows.filter(r=>r.forecast_received_date&&r.forecast_received_date<=dto);
   const body=document.getElementById('fcTb');
   if(!rows.length){body.innerHTML='<tr><td colspan="16"><div class="empty"><div class="ei">💼</div><p>ไม่พบรายการ</p></div></td></tr>';document.getElementById('fcCnt').textContent='ไม่พบรายการ';document.getElementById('fcTot').textContent='';return;}
-  const tot=rows.reduce((s,r)=>s+(+r.total||0),0);
+  const totByCur={};
+  rows.forEach(r=>{const k=(r.currency||'THB').toUpperCase();totByCur[k]=(totByCur[k]||0)+(+r.total||0);});
   document.getElementById('fcCnt').textContent=`แสดง ${rows.length} รายการ`;
-  document.getElementById('fcTot').textContent=`รวม ${N(tot,2)} ${rows[0]?.currency||''}`;
+  document.getElementById('fcTot').textContent=Object.keys(totByCur).length
+    ?'รวม '+Object.entries(totByCur).map(([cur,amt])=>`${N(amt,2)} ${cur}`).join(' · ')
+    :'';
   body.innerHTML=rows.map((r,i)=>{
     const st=fcSt(r);
     const bdgMap={
