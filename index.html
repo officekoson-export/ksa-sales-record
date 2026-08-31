@@ -1016,7 +1016,7 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
     <select class="sel" id="fcStF" onchange="rFc()">
       <option value="">สถานะทั้งหมด</option>
       <option value="received">✅ เงินเข้าแล้ว</option>
-      <option value="pending">⏳ รอรับ</option>
+      <option value="pending">⏳ รอรับเงิน</option>
       <option value="overdue">🔴 เลยกำหนดรับ</option>
       <option value="waiting">⏳ รอคอนเฟิร์ม</option>
       <option value="w_invoice">📋 รอวางบิล</option>
@@ -3080,13 +3080,13 @@ function rFc(){
     const st=fcSt(r);
     const bdgMap={
       received:'<span class="bdg bdg-g">✅ เงินเข้าแล้ว</span>',
-      overdue:'<span class="bdg bdg-r">🔴 เลยกำหนด</span>',
+      overdue:'<span class="bdg bdg-r">🔴 เลยกำหนดรับ</span>',
       cancelled:'<span class="bdg bdg-cancel">🚫 ยกเลิก</span>',
-      overdue_manual:'<span class="bdg bdg-r">🔴 เกินกำหนด / รอเงิน</span>',
+      overdue_manual:'<span class="bdg bdg-r">🔴 เกินกำหนด / รอเงิน (ชำระบางส่วน)</span>',
       waiting:'<span class="bdg bdg-wait">⏳ รอคอนเฟิร์ม</span>',
       w_invoice:'<span class="bdg bdg-wait">📋 รอวางบิล</span>',
       w_ship:'<span class="bdg bdg-ship">🚢 รอส่งของ</span>',
-      pending:'<span class="bdg bdg-a">⏳ รอรับ</span>',
+      pending:'<span class="bdg bdg-a">⏳ รอรับเงิน</span>',
     };
     const bdg=bdgMap[st]||bdgMap.pending;
     const archBtn=st==='received'||r.archived
