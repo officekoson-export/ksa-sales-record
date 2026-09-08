@@ -1035,8 +1035,8 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
         <thead><tr>
           <th>#</th><th id="fcCatTh" style="display:none">ประเภท</th><th>ลูกค้า</th><th>Sales Contract</th><th>Invoice No.</th>
           <th>QTY MTS</th><th>สกุลเงิน</th><th>Total</th>
-          <th>คาดรับเงิน</th><th>ยอดรับจริง</th><th>ส่วนต่าง</th>
-          <th>วันรับจริง</th><th>ธนาคาร</th><th>สถานะ</th><th>หมายเหตุ</th>
+          <th>Advance</th><th>Balance</th>
+          <th>ธนาคาร</th><th>สถานะ</th><th>หมายเหตุ</th>
           <th>จัดการ</th>
         </tr></thead>
         <tbody id="fcTb"><tr><td colspan="16"><div class="loading"><span class="spin"></span>กำลังโหลด...</div></td></tr></tbody>
@@ -2009,9 +2009,24 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
       <div class="fld"><label>ETD</label><input type="date" id="f_etd"></div>
       <div class="fld"><label>ETA</label><input type="date" id="f_eta"></div>
     </div>
-    <div class="sLbl">การรับเงิน</div>
+    <div class="sLbl">การรับเงิน — งวดที่ 1 (มัดจำ / Advance)</div>
     <div class="fg">
-      <div class="fld"><label>วันที่คาดว่าจะได้รับเงิน *</label><input type="date" id="f_forecast_received_date"></div>
+      <div class="fld"><label>วันที่คาดว่าจะรับมัดจำ</label><input type="date" id="f_deposit_forecast_date"></div>
+      <div class="fld"><label>ยอดเงินมัดจำ</label><input type="number" step="any" id="f_deposit_amount"></div>
+      <div class="fld"><label>วันที่รับเงินมัดจำ</label><input type="date" id="f_deposit_received_date"></div>
+      <div class="fld"><label>แบงค์ชาร์จ/ค่าธรรมเนียม</label><input type="number" step="any" id="f_deposit_bank_charge"></div>
+    </div>
+    <div class="sLbl">การรับเงิน — งวดที่ 2 (ส่วนที่เหลือ / Balance)</div>
+    <div class="fg">
+      <div class="fld"><label>วันที่คาดว่าจะรับส่วนที่เหลือ</label><input type="date" id="f_balance_forecast_date"></div>
+      <div class="fld"><label>ยอดเงินที่เหลือ</label><input type="number" step="any" id="f_balance_amount"></div>
+      <div class="fld"><label>วันที่รับเงินส่วนที่เหลือ</label><input type="date" id="f_balance_received_date"></div>
+      <div class="fld"><label>แบงค์ชาร์จ/ค่าธรรมเนียม</label><input type="number" step="any" id="f_balance_bank_charge"></div>
+    </div>
+    <div class="sLbl">การรับเงิน — กรณีไม่แบ่งงวด (จ่ายครั้งเดียว)</div>
+    <div class="phS" style="margin:-6px 0 10px;">ใช้ 4 ช่องนี้เฉพาะสัญญาที่รับเงินครั้งเดียว ไม่ได้แบ่งมัดจำ/ส่วนที่เหลือ — ถ้ากรอกงวดที่ 1-2 ด้านบนแล้ว ไม่ต้องกรอกส่วนนี้</div>
+    <div class="fg">
+      <div class="fld"><label>วันที่คาดว่าจะได้รับเงิน</label><input type="date" id="f_forecast_received_date"></div>
       <div class="fld"><label>ยอดที่ได้รับจริง</label><input type="number" step="any" id="f_received_amount"></div>
       <div class="fld"><label>ส่วนต่าง (Diff)</label><input type="number" step="any" id="f_diff_amount"></div>
       <div class="fld"><label>วันที่ได้รับเงินจริง</label><input type="date" id="f_received_date"></div>
@@ -2993,25 +3008,86 @@ function buildFcCT(){
   Object.entries(FCL).forEach(([k,v])=>{const d=document.createElement('div');d.className='pTab'+(k===FCT?' act':'');d.textContent=v;d.onclick=function(){FCT=k;buildFcCT();rFcKpi();rFc();};w.appendChild(d);});
   const catTh=document.getElementById('fcCatTh');if(catTh)catTh.style.display=FCT==='all'?'':'none';
 }
+function fcHasSplit(r){
+  return (r.deposit_amount!=null&&r.deposit_amount!=='')||(r.balance_amount!=null&&r.balance_amount!=='');
+}
 function fcSt(r){
   if(r.status==='cancelled')return'cancelled';
   const rmk=(r.remark||'')+(r.invoice_no||'');
   if(rmk.includes('ยกเลิก'))return'cancelled';
   // เกินกำหนดจาก Excel โดยตรง (overdue_manual)
   if(r.status==='overdue_manual')return'overdue';
-  // รับเงินครบแล้ว (ไม่ใช่บางส่วน)
-  const total=Number(r.total||0);
-  const recv=Number(r.received_amount||0);
-  const fullPaid=(r.status==='confirmed')||(r.received_date&&(total===0||recv>=total-1));
-  if(fullPaid)return'received';
-  // รับบางส่วนแต่ยังค้างอยู่ → ดูวันที่
+  // รอคอนเฟิร์ม / รอวางบิล / รอส่งของ — ระบุมาตรงๆ
   if(r.status==='waiting_confirm')return'waiting';
   if(r.status==='waiting_invoice')return'w_invoice';
   if(r.status==='waiting_ship')return'w_ship';
   const t=new Date();t.setHours(0,0,0,0);
+
+  if(fcHasSplit(r)){
+    // สัญญาแบ่งจ่าย 2 งวด (มัดจำ + ส่วนที่เหลือ)
+    const depositDone=!r.deposit_amount||!!r.deposit_received_date;
+    const balanceDone=!r.balance_amount||!!r.balance_received_date;
+    if(r.status==='confirmed'||(depositDone&&balanceDone))return'received';
+    const depositOverdue=!depositDone&&r.deposit_forecast_date&&new Date(r.deposit_forecast_date)<t;
+    const balanceOverdue=!balanceDone&&r.balance_forecast_date&&new Date(r.balance_forecast_date)<t;
+    if(depositOverdue||balanceOverdue)return'overdue';
+    return'pending';
+  }
+
+  // จ่ายครั้งเดียว (ของเดิม)
+  const total=Number(r.total||0);
+  const recv=Number(r.received_amount||0);
+  const fullPaid=(r.status==='confirmed')||(r.received_date&&(total===0||recv>=total-1));
+  if(fullPaid)return'received';
   const fd=r.forecast_received_date?new Date(r.forecast_received_date):null;
   if(fd&&fd<t)return'overdue';
   return'pending';
+}
+// ยอดค้างรับปัจจุบันของแถวนี้ (หักส่วนที่รับมาแล้วออกให้อัตโนมัติ)
+function fcOutstandingAmt(r){
+  if(fcHasSplit(r)){
+    const depositOwed=r.deposit_received_date?0:Number(r.deposit_amount||0);
+    const balanceOwed=r.balance_received_date?0:Number(r.balance_amount||0);
+    return depositOwed+balanceOwed;
+  }
+  const total=Number(r.total||0);
+  const recv=Number(r.received_amount||0);
+  return total>0?Math.max(total-recv,0):total;
+}
+// ยอดที่จะครบกำหนดรับภายในช่วง [today, lim] — เช็คแยกทีละงวดสำหรับสัญญาแบ่งจ่าย
+function fcPendingAmt(r,today,lim){
+  if(fcHasSplit(r)){
+    let amt=0;
+    if(!r.deposit_received_date&&r.deposit_amount&&r.deposit_forecast_date){
+      const d=new Date(r.deposit_forecast_date);
+      if(d>=today&&d<=lim)amt+=Number(r.deposit_amount||0);
+    }
+    if(!r.balance_received_date&&r.balance_amount&&r.balance_forecast_date){
+      const d=new Date(r.balance_forecast_date);
+      if(d>=today&&d<=lim)amt+=Number(r.balance_amount||0);
+    }
+    return amt;
+  }
+  if(!r.received_date&&r.forecast_received_date){
+    const d=new Date(r.forecast_received_date);
+    if(d>=today&&d<=lim)return Number(r.total||0);
+  }
+  return 0;
+}
+// ยอดที่เลยกำหนดรับแล้ว (นับเฉพาะงวด/ยอดที่ยังไม่ได้รับจริง)
+function fcOverdueAmt(r,today){
+  if(r.status==='overdue_manual')return fcOutstandingAmt(r);
+  if(fcHasSplit(r)){
+    let amt=0;
+    if(!r.deposit_received_date&&r.deposit_forecast_date&&new Date(r.deposit_forecast_date)<today)amt+=Number(r.deposit_amount||0);
+    if(!r.balance_received_date&&r.balance_forecast_date&&new Date(r.balance_forecast_date)<today)amt+=Number(r.balance_amount||0);
+    return amt;
+  }
+  if(r.forecast_received_date&&!r.received_date&&new Date(r.forecast_received_date)<today){
+    const total=Number(r.total||0),recv=Number(r.received_amount||0);
+    return total>0?Math.max(total-recv,0):total;
+  }
+  return 0;
 }
 function rFcKpi(){
   const rows=FR.filter(r=>FCT==='all'||r.category===FCT);
@@ -3021,16 +3097,16 @@ function rFcKpi(){
 
   const outByC=currencies.map(cur=>{
     const rs=byCur(cur).filter(r=>!['received','cancelled'].includes(fcSt(r)));
-    const sum=rs.reduce((s,r)=>{const total=Number(r.total||0);const recv=Number(r.received_amount||0);return s+(total>0?total-recv:total);},0);
+    const sum=rs.reduce((s,r)=>s+fcOutstandingAmt(r),0);
     return{cur,cnt:rs.length,v:sum};
   });
   const pendByC=currencies.map(cur=>{
-    const rs=byCur(cur).filter(r=>{if(!r.forecast_received_date||r.received_date)return false;const d=new Date(r.forecast_received_date);return d>=today&&d<=lim;});
-    return{cur,cnt:rs.length,v:rs.reduce((s,r)=>s+(+r.total||0),0)};
+    const rs=byCur(cur).filter(r=>!['received','cancelled'].includes(fcSt(r))&&fcPendingAmt(r,today,lim)>0);
+    return{cur,cnt:rs.length,v:rs.reduce((s,r)=>s+fcPendingAmt(r,today,lim),0)};
   });
   const overByC=currencies.map(cur=>{
     const rs=byCur(cur).filter(r=>fcSt(r)==='overdue');
-    const sum=rs.reduce((s,r)=>{const total=Number(r.total||0);const recv=Number(r.received_amount||0);return s+(total>0?total-recv:0);},0);
+    const sum=rs.reduce((s,r)=>s+fcOverdueAmt(r,today),0);
     return{cur,cnt:rs.length,v:sum};
   });
   const totalOutCnt=outByC.reduce((s,x)=>s+x.cnt,0);
@@ -3102,6 +3178,13 @@ function rFc(){
     const stageMap={deposit:'มัดจำ',balance:'คงเหลือ',other:'อื่นๆ'};
     const stageLbl=stageMap[r.payment_stage]?stageMap[r.payment_stage]+(r.payment_stage_pct?' '+E(r.payment_stage_pct):''):'';
     const stageTag=stageLbl?` <span class="bdg bdg-b" style="font-size:9.5px">${stageLbl}</span>`:'';
+    const hasSplit=fcHasSplit(r);
+    const advCell=hasSplit
+      ?fcLegCell(r.deposit_amount,r.deposit_forecast_date,r.deposit_received_date)
+      :fcLegCell(r.total,r.forecast_received_date,r.received_date);
+    const balCell=hasSplit
+      ?fcLegCell(r.balance_amount,r.balance_forecast_date,r.balance_received_date)
+      :'<span style="color:var(--dim2)">—</span>';
     return`<tr style="${r.archived?'opacity:.55':''}">
       <td style="color:var(--blue);width:44px;font-size:11px;font-weight:700">${r.seq_no?E(r.seq_no):'NO.'+(i+1)}</td>
       <td style="${FCT==='all'?'':'display:none'};font-size:10.5px;color:var(--dim);white-space:nowrap">${E(FCL[r.category]||r.category)}</td>
@@ -3111,10 +3194,8 @@ function rFc(){
       <td style="width:60px">${N(r.qty_mts,2)}</td>
       <td style="width:48px"><span class="bdg bdg-b">${E(r.currency)}</span></td>
       <td style="font-weight:700;color:var(--blue);width:90px">${N(r.total,2)}</td>
-      <td style="width:80px">${D(r.forecast_received_date)}</td>
-      <td style="color:var(--green);font-weight:600;width:90px">${r.received_amount?N(r.received_amount,2):E('')}</td>
-      <td style="width:80px;color:${(r.diff_amount||0)<0?'var(--red)':'var(--green)'}">${r.diff_amount?N(r.diff_amount,2):E('')}</td>
-      <td style="width:80px">${D(r.received_date)}</td>
+      <td style="width:100px;font-size:11px">${advCell}</td>
+      <td style="width:100px;font-size:11px">${balCell}</td>
       <td style="font-size:11px;width:80px">${E(r.bank)}</td>
       <td style="width:110px">${bdg}</td>
       <td class="td-trunc" style="max-width:140px;font-size:11px;color:var(--dim)">${E(r.remark)}</td>
@@ -3122,8 +3203,15 @@ function rFc(){
     </tr>`;
   }).join('');
 }
-const FF=['category','seq_no','broker_name','applicant_name','sales_contract','invoice_no','payment_stage','payment_stage_pct','packing_kgs','qty_mts','price_fob','price_cfr','price_cif','currency','total','cfs_loading_date','etd','eta','forecast_received_date','received_amount','diff_amount','received_date','exchange_rate','bank','remark','status'];
-const FN=['qty_mts','price_fob','price_cfr','price_cif','total','received_amount','diff_amount','exchange_rate'];
+function fcLegCell(amount,fDate,rDate){
+  if(!amount)return '<span style="color:var(--dim2)">—</span>';
+  if(rDate)return `<div style="color:var(--green);font-weight:600">${N(amount,2)}</div><div style="font-size:9.5px;color:var(--dim)">✅ ${D(rDate)}</div>`;
+  const t=new Date();t.setHours(0,0,0,0);
+  const overdue=fDate&&new Date(fDate)<t;
+  return `<div style="font-weight:600;color:${overdue?'var(--red)':'var(--text)'}">${N(amount,2)}</div><div style="font-size:9.5px;color:${overdue?'var(--red)':'var(--dim)'}">${overdue?'⚠️':'⏳'} ${D(fDate)}</div>`;
+}
+const FF=['category','seq_no','broker_name','applicant_name','sales_contract','invoice_no','payment_stage','payment_stage_pct','packing_kgs','qty_mts','price_fob','price_cfr','price_cif','currency','total','cfs_loading_date','etd','eta','deposit_forecast_date','deposit_amount','deposit_received_date','deposit_bank_charge','balance_forecast_date','balance_amount','balance_received_date','balance_bank_charge','forecast_received_date','received_amount','diff_amount','received_date','exchange_rate','bank','remark','status'];
+const FN=['qty_mts','price_fob','price_cfr','price_cif','total','deposit_amount','deposit_bank_charge','balance_amount','balance_bank_charge','received_amount','diff_amount','exchange_rate'];
 function openFc(){
   document.getElementById('mFcT').textContent='เพิ่มรายการ Forecast Income';
   document.getElementById('f_id').value='';
@@ -3283,13 +3371,12 @@ function rKpi(){
   CH.kpiTop=new Chart(document.getElementById('kpiTopChart'),{type:'bar',data:{labels:top3.map(x=>x[0].length>22?x[0].slice(0,22)+'…':x[0]),datasets:[{label:'MTS',data:top3.map(x=>x[1]),backgroundColor:CHCOLORS.cyan,borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'#1e2d42'}},y:{grid:{display:false}}}}});
 
   // ── เงินค้างรับเลยกำหนด (คำนวณแบบเดียวกับ Dashboard) ──
-  const today=new Date();
+  const today=new Date();today.setHours(0,0,0,0);
   const over=window.__kpiFc.filter(r=>fcSt(r)==='overdue');
   const overByCur={};
   over.forEach(r=>{
-    const k=r.currency||'THB';
-    const total=Number(r.total||0),recv=Number(r.received_amount||0);
-    overByCur[k]=(overByCur[k]||0)+(total>0?total-recv:0);
+    const k=(r.currency||'THB').toUpperCase();
+    overByCur[k]=(overByCur[k]||0)+fcOverdueAmt(r,today);
   });
   const overHtml=Object.entries(overByCur).length?Object.entries(overByCur).map(([cur,amt])=>`<span style="display:block">${N(amt,0)} <span style="font-size:11px;opacity:.7">${cur}</span></span>`).join(''):'<span style="display:block">0.00</span>';
 
@@ -3319,13 +3406,14 @@ async function loadFinOverview(){
 }
 function rFinFc(F){
   const today=new Date();today.setHours(0,0,0,0);const lim=new Date();lim.setHours(0,0,0,0);lim.setDate(lim.getDate()+28);
-  const pend=F.filter(r=>!r.archived&&fcSt(r)==='pending'&&r.forecast_received_date&&new Date(r.forecast_received_date)>=today&&new Date(r.forecast_received_date)<=lim);
-  const over=F.filter(r=>!r.archived&&fcSt(r)==='overdue');
+  const rows=F.filter(r=>!r.archived&&!['received','cancelled'].includes(fcSt(r)));
+  const pend=rows.filter(r=>fcPendingAmt(r,today,lim)>0);
+  const over=rows.filter(r=>fcSt(r)==='overdue');
 
   const pendByCurCat={};
-  pend.forEach(r=>{const k=r.currency||'THB';pendByCurCat[k]=(pendByCurCat[k]||0)+(+r.total||0);});
+  pend.forEach(r=>{const k=(r.currency||'THB').toUpperCase();pendByCurCat[k]=(pendByCurCat[k]||0)+fcPendingAmt(r,today,lim);});
   const pendByCat={};
-  pend.forEach(r=>{pendByCat[r.category]=(pendByCat[r.category]||0)+(+r.total||0);});
+  pend.forEach(r=>{pendByCat[r.category]=(pendByCat[r.category]||0)+fcPendingAmt(r,today,lim);});
   const pendCatEntries=Object.keys(pendByCat);
   const topPendCat=Object.entries(pendByCat).sort((a,b)=>b[1]-a[1])[0]?.[0]||'';
   const pendAmtHtml=Object.entries(pendByCurCat).length
@@ -3335,12 +3423,11 @@ function rFinFc(F){
 
   const overByCurCat={};
   over.forEach(r=>{
-    const k=r.currency||'THB';
-    const total=Number(r.total||0),recv=Number(r.received_amount||0);
-    overByCurCat[k]=(overByCurCat[k]||0)+(total>0?total-recv:0);
+    const k=(r.currency||'THB').toUpperCase();
+    overByCurCat[k]=(overByCurCat[k]||0)+fcOverdueAmt(r,today);
   });
   const overByCat={};
-  over.forEach(r=>{overByCat[r.category]=(overByCat[r.category]||0)+(+r.total||0);});
+  over.forEach(r=>{overByCat[r.category]=(overByCat[r.category]||0)+fcOverdueAmt(r,today);});
   const topOverCat=Object.entries(overByCat).sort((a,b)=>b[1]-a[1])[0]?.[0]||'domestic';
   const overAmtHtml=Object.entries(overByCurCat).length
     ?Object.entries(overByCurCat).map(([cur,amt])=>`<span style="display:block">${N(amt,0)} <span style="font-size:11px;opacity:.7">${cur}</span></span>`).join('')
@@ -3400,7 +3487,7 @@ async function loadDash(){
   const dT=D.reduce((s,r)=>s+(+r.total||0),0);
   const dM=D.reduce((s,r)=>s+(+r.qty_mts||0),0);
   const today=new Date();today.setHours(0,0,0,0);const lim=new Date();lim.setHours(0,0,0,0);lim.setDate(lim.getDate()+28);
-  const pend=F.filter(r=>fcSt(r)==='pending'&&r.forecast_received_date&&new Date(r.forecast_received_date)>=today&&new Date(r.forecast_received_date)<=lim);
+  const pend=F.filter(r=>!['received','cancelled'].includes(fcSt(r))&&fcPendingAmt(r,today,lim)>0);
   const over=F.filter(r=>fcSt(r)==='overdue');
   document.getElementById('dashKpiDom').innerHTML=`
     <div class="kCard kc-g"><div class="kLbl">ยอดขายในประเทศรวม</div><div class="kVal">${N(dT,0)}</div><div class="kSub">THB · ทุกปีรวมกัน</div><div class="kIco">🏭</div></div>
@@ -3434,11 +3521,11 @@ async function loadDash(){
 
   const pendByCurCat={};
   pend.forEach(r=>{
-    const k=r.currency||'THB';
-    pendByCurCat[k]=(pendByCurCat[k]||0)+(+r.total||0);
+    const k=(r.currency||'THB').toUpperCase();
+    pendByCurCat[k]=(pendByCurCat[k]||0)+fcPendingAmt(r,today,lim);
   });
   const pendByCat={};
-  pend.forEach(r=>{pendByCat[r.category]=(pendByCat[r.category]||0)+(+r.total||0);});
+  pend.forEach(r=>{pendByCat[r.category]=(pendByCat[r.category]||0)+fcPendingAmt(r,today,lim);});
   const pendCatEntries=Object.keys(pendByCat);
   const topPendCat=Object.entries(pendByCat).sort((a,b)=>b[1]-a[1])[0]?.[0]||'';
   const pendAmtHtml=Object.entries(pendByCurCat).length
@@ -3448,14 +3535,11 @@ async function loadDash(){
 
   const overByCurCat={};
   over.forEach(r=>{
-    const k=r.currency||'THB';
-    const total=Number(r.total||0);
-    const recv=Number(r.received_amount||0);
-    const outstanding=total>0?total-recv:0;
-    overByCurCat[k]=(overByCurCat[k]||0)+outstanding;
+    const k=(r.currency||'THB').toUpperCase();
+    overByCurCat[k]=(overByCurCat[k]||0)+fcOverdueAmt(r,today);
   });
   const overByCat={};
-  over.forEach(r=>{overByCat[r.category]=(overByCat[r.category]||0)+(+r.total||0);});
+  over.forEach(r=>{overByCat[r.category]=(overByCat[r.category]||0)+fcOverdueAmt(r,today);});
   const topOverCat=Object.entries(overByCat).sort((a,b)=>b[1]-a[1])[0]?.[0]||'domestic';
   const overAmtHtml=Object.entries(overByCurCat).length
     ?Object.entries(overByCurCat).map(([cur,amt])=>`<span style="display:block">${N(amt,0)} <span style="font-size:11px;opacity:.7">${cur}</span></span>`).join('')
