@@ -2462,6 +2462,28 @@ function toast(m,err=false){const t=document.getElementById('toast');t.textConte
 
 // ═══════════ DOMESTIC ═══════════
 // ดึงข้อมูลทุกแถวแบบแบ่งหน้า เพราะ Supabase/PostgREST จำกัดค่าเริ่มต้นไว้ที่ 1000 แถวต่อ request
+// ดึงข้อมูลครบทุกแถว (Supabase ส่งกลับได้ครั้งละไม่เกิน 1,000 แถว จึงต้องดึงทีละหน้า)
+// orders = [['col',{ascending:true}], ...] ; เรียงตาม id เป็นตัวสุดท้ายเพื่อให้การแบ่งหน้าไม่ซ้ำ/ไม่ตกหล่น
+async function selAll(table,cols='*',orders=[]){
+  const PAGE=1000;
+  const run=async(useId)=>{
+    let all=[],from=0;
+    while(true){
+      let q=sb.from(table).select(cols);
+      orders.forEach(([c,o])=>{q=q.order(c,o||{ascending:true});});
+      if(useId)q=q.order('id',{ascending:true});
+      const{data,error}=await q.range(from,from+PAGE-1);
+      if(error)return{data:null,error};
+      all=all.concat(data||[]);
+      if(!data||data.length<PAGE)break;
+      from+=PAGE;
+    }
+    return{data:all,error:null};
+  };
+  let r=await run(true);
+  if(r.error)r=await run(false); // ตารางที่ไม่มีคอลัมน์ id
+  return r;
+}
 async function fetchAllRows(table){
   let all=[],from=0;const PAGE=1000;
   while(true){
@@ -3067,12 +3089,12 @@ function xEc(){
 // ═══════════ FORECAST ═══════════
 async function loadFc(){
   document.getElementById('fcTb').innerHTML='<tr><td colspan="16"><div class="loading"><span class="spin"></span>กำลังโหลด...</div></td></tr>';
-  const{data,error}=await sb.from('forecast_income').select('*').order('category').order('seq_no');
+  const{data,error}=await selAll('forecast_income','*',[['category'],['seq_no']]);
   if(error){toast('โหลดไม่สำเร็จ',true);return;}
   FR=(data||[]).sort((a,b)=>{const na=seqNum(a.seq_no),nb=seqNum(b.seq_no);if(na!==nb)return na-nb;return (a.sales_contract||'').localeCompare(b.sales_contract||'',undefined,{numeric:true,sensitivity:'base'});});buildFcCT();rFcKpi();rFc();
 }
 async function loadFcBadge(){
-  const{data}=await sb.from('forecast_income').select('forecast_received_date,received_date');
+  const{data}=await selAll('forecast_income','forecast_received_date,received_date');
   if(!data)return;
   const today=new Date();today.setHours(0,0,0,0);
   const lim=new Date();lim.setDate(lim.getDate()+28);
@@ -3377,13 +3399,13 @@ function stampUpdated(elId){
 }
 async function loadKpi(){
   const[{data:dom},{data:es},{data:ec},{data:dc},{data:ic},{data:fc},{data:stk}]=await Promise.all([
-    sb.from('sales_domestic').select('year,qty_mts,total,applicant_name'),
-    sb.from('export_tapioca_starch').select('year,qty_mts,total,currency,applicant_name'),
-    sb.from('export_tapioca_chip').select('year,qty_mts,total,currency,applicant_name'),
-    sb.from('domestic_coffee').select('year,qty_mts,total,applicant_name'),
-    sb.from('import_coffee').select('year,qty_mts,total,currency,applicant_name'),
-    sb.from('forecast_income').select('*'),
-    sb.from('stock_items').select('*')
+    selAll('sales_domestic','year,qty_mts,total,applicant_name'),
+    selAll('export_tapioca_starch','year,qty_mts,total,currency,applicant_name'),
+    selAll('export_tapioca_chip','year,qty_mts,total,currency,applicant_name'),
+    selAll('domestic_coffee','year,qty_mts,total,applicant_name'),
+    selAll('import_coffee','year,qty_mts,total,currency,applicant_name'),
+    selAll('forecast_income','*'),
+    selAll('stock_items','*')
   ]);
   window.__kpiDom=dom||[];window.__kpiEs=es||[];window.__kpiEc=ec||[];window.__kpiDc=dc||[];window.__kpiIc=ic||[];
   window.__kpiFc=fc||[];window.__kpiStk=stk||[];
@@ -3486,10 +3508,10 @@ function rKpi(){
 // ═══════════ FINANCIAL OVERVIEW (รวม Forecast + PO Financing + Stock) ═══════════
 async function loadFinOverview(){
   const[{data:fc},{data:pf},{data:br},{data:stk}]=await Promise.all([
-    sb.from('forecast_income').select('*'),
-    sb.from('po_financing').select('*'),
-    sb.from('po_financing_bank_report').select('*'),
-    sb.from('stock_items').select('*')
+    selAll('forecast_income','*'),
+    selAll('po_financing','*'),
+    selAll('po_financing_bank_report','*'),
+    selAll('stock_items','*')
   ]);
   rFinFc(fc||[]);
   rFinPofin(pf||[],br||[]);
@@ -3566,12 +3588,12 @@ function rFinStock(rows){
 
 async function loadDash(){
   const[{data:dom},{data:fc},{data:es},{data:ec},{data:dc},{data:ic}]=await Promise.all([
-    sb.from('sales_domestic').select('year,total,qty_mts,packing_kgs,loading_date,factory1_name,factory2_name,factory3_name,factory4_name,shipping_name,survey_name,fumigation_name'),
-    sb.from('forecast_income').select('*'),
-    sb.from('export_tapioca_starch').select('year,total,currency,qty_mts,packing_kgs,loading_date,factory1_name,factory2_name,factory3_name,factory4_name,shipping_name,survey_name,fumigation_name'),
-    sb.from('export_tapioca_chip').select('year,total,currency,qty_mts,loading_date,factory1_name,factory2_name,factory3_name,factory4_name,shipping_name,survey_name,fumigation_name'),
-    sb.from('domestic_coffee').select('year,total,qty_mts,currency'),
-    sb.from('import_coffee').select('year,total,qty_mts,currency')
+    selAll('sales_domestic','year,total,qty_mts,packing_kgs,loading_date,factory1_name,factory2_name,factory3_name,factory4_name,shipping_name,survey_name,fumigation_name'),
+    selAll('forecast_income','*'),
+    selAll('export_tapioca_starch','year,total,currency,qty_mts,packing_kgs,loading_date,factory1_name,factory2_name,factory3_name,factory4_name,shipping_name,survey_name,fumigation_name'),
+    selAll('export_tapioca_chip','year,total,currency,qty_mts,loading_date,factory1_name,factory2_name,factory3_name,factory4_name,shipping_name,survey_name,fumigation_name'),
+    selAll('domestic_coffee','year,total,qty_mts,currency'),
+    selAll('import_coffee','year,total,qty_mts,currency')
   ]);
   const D=dom||[],F=fc||[],E=es||[],C=ec||[],DCoff=dc||[],ICoff=ic||[];
 
@@ -4444,7 +4466,7 @@ function stockLabel(r){
 }
 async function loadStock(){
   document.getElementById('stockTb').innerHTML='<tr><td colspan="8"><div class="loading"><span class="spin"></span>กำลังโหลดข้อมูล...</div></td></tr>';
-  const{data,error}=await sb.from('stock_items').select('*').order('record_date',{ascending:false,nullsFirst:false});
+  const{data,error}=await selAll('stock_items','*',[['record_date',{ascending:false,nullsFirst:false}]]);
   if(error){toast('โหลดไม่สำเร็จ: '+error.message,true);return;}
   window.__stockRows=data||[];
   rStock();
@@ -4530,7 +4552,7 @@ async function exportAllData(){
     const results={};
     const counts=[];
     for(const t of tables){
-      const{data,error}=await fetchAllRows(t);
+      const{data,error}=['sales_domestic','export_tapioca_starch','export_tapioca_chip','domestic_coffee','import_coffee'].includes(t)?await fetchAllRows(t):await selAll(t);
       if(error){counts.push(`${t}: โหลดไม่สำเร็จ (${error.message})`);results[t]=[];continue;}
       results[t]=data||[];
       counts.push(`${t}: ${(data||[]).length} แถว`);
@@ -4632,8 +4654,8 @@ const PF_STATUS_BDG={outstanding:'<span class="bdg bdg-r">🔴 คงค้า�
 async function loadPoFin(){
   document.getElementById('pofinTb').innerHTML='<tr><td colspan="14"><div class="loading"><span class="spin"></span>กำลังโหลด...</div></td></tr>';
   const[{data:pf,error:e1},{data:br,error:e2}]=await Promise.all([
-    sb.from('po_financing').select('*').order('due_date',{ascending:true,nullsFirst:false}),
-    sb.from('po_financing_bank_report').select('*')
+    selAll('po_financing','*',[['due_date',{ascending:true,nullsFirst:false}]]),
+    selAll('po_financing_bank_report','*')
   ]);
   if(e1||e2){toast('โหลดไม่สำเร็จ: '+(e1||e2).message,true);return;}
   PF=pf||[];
