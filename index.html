@@ -282,6 +282,48 @@ tbody tr:hover td{background:var(--panel2);}
 .rankList .rk{width:18px;height:18px;border-radius:5px;background:var(--panel3);color:var(--dim);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .rankList .rn{flex:1;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .rankList .rv{color:var(--blue);font-weight:700;font-size:11px;flex-shrink:0;}
+/* ─── คู่ค้า & ผู้ให้บริการ ─── */
+.ptnTabs{flex-wrap:wrap;width:auto;max-width:100%;}
+.ptnTabN{display:inline-block;min-width:18px;padding:0 6px;margin-left:4px;border-radius:10px;background:var(--panel2);color:var(--dim);font-size:10.5px;font-weight:700;text-align:center;}
+.pTab.act .ptnTabN{background:var(--blue-bg);color:var(--blue);}
+.ptnSrchW{flex:1;min-width:240px;max-width:560px;}
+.ptnSrchW .srch{width:100%;}
+.ptnHint{font-size:11.5px;color:var(--dim);}
+.ptnGrid{display:grid;grid-template-columns:330px minmax(0,1fr);gap:14px;align-items:start;}
+.ptnListCard{position:sticky;top:64px;}
+.ptnListHead{display:flex;justify-content:space-between;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--panel2);font-size:12px;font-weight:700;}
+.ptnList{max-height:68vh;overflow-y:auto;}
+.ptnItem{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);cursor:pointer;border-left:3px solid transparent;transition:background .12s;}
+.ptnItem:hover{background:var(--panel2);}
+.ptnItem.act{background:var(--blue-bg);border-left-color:var(--blue);}
+.ptnItem .rk{width:20px;height:20px;border-radius:5px;background:var(--panel3);color:var(--dim);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ptnItemMain{flex:1;min-width:0;}
+.ptnItemName{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ptnItemSub{font-size:10.5px;color:var(--dim);margin-top:2px;}
+.ptnItemCnt{font-size:11px;font-weight:700;color:var(--blue);flex-shrink:0;}
+.ptnHead{padding:16px 18px;}
+.ptnHeadTop{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;}
+.ptnName{font-size:17px;font-weight:800;}
+.ptnSub{font-size:11px;color:var(--dim);margin-top:3px;}
+.ptnStats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-top:14px;}
+.ptnStats>div{background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:9px 11px;}
+.ptnStats span{display:block;font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.4px;font-weight:600;margin-bottom:4px;}
+.ptnStats b{font-size:15px;font-weight:800;}
+.ptnStats small{font-size:10px;color:var(--dim);font-weight:600;}
+.ptnChips{display:flex;flex-wrap:wrap;gap:5px;margin-top:12px;}
+.ptnNote{font-size:11px;color:var(--dim);margin-top:10px;}
+.ptnRow{cursor:pointer;}
+.ptnMark{background:rgba(245,158,11,.35);color:inherit;border-radius:3px;padding:0 1px;}
+.ptnEmpty{min-height:200px;display:flex;align-items:center;justify-content:center;}
+.rankList .rn.lnk{cursor:pointer;}
+.rankList .rn.lnk:hover{color:var(--blue);text-decoration:underline;}
+.chMore{float:right;font-size:11px;font-weight:600;color:var(--blue);cursor:pointer;}
+.chMore:hover{text-decoration:underline;}
+@media(max-width:900px){
+  .ptnGrid{grid-template-columns:minmax(0,1fr);}
+  .ptnListCard{position:static;}
+  .ptnList{max-height:42vh;}
+}
 .sbToggle{display:none;background:none;border:none;color:var(--text);font-size:19px;cursor:pointer;padding:4px 10px 4px 0;line-height:1;}
 .sbOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:19;}
 .sbOverlay.show{display:block;}
@@ -589,6 +631,13 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
     </div>
     <span class="pill pill-green">Live</span>
   </div>
+  <div class="sbItem" id="sn-partners" onclick="go('partners')">
+    <span class="ico">🏭</span>
+    <div class="lbl">คู่ค้า &amp; ผู้ให้บริการ
+      <span class="sub">โรงแป้ง · ชิปปิ้ง · เซอร์เวย์ · ค้นหา PO/Invoice</span>
+    </div>
+    <span class="pill pill-green">New</span>
+  </div>
   <div class="sbItem" id="sn-txn" onclick="go('txn')">
     <span class="ico">📄</span>
     <div class="lbl">Transaction Detail
@@ -791,17 +840,17 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
 
   <div class="chGrid3">
     <div class="chCard">
-      <h4>🏭 โรงแป้ง — ซื้อบ่อยสุด</h4>
+      <h4>🏭 โรงแป้ง — ซื้อบ่อยสุด<span class="chMore" onclick="openPartner('factory')">ดูทั้งหมด →</span></h4>
       <div class="chSub">นับจำนวนรายการที่ระบุชื่อโรงแป้ง</div>
       <ul class="rankList" id="rkFactory"></ul>
     </div>
     <div class="chCard">
-      <h4>🚢 ชิปปิ้ง — ใช้บ่อยสุด</h4>
+      <h4>🚢 ชิปปิ้ง — ใช้บ่อยสุด<span class="chMore" onclick="openPartner('shipping')">ดูทั้งหมด →</span></h4>
       <div class="chSub">นับจำนวนรายการที่ใช้บริการ</div>
       <ul class="rankList" id="rkShipping"></ul>
     </div>
     <div class="chCard">
-      <h4>🔍 เซอร์เวย์ / รมยา — ใช้บ่อยสุด</h4>
+      <h4>🔍 เซอร์เวย์ / รมยา — ใช้บ่อยสุด<span class="chMore" onclick="openPartner('survey')">ดูทั้งหมด →</span></h4>
       <div class="chSub">นับจำนวนรายการที่ใช้บริการ</div>
       <ul class="rankList" id="rkSurvey"></ul>
     </div>
@@ -1265,6 +1314,30 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
       </table>
     </div>
     <div class="tFoot"><span id="brkCnt">—</span></div>
+  </div>
+</div>
+<div class="pg" id="pg-partners">
+  <div class="ph">
+    <div class="phL"><h2>คู่ค้า &amp; ผู้ให้บริการ</h2><div class="phS"><span class="d" style="background:var(--cyan)"></span>โรงแป้ง · ชิปปิ้ง · เซอร์เวย์/รมยา · Agent · ประกันภัย · บรรจุ · ส่งเอกสาร — กดชื่อเพื่อดูทุกรายการ กดรายการเพื่อดูรายละเอียดสัญญา</div></div>
+    <div class="phR"><button class="btn btn-o btn-sm" onclick="loadPtn(true)">⟳ รีเฟรช</button></div>
+  </div>
+  <div class="pTabs ptnTabs" id="ptnTabs"></div>
+  <div class="yPills" id="ptnYP"></div>
+  <div class="tb">
+    <div class="srchW ptnSrchW"><input class="srch" id="ptnSr" placeholder="ค้นหา ชื่อคู่ค้า / เลขที่สัญญา / PO / Invoice / ลูกค้า / Booking / B/L" oninput="ptnSearch()"></div>
+    <button class="btn btn-o btn-sm" id="ptnClr" style="display:none" onclick="document.getElementById('ptnSr').value='';ptnSearch();">✕ ล้าง</button>
+    <div class="sp"></div>
+    <span class="ptnHint" id="ptnHint"></span>
+  </div>
+  <div class="kGrid" id="ptnKpi"></div>
+  <div class="ptnGrid">
+    <div class="tCard ptnListCard">
+      <div class="ptnListHead"><span id="ptnListTitle">รายชื่อ</span><span id="ptnListCnt" style="color:var(--dim);font-weight:500"></span></div>
+      <div class="ptnList" id="ptnList"><div class="loading"><span class="spin"></span>กำลังโหลด...</div></div>
+    </div>
+    <div class="ptnDetail" id="ptnDetail">
+      <div class="tCard ptnEmpty"><div class="empty"><div class="ei">👈</div><p>เลือกชื่อคู่ค้าทางซ้าย เพื่อดูรายการทั้งหมด</p></div></div>
+    </div>
   </div>
 </div>
 <div class="pg" id="pg-txn">
@@ -2140,9 +2213,9 @@ function toggleTheme(){
 
 // ─── Global Search ───
 const GS_CFG=[
-  {cat:'dom',ico:'🏠',label:'Domestic Starch',getRows:()=>DR,fields:['applicant_name','invoice_no','contact_no']},
-  {cat:'es',ico:'🚢',label:'Export Starch',getRows:()=>ES,fields:['applicant_name','invoice_no','sales_contract']},
-  {cat:'ec',ico:'📦',label:'Export Chip',getRows:()=>ECD,fields:['applicant_name','invoice_no','sales_contract']},
+  {cat:'dom',ico:'🏠',label:'Domestic Starch',getRows:()=>DR,fields:['applicant_name','invoice_no','contact_no','factory1_po','factory2_po','factory3_po','factory4_po']},
+  {cat:'es',ico:'🚢',label:'Export Starch',getRows:()=>ES,fields:['applicant_name','invoice_no','sales_contract','factory1_po','factory2_po','factory3_po','factory4_po','lc_no','booking_no','bl_no']},
+  {cat:'ec',ico:'📦',label:'Export Chip',getRows:()=>ECD,fields:['applicant_name','invoice_no','sales_contract','factory1_po','factory2_po','factory3_po','factory4_po','lc_no','booking_no','bl_no']},
   {cat:'dc',ico:'☕',label:'Domestic Coffee',getRows:()=>DCR,fields:['applicant_name','invoice_no','contact_no']},
   {cat:'ic',ico:'🚛',label:'Import Coffee',getRows:()=>ICR,fields:['applicant_name','invoice_no','contact_no']}
 ];
@@ -2355,6 +2428,7 @@ const PAGE_META={
   packing:{label:'วิเคราะห์เชิงลึก',sub:'Packing Analysis'},
   port:{label:'วิเคราะห์เชิงลึก',sub:'Port วิเคราะห์การส่งออก'},
   brokers:{label:'วิเคราะห์เชิงลึก',sub:'Brokers & Buyers'},
+  partners:{label:'วิเคราะห์เชิงลึก',sub:'คู่ค้า & ผู้ให้บริการ'},
   txn:{label:'วิเคราะห์เชิงลึก',sub:'Transaction Detail'},
   currency:{label:'วิเคราะห์เชิงลึก',sub:'Currency USD/CNY/THB'},
   stock:{label:'วิเคราะห์เชิงลึก',sub:'Stock สินค้า'},
@@ -2395,6 +2469,7 @@ function go(p){
   else if(p==='rs-ec')loadRsEc();
   else if(p==='rs-dom')loadRsDom();
   else if(p==='brokers')loadBrk();
+  else if(p==='partners')loadPtn();
   else if(p==='monthly')loadMb();
   else if(p==='packing')loadPk();
   else if(p==='port')loadPort();
@@ -3738,13 +3813,13 @@ async function loadDash(){
 
   // ── 8) โรงแป้ง / ชิปปิ้ง / เซอร์เวย์ — top ranking ──
   const freq=(arr,keys)=>{const m={};arr.forEach(r=>keys.forEach(k=>{const v=(r[k]||'').toString().trim();if(v&&v!=='-')m[v]=(m[v]||0)+1;}));return Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,6);};
-  const renderRank=(id,list)=>{
-    document.getElementById(id).innerHTML=list.length?list.map(([name,cnt],i)=>`<li><span class="rk">${i+1}</span><span class="rn">${name}</span><span class="rv">${cnt} รายการ</span></li>`).join(''):'<li style="color:var(--dim);border:none;">ยังไม่มีข้อมูล</li>';
+  const renderRank=(id,list,type)=>{
+    document.getElementById(id).innerHTML=list.length?list.map(([name,cnt],i)=>`<li><span class="rk">${i+1}</span><span class="rn lnk" title="ดูรายการทั้งหมดของ ${EA(name)}" data-n="${EA(name)}" onclick="openPartner('${type}',this.dataset.n)">${EA(name)}</span><span class="rv">${cnt} รายการ</span></li>`).join(''):'<li style="color:var(--dim);border:none;">ยังไม่มีข้อมูล</li>';
   };
   const all=[...D,...E,...C];
-  renderRank('rkFactory',freq(all,['factory1_name','factory2_name','factory3_name','factory4_name']));
-  renderRank('rkShipping',freq(all,['shipping_name']));
-  renderRank('rkSurvey',freq(all,['survey_name','fumigation_name']));
+  renderRank('rkFactory',freq(all,['factory1_name','factory2_name','factory3_name','factory4_name']),'factory');
+  renderRank('rkShipping',freq(all,['shipping_name']),'shipping');
+  renderRank('rkSurvey',freq(all,['survey_name','fumigation_name']),'survey');
   stampUpdated('dashUpdated');
 }
 
@@ -4645,6 +4720,244 @@ function rBrk(){
     <td>${[...v.cats].map(c=>CAT_ICO[c]).join(' ')}</td>
     <td>${v.latestY||'—'}</td>
   </tr>`).join('');
+}
+
+
+// ═══════════ คู่ค้า & ผู้ให้บริการ (Partners / Suppliers / Service providers) ═══════════
+// ดึงจาก 5 ตารางขาย แล้วแตกเป็น "รายการต่อคู่ค้า" — ค่าเงินของโรงแป้ง/บริการเป็น THB เสมอ
+const PTN_TYPES={
+  factory:{ico:'🏭',label:'โรงแป้ง / ผู้ขาย',amtLbl:'ยอดซื้อ (THB)',showPo:true,
+    slots:r=>[1,2,3,4].map(i=>({name:r[`factory${i}_name`],po:r[`factory${i}_po`],price:r[`factory${i}_price`],amt:r[`factory${i}_total`]}))},
+  shipping:{ico:'🚢',label:'ชิปปิ้ง',amtLbl:'ค่าบริการ (THB)',
+    slots:r=>[{name:r.shipping_name,amt:r.shipping_cost}]},
+  survey:{ico:'🔍',label:'เซอร์เวย์ / รมยา',amtLbl:'ค่าบริการ (THB)',
+    slots:r=>[{name:r.survey_name,amt:r.survey_cost??r.survey_fumigation_cost,role:'เซอร์เวย์'},{name:r.fumigation_name,amt:r.fumigation_cost,role:'รมยา'}]},
+  agent:{ico:'🚚',label:'Agent / ค่าเฟรท / ขนส่ง',amtLbl:'ค่าบริการ (THB)',
+    slots:r=>[{name:r.agent_name,amt:r.freight_cost,role:'Agent / ค่าเฟรท'},{name:r.import_agent_name,amt:r.import_service_cost,role:'ตัวแทนนำเข้า'},{name:r.transport_company,amt:r.transport_cost,role:'ขนส่ง'}]},
+  insurance:{ico:'🛡️',label:'ประกันภัย',amtLbl:'เบี้ยประกัน (THB)',
+    slots:r=>[{name:r.insurance_name,amt:r.insurance_cost}]},
+  packing:{ico:'📦',label:'บรรจุ / พาเลท / วัสดุ',amtLbl:'ค่าบริการ (THB)',
+    slots:r=>[{name:r.packing_service_name,amt:r.packing_service_cost,role:'บริการบรรจุ'},{name:r.pallet||r.pallet_name,amt:r.pallet_cost,role:'พาเลท'},{name:r.packing_material_name,amt:r.packing_material_cost,role:'วัสดุหีบห่อ'}]},
+  doc:{ico:'✉️',label:'ส่งเอกสาร',amtLbl:'ค่าบริการ (THB)',
+    slots:r=>[{name:r.doc_delivery_name,amt:r.doc_delivery_cost}]}
+};
+const PTN_CAT_LBL={dom:'Domestic Starch',es:'Export Starch',ec:'Export Chip',dc:'Domestic Coffee',ic:'Import Coffee'};
+let PTN_ROWS=null, PTN_TYPE='factory', PTN_Y='all', PTN_SEL=null, PTN_LOADING=false;
+function EA(s){return String(s??'').replace(/[&"'<>]/g,c=>({'&':'&amp;','"':'&quot;',"'":'&#39;','<':'&lt;','>':'&gt;'}[c]));}
+// รวมชื่อที่สะกดต่างกันเล็กน้อย เช่น "KC 11" = "KC11", "G.T.L." = "GTL", "BLL Logistics" = "BLL LOGISTICS"
+function ptnKey(n){return String(n).toLowerCase().replace(/co\.?,?\s*ltd\.?/g,'').replace(/[\s.,()\-_/&+]/g,'');}
+function ptnValidName(n){
+  if(n==null)return false;const s=String(n).trim();
+  if(!s||['-','--','ไม่มี','0','none','n/a','na','null'].includes(s.toLowerCase()))return false;
+  if(/^[\d.,\s]+$/.test(s))return false;                    // ตัวเลขล้วน (ข้อมูลกรอกผิดช่อง)
+  if(/^\d{4,5}-\d\d-\d\d/.test(s))return false;              // วันที่ (ข้อมูลกรอกผิดช่อง)
+  return true;
+}
+async function loadPtn(force){
+  if(PTN_LOADING)return;
+  if(PTN_ROWS&&!force){ptnBuildYP();rPtn();return;}
+  PTN_LOADING=true;
+  document.getElementById('ptnList').innerHTML='<div class="loading"><span class="spin"></span>กำลังโหลดข้อมูล...</div>';
+  const res=await Promise.all(['sales_domestic','export_tapioca_starch','export_tapioca_chip','domestic_coffee','import_coffee'].map(t=>fetchAllRows(t)));
+  PTN_LOADING=false;
+  const err=res.find(r=>r.error);
+  if(err){toast('โหลดไม่สำเร็จ: '+err.error.message,true);return;}
+  const[dom,es,ec,dc,ic]=res.map(r=>r.data||[]);
+  // ให้หน้าต่างรายละเอียดสัญญา (viewDetail) หาเจอได้ทันที
+  DR=dom;ES=es;ECD=ec;DCR=dc;ICR=ic;
+  const tag=(arr,cat)=>arr.map(r=>({...r,_cat:cat}));
+  PTN_ROWS=[...tag(dom,'dom'),...tag(es,'es'),...tag(ec,'ec'),...tag(dc,'dc'),...tag(ic,'ic')];
+  ptnBuildIndex();ptnBuildYP();rPtn();
+}
+// สร้างดัชนี: type -> key -> {name, entries[]}
+let PTN_IDX={};
+function ptnBuildIndex(){
+  PTN_IDX={};
+  Object.entries(PTN_TYPES).forEach(([t,cfg])=>{
+    const m={};
+    PTN_ROWS.forEach(r=>{
+      cfg.slots(r).forEach(sl=>{
+        if(!ptnValidName(sl.name))return;
+        const names=String(sl.name).split(' / ').map(s=>s.trim()).filter(ptnValidName);
+        names.forEach(nm=>{
+          const k=ptnKey(nm);
+          if(!m[k])m[k]={key:k,variants:{},entries:[]};
+          m[k].variants[nm]=(m[k].variants[nm]||0)+1;
+          m[k].entries.push({
+            r,cat:r._cat,id:r.id,year:+r.year||null,
+            date:r.loading_date||r.delivery_date1||r.delivery_date||r.contact_date||null,
+            contract:r.sales_contract||r.contact_no||'',invoice:r.invoice_no||'',po:sl.po||'',
+            applicant:r.applicant_name||'',mts:+r.qty_mts||0,price:sl.price,
+            amt:names.length===1&&sl.amt!=null&&sl.amt!==''?+sl.amt:null,shared:names.length>1,
+            role:sl.role||'',status:r.status_remark||r.dom_status_remark||r.status||''
+          });
+        });
+      });
+    });
+    Object.values(m).forEach(p=>{p.name=Object.entries(p.variants).sort((a,b)=>b[1]-a[1])[0][0];});
+    PTN_IDX[t]=m;
+  });
+}
+function ptnBuildYP(){
+  const yrs=[...new Set((PTN_ROWS||[]).map(r=>+r.year).filter(Boolean))].sort((a,b)=>b-a);
+  const w=document.getElementById('ptnYP');
+  w.innerHTML=`<div class="yPill ${PTN_Y==='all'?'act':''}" onclick="setPtnY('all')">ทุกปี</div>`+
+    yrs.map(y=>`<div class="yPill ${String(PTN_Y)===String(y)?'act':''}" onclick="setPtnY(${y})">${y}</div>`).join('');
+}
+function setPtnY(y){PTN_Y=y;ptnBuildYP();rPtn();}
+function setPtnType(t){PTN_TYPE=t;PTN_SEL=null;rPtn();}
+let PTN_SR_T=null;
+function ptnSearch(){clearTimeout(PTN_SR_T);PTN_SR_T=setTimeout(()=>{PTN_SEL=null;rPtn();},150);}
+function ptnQ(){return (document.getElementById('ptnSr')?.value||'').trim().toLowerCase();}
+function ptnEntryHit(e,q){
+  const r=e.r;
+  return [e.contract,e.invoice,e.po,e.applicant,r.booking_no,r.bl_no,r.lc_no,r.bl_truck_no,r.customs_no,r.vessel_name]
+    .some(v=>v&&String(v).toLowerCase().includes(q));
+}
+// รายชื่อหลังกรองปี + คำค้น
+function ptnFiltered(t){
+  const q=ptnQ();
+  const out=[];
+  Object.values(PTN_IDX[t]||{}).forEach(p=>{
+    let es=p.entries;
+    if(PTN_Y!=='all')es=es.filter(e=>e.year===+PTN_Y);
+    if(!es.length)return;
+    let nameHit=false;
+    if(q){
+      nameHit=p.key.includes(q)||Object.keys(p.variants).some(v=>v.toLowerCase().includes(q));
+      if(!nameHit){es=es.filter(e=>ptnEntryHit(e,q));if(!es.length)return;}
+    }
+    const amt=es.reduce((s,e)=>s+(e.amt||0),0);
+    const mts=es.reduce((s,e)=>s+(e.mts||0),0);
+    const yrs=es.map(e=>e.year).filter(Boolean);
+    out.push({p,es,nameHit,cnt:es.length,amt,mts,y0:Math.min(...yrs),y1:Math.max(...yrs)});
+  });
+  return out.sort((a,b)=>b.cnt-a.cnt||b.amt-a.amt);
+}
+function rPtn(){
+  if(!PTN_ROWS)return;
+  const q=ptnQ();
+  document.getElementById('ptnClr').style.display=q?'':'none';
+  // tabs with counts
+  document.getElementById('ptnTabs').innerHTML=Object.entries(PTN_TYPES).map(([t,c])=>{
+    const n=ptnFiltered(t).length;
+    return `<div class="pTab ${t===PTN_TYPE?'act':''}" onclick="setPtnType('${t}')">${c.ico} ${c.label} <span class="ptnTabN">${n}</span></div>`;
+  }).join('');
+  const cfg=PTN_TYPES[PTN_TYPE];
+  const list=ptnFiltered(PTN_TYPE);
+  const totalCnt=list.reduce((s,x)=>s+x.cnt,0), totalAmt=list.reduce((s,x)=>s+x.amt,0), totalMts=list.reduce((s,x)=>s+x.mts,0);
+  document.getElementById('ptnKpi').innerHTML=`
+    <div class="kCard kc-a"><div class="kLbl">จำนวนรายชื่อ</div><div class="kVal">${list.length}</div><div class="kSub">${cfg.label}</div><div class="kIco">${cfg.ico}</div></div>
+    <div class="kCard kc-b"><div class="kLbl">รายการที่เกี่ยวข้อง</div><div class="kVal">${N(totalCnt,0)}</div><div class="kSub">${PTN_Y==='all'?'ทุกปี':'ปี '+PTN_Y}</div><div class="kIco">📋</div></div>
+    <div class="kCard kc-g"><div class="kLbl">ปริมาณรวม</div><div class="kVal">${N(totalMts,2)}</div><div class="kSub">MTS (ตามสัญญาขาย)</div><div class="kIco">⚖️</div></div>
+    <div class="kCard kc-p"><div class="kLbl">${cfg.amtLbl}</div><div class="kVal" style="font-size:19px">${totalAmt?N(totalAmt,2):'—'}</div><div class="kSub">เฉพาะรายการที่ระบุยอด</div><div class="kIco">฿</div></div>`;
+  document.getElementById('ptnHint').textContent=q?`ผลค้นหา "${document.getElementById('ptnSr').value.trim()}" — พบใน ${list.length} รายชื่อ`:'';
+  document.getElementById('ptnListTitle').textContent=`${cfg.ico} ${cfg.label}`;
+  document.getElementById('ptnListCnt').textContent=`${list.length} รายชื่อ`;
+  const box=document.getElementById('ptnList');
+  if(!list.length){
+    box.innerHTML='<div class="empty"><div class="ei">📭</div><p>ไม่พบข้อมูล</p></div>';
+    document.getElementById('ptnDetail').innerHTML='<div class="tCard ptnEmpty"><div class="empty"><div class="ei">🔎</div><p>ไม่พบรายการที่ตรงกับเงื่อนไข</p></div></div>';
+    return;
+  }
+  if(!PTN_SEL||!list.find(x=>x.p.key===PTN_SEL))PTN_SEL=(q||window.innerWidth>900)?list[0].p.key:null;
+  box.innerHTML=list.map((x,i)=>`<div class="ptnItem ${x.p.key===PTN_SEL?'act':''}" data-k="${EA(x.p.key)}" onclick="selPtn(this.dataset.k,true)">
+      <span class="rk">${i+1}</span>
+      <div class="ptnItemMain"><div class="ptnItemName">${E(x.p.name)}</div>
+        <div class="ptnItemSub">${x.y0===x.y1?x.y0:x.y0+'–'+x.y1} · ${N(x.mts,0)} MTS${x.amt?' · ฿'+N(x.amt,0):''}</div></div>
+      <span class="ptnItemCnt">${x.cnt}</span>
+    </div>`).join('');
+  rPtnDetail(list.find(x=>x.p.key===PTN_SEL));
+}
+function selPtn(k,scroll){
+  PTN_SEL=k;
+  document.querySelectorAll('#ptnList .ptnItem').forEach(el=>el.classList.toggle('act',el.dataset.k===k));
+  rPtnDetail(ptnFiltered(PTN_TYPE).find(x=>x.p.key===k));
+  if(scroll&&window.innerWidth<=900)document.getElementById('ptnDetail').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function rPtnDetail(x){
+  const el=document.getElementById('ptnDetail');
+  if(!x){el.innerHTML='<div class="tCard ptnEmpty"><div class="empty"><div class="ei">👈</div><p>เลือกชื่อคู่ค้าทางซ้าย เพื่อดูรายการทั้งหมด</p></div></div>';return;}
+  const cfg=PTN_TYPES[PTN_TYPE];
+  const es=[...x.es].sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.year||0)-(a.year||0));
+  window.__ptnDetailRows=es;
+  const q=ptnQ();
+  const custs=new Set(es.map(e=>e.applicant).filter(Boolean));
+  const byCat={};es.forEach(e=>{byCat[e.cat]=(byCat[e.cat]||0)+1;});
+  const byYear={};es.forEach(e=>{if(!e.year)return;const o=byYear[e.year]||(byYear[e.year]={n:0,mts:0,amt:0});o.n++;o.mts+=e.mts;o.amt+=e.amt||0;});
+  const hasRole=es.some(e=>e.role)&&PTN_TYPE!=='factory';
+  const variants=Object.keys(x.p.variants);
+  const sharedNote=es.some(e=>e.shared)?'<div class="ptnNote">* บางรายการใช้ผู้ให้บริการร่วมกันหลายราย ระบบจึงไม่แสดงยอดเงินแยกของรายการนั้น</div>':'';
+  el.innerHTML=`
+  <div class="tCard ptnHead">
+    <div class="ptnHeadTop">
+      <div><div class="ptnName">${cfg.ico} ${E(x.p.name)}</div>
+        <div class="ptnSub">${cfg.label}${variants.length>1?' · ชื่อที่พบ: '+variants.map(v=>E(v)).join(', '):''}</div></div>
+      <div class="ptnActs"><button class="btn btn-o btn-sm" onclick="ptnCsv()">⬇ CSV</button></div>
+    </div>
+    <div class="ptnStats">
+      <div><span>รายการ</span><b>${N(es.length,0)}</b></div>
+      <div><span>ปริมาณ</span><b>${N(x.mts,2)} <small>MTS</small></b></div>
+      <div><span>${cfg.amtLbl}</span><b>${x.amt?N(x.amt,2):'—'}</b></div>
+      <div><span>ลูกค้าที่เกี่ยวข้อง</span><b>${custs.size}</b></div>
+      <div><span>ช่วงปี</span><b>${x.y0===x.y1?x.y0:x.y0+'–'+x.y1}</b></div>
+    </div>
+    <div class="ptnChips">${Object.entries(byCat).map(([c,n])=>`<span class="bdg bdg-b">${CAT_ICO[c]} ${PTN_CAT_LBL[c]} ${n}</span>`).join('')}
+      ${Object.keys(byYear).sort((a,b)=>b-a).map(y=>`<span class="bdg bdg-c" title="${N(byYear[y].mts,2)} MTS${byYear[y].amt?' · ฿'+N(byYear[y].amt,0):''}">${y}: ${byYear[y].n}</span>`).join('')}</div>
+    ${q&&!x.nameHit?`<div class="ptnNote">🔎 แสดงเฉพาะรายการที่ตรงกับ "${E(document.getElementById('ptnSr').value.trim())}"</div>`:''}
+  </div>
+  <div class="tCard" style="margin-top:12px">
+    <div class="tWrap"><table>
+      <thead><tr><th>#</th><th>วันที่</th><th>หมวด</th><th>เลขที่สัญญา</th><th>Invoice</th>${cfg.showPo?'<th>PO โรงแป้ง</th>':''}<th>ลูกค้า</th><th>MTS</th>${cfg.showPo?'<th>ราคา/กก.</th>':''}${hasRole?'<th>บริการ</th>':''}<th>${cfg.amtLbl}</th><th>สถานะ</th></tr></thead>
+      <tbody>${es.map((e,i)=>`<tr class="ptnRow" onclick="ptnOpen('${e.cat}','${e.id}')" title="กดเพื่อดูรายละเอียดสัญญา">
+        <td style="color:var(--dim)">${i+1}</td>
+        <td>${e.date?D(e.date):(e.year||'—')}</td>
+        <td>${CAT_ICO[e.cat]} <span style="color:var(--dim)">${PTN_CAT_LBL[e.cat]}</span></td>
+        <td style="font-weight:600">${ptnHL(e.contract,q)}</td>
+        <td>${ptnHL(e.invoice,q)}</td>
+        ${cfg.showPo?`<td>${ptnHL(e.po,q)}</td>`:''}
+        <td class="td-trunc" style="max-width:220px" title="${EA(e.applicant)}">${ptnHL(e.applicant,q)}</td>
+        <td>${e.mts?N(e.mts,2):'—'}</td>
+        ${cfg.showPo?`<td>${e.price!=null&&e.price!==''?N(e.price,2):'—'}</td>`:''}
+        ${hasRole?`<td>${E(e.role)}</td>`:''}
+        <td style="font-weight:600">${e.amt!=null?N(e.amt,2):(e.shared?'<span style="color:var(--dim)">ร่วม*</span>':'—')}</td>
+        <td>${ptnStatus(e.status)}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>
+    <div class="tFoot"><span>แสดง ${es.length} รายการ · กดที่แถวเพื่อดูรายละเอียดสัญญา</span></div>
+  </div>${sharedNote}`;
+}
+function ptnHL(v,q){
+  if(!v)return E(v);
+  const s=String(v);if(!q)return E(s);
+  const i=s.toLowerCase().indexOf(q);if(i<0)return E(s);
+  return E(s.slice(0,i))+'<mark class="ptnMark">'+E(s.slice(i,i+q.length))+'</mark>'+E(s.slice(i+q.length));
+}
+function ptnStatus(s){
+  if(!s)return '<span style="color:var(--dim2)">—</span>';
+  const cls=/ยกเลิก|เกินกำหนด/.test(s)?'bdg-r':/เงินเข้าแล้ว/.test(s)?'bdg-g':/รอ/.test(s)?'bdg-a':'bdg-b';
+  const short=s.length>22?s.slice(0,22)+'…':s;
+  return `<span class="bdg ${cls}" title="${EA(s)}">${E(short)}</span>`;
+}
+function ptnOpen(cat,id){viewDetail(cat,id);}
+function ptnCsv(){
+  const rows=window.__ptnDetailRows||[];if(!rows.length)return;
+  const cfg=PTN_TYPES[PTN_TYPE];
+  const name=document.querySelector('#ptnList .ptnItem.act .ptnItemName')?.textContent||'partner';
+  const head=['ปี','วันที่','หมวด','เลขที่สัญญา','Invoice','PO โรงแป้ง','ลูกค้า','MTS','ราคา/กก.','บริการ',cfg.amtLbl,'สถานะ'];
+  const esc=v=>{const s=v==null?'':String(v);return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;};
+  const lines=[head.join(',')].concat(rows.map(e=>[e.year,e.date||'',PTN_CAT_LBL[e.cat],e.contract,e.invoice,e.po,e.applicant,e.mts,e.price??'',e.role,e.amt??'',e.status].map(esc).join(',')));
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['﻿'+lines.join('\n')],{type:'text/csv;charset=utf-8'}));
+  a.download=`${cfg.label.split(' ')[0]}_${name.replace(/[\\/:*?"<>|]/g,'_')}_${PTN_Y}.csv`;
+  a.click();
+}
+// เปิดจาก Dashboard (กดชื่อในอันดับ)
+function openPartner(type,name){
+  PTN_TYPE=type;PTN_Y='all';
+  const sr=document.getElementById('ptnSr');if(sr)sr.value='';
+  PTN_SEL=name?ptnKey(name):null;
+  go('partners');
 }
 
 // ═══════════ PO FINANCING (SCB / TTB) ═══════════
