@@ -403,14 +403,14 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
   <div class="lTitle">Sales Management System</div>
   <div class="lSub">เข้าสู่ระบบด้วยบัญชีที่บริษัทออกให้เท่านั้น</div>
   <div class="lLabel">อีเมล</div>
-  <input class="lInput" type="email" id="liE" placeholder="name@ksagro.com" autocomplete="username">
+  <input class="lInput" type="email" id="liE" placeholder="name@ksagro.com" autocomplete="username" onkeydown="loginKey(event,'liE')">
   <div class="lLabel">รหัสผ่าน</div>
   <div class="lPwdWrap">
-    <input class="lInput" type="password" id="liP" placeholder="••••••••" autocomplete="current-password">
+    <input class="lInput" type="password" id="liP" placeholder="••••••••" autocomplete="current-password" onkeydown="loginKey(event,'liP')">
     <button type="button" class="lEyeBtn" id="lEyeBtn" onclick="togglePwdVisibility()" title="แสดง/ซ่อนรหัสผ่าน">👁</button>
   </div>
   <div class="lRow2"><button type="button" class="lForgotBtn" onclick="doForgotPassword()">ลืมรหัสผ่าน?</button></div>
-  <button class="lBtn" onclick="doLogin()">เข้าสู่ระบบ</button>
+  <button class="lBtn" id="liBtn" onclick="doLogin()">เข้าสู่ระบบ</button>
   <div id="lErr"></div>
 </div>
 </div>
@@ -2349,11 +2349,23 @@ async function submitChangePwd(){
   toast('✅ เปลี่ยนรหัสผ่านเรียบร้อย');
   closeChangePwd();
 }
+// กด Enter ที่ช่องอีเมล → ไปช่องรหัสผ่าน (ถ้ายังว่าง) / กด Enter ที่ช่องรหัสผ่าน → เข้าสู่ระบบ
+function loginKey(ev,field){
+  if(ev.key!=='Enter'||ev.isComposing)return;
+  ev.preventDefault();
+  if(field==='liE'&&!document.getElementById('liP').value){document.getElementById('liP').focus();return;}
+  doLogin();
+}
+let LOGIN_BUSY=false;
 async function doLogin(){
+  if(LOGIN_BUSY)return; // กันกด Enter/ปุ่มซ้ำระหว่างรอ
   const e=document.getElementById('liE').value.trim(),p=document.getElementById('liP').value;
   const er=document.getElementById('lErr');er.textContent='';
-  if(!e||!p){er.textContent='กรุณากรอกอีเมลและรหัสผ่าน';return;}
+  if(!e||!p){er.textContent='กรุณากรอกอีเมลและรหัสผ่าน';(e?document.getElementById('liP'):document.getElementById('liE')).focus();return;}
+  const btn=document.getElementById('liBtn');
+  LOGIN_BUSY=true;if(btn){btn.disabled=true;btn.textContent='กำลังเข้าสู่ระบบ...';}
   const{data,error}=await sb.auth.signInWithPassword({email:e,password:p});
+  LOGIN_BUSY=false;if(btn){btn.disabled=false;btn.textContent='เข้าสู่ระบบ';}
   if(error){er.textContent='เข้าสู่ระบบไม่สำเร็จ: '+error.message;return;}
   U=data.user;boot();
 }
