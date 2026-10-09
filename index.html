@@ -282,6 +282,28 @@ tbody tr:hover td{background:var(--panel2);}
 .rankList .rk{width:18px;height:18px;border-radius:5px;background:var(--panel3);color:var(--dim);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .rankList .rn{flex:1;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .rankList .rv{color:var(--blue);font-weight:700;font-size:11px;flex-shrink:0;}
+/* ─── เงินในธนาคาร ฝาก / HOLD ─── */
+.bbGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:8px;}
+.bbGrid.bbGrid2{grid-template-columns:repeat(2,minmax(0,1fr));}
+.bbCard{background:var(--panel);border:1px solid var(--border);border-top:3px solid var(--green);border-radius:var(--r);padding:12px 14px;}
+.bbCardH{font-size:12.5px;font-weight:700;margin-bottom:8px;}
+.bbCur{padding:6px 0;border-bottom:1px dashed var(--border);}
+.bbCur:last-of-type{border-bottom:none;}
+.bbCurTop{display:flex;justify-content:space-between;align-items:baseline;gap:8px;}
+.bbCurLbl{font-size:11px;font-weight:700;}
+.bbCurVal{font-size:18px;font-weight:800;}
+.bbCurSub{display:flex;justify-content:space-between;gap:8px;font-size:10.5px;color:var(--dim);margin-top:2px;}
+.bbCurSub b{color:var(--text);font-weight:700;}
+.bbCurSub b.bbHold{color:var(--amber);}
+.cUsd{color:var(--blue);} .cCny{color:var(--red);}
+.bbRow{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px dashed var(--border);font-size:12px;color:var(--dim);}
+.bbRow b{font-size:14px;font-weight:800;white-space:nowrap;}
+.bbRow small{font-size:10px;font-weight:700;}
+.bbTot{display:flex;justify-content:space-between;gap:10px;padding-top:8px;font-size:11.5px;color:var(--dim);}
+.bbFoot{font-size:10.5px;color:var(--dim2);margin-top:6px;}
+.bbNote{font-size:11px;color:var(--dim);margin:2px 0 16px;}
+.bbNote a{color:var(--blue);}
+@media(max-width:900px){.bbGrid,.bbGrid.bbGrid2{grid-template-columns:minmax(0,1fr);}}
 /* ─── คู่ค้า & ผู้ให้บริการ ─── */
 .ptnTabs{flex-wrap:wrap;width:auto;max-width:100%;}
 .ptnTabN{display:inline-block;min-width:18px;padding:0 6px;margin-left:4px;border-radius:10px;background:var(--panel2);color:var(--dim);font-size:10.5px;font-weight:700;text-align:center;}
@@ -722,6 +744,8 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
   </div>
 
   <div class="kGrid" id="kpiRiskCard"></div>
+  <div class="sLbl">🏦 เงินในธนาคาร · ฝากเข้าบัญชี + HOLD ไว้รอแลก (SCB / TTB · แยกสกุลเงิน)</div>
+  <div id="kpiBB"></div>
 </div>
 
 <div class="pg" id="pg-finoverview">
@@ -729,6 +753,9 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
     <div class="phL"><h2>💰 Financial Overview — ภาพรวมสถานะทางการเงิน</h2><div class="phS"><span class="d" style="background:var(--green)"></span>สรุปสถานะการเงินล่าสุด · Forecast + ภาระหนี้ + สต๊อค · สำหรับฝ่ายบริหาร</div></div>
     <div class="phR"><span id="finUpdated" style="font-size:11px;color:var(--dim2);margin-right:4px"></span><button class="btn btn-o btn-sm" onclick="loadFinOverview()">⟳ รีเฟรช</button></div>
   </div>
+
+  <div class="sLbl">🏦 เงินในธนาคาร · ฝากเข้าบัญชี + HOLD ไว้รอแลก (SCB / TTB · แยกสกุลเงิน)</div>
+  <div id="finBB"></div>
 
   <div class="sLbl" style="cursor:pointer" onclick="go('fc')">⏰ Forecast - รายรับ <span style="font-size:11px;color:var(--blue);font-weight:400">(คลิกดูรายละเอียด →)</span></div>
   <div class="kGrid" id="finFcKpi"></div>
@@ -768,6 +795,8 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
     <div class="phL"><h2>Dashboard ภาพรวม</h2><div class="phS"><span class="d" style="background:var(--green)"></span>KS AGRO · Sales Management System</div></div>
     <div class="phR"><span id="dashUpdated" style="font-size:11px;color:var(--dim2)"></span></div>
   </div>
+  <div class="sLbl">🏦 เงินในธนาคาร · ฝากเข้าบัญชี + HOLD ไว้รอแลก (SCB / TTB · แยกสกุลเงิน)</div>
+  <div id="dashBB"></div>
   <div class="sLbl">🏠 ขายในประเทศ (THB)</div>
   <div class="kGrid" id="dashKpiDom"></div>
   <div class="sLbl">🚢 ส่งออกแป้งมันสำปะหลัง — Export Starch (USD/CNY)</div>
@@ -1066,6 +1095,8 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
     </div>
   </div>
   <div class="kGrid" id="fcKpi"></div>
+  <div class="sLbl">🏦 เงินในธนาคาร · ฝากเข้าบัญชี / HOLD ไว้รอแลก</div>
+  <div id="fcBB"></div>
   <div style="display:flex;background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:3px;gap:2px;width:fit-content;margin-bottom:14px;" id="fcCT"></div>
   <!-- Date range picker -->
   <div style="background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
@@ -2178,6 +2209,32 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
 </div>
 </div>
 
+<div class="mbg" id="mBB">
+<div class="mc" style="max-width:560px">
+  <div class="mH"><h3 id="mBBT">แก้ไขยอดเงินในธนาคาร</h3><div class="ms">กรอกยอดคงเหลือปัจจุบัน · USD และ CNY แยกกัน · ไม่ได้นำไปบวก/หักกับยอดหนี้สิน</div></div>
+  <div class="mB">
+    <input type="hidden" id="bb_bank">
+    <div class="sLbl">ดอลลาร์ (USD)</div>
+    <div class="fg" style="grid-template-columns:repeat(2,1fr)">
+      <div class="fld"><label>เงิน USD ที่ฝากเข้าบัญชี</label><input type="number" step="any" min="0" id="bb_usd_deposit" onkeydown="if(event.key==='Enter')saveBB()"></div>
+      <div class="fld"><label>เงิน USD ที่ HOLD ไว้รอแลก</label><input type="number" step="any" min="0" id="bb_usd_hold" onkeydown="if(event.key==='Enter')saveBB()"></div>
+    </div>
+    <div class="sLbl">หยวน (CNY)</div>
+    <div class="fg" style="grid-template-columns:repeat(2,1fr)">
+      <div class="fld"><label>เงิน CNY ที่ฝากเข้าบัญชี</label><input type="number" step="any" min="0" id="bb_cny_deposit" onkeydown="if(event.key==='Enter')saveBB()"></div>
+      <div class="fld"><label>เงิน CNY ที่ HOLD ไว้รอแลก</label><input type="number" step="any" min="0" id="bb_cny_hold" onkeydown="if(event.key==='Enter')saveBB()"></div>
+    </div>
+    <div class="fg" style="grid-template-columns:1fr;margin-top:10px">
+      <div class="fld"><label>หมายเหตุ</label><input id="bb_note" placeholder="เช่น รอแลกเมื่อเรทดีขึ้น"></div>
+    </div>
+  </div>
+  <div class="mF">
+    <button class="btn btn-o" onclick="closeBB()">ยกเลิก</button>
+    <button class="btn btn-p" onclick="saveBB()">💾 บันทึก</button>
+  </div>
+</div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -2196,7 +2253,7 @@ const FCL={export_starch:'ขายแป้งมันส่งออก',expo
 
 // ─── INIT ───
 document.getElementById('tbDate').textContent=new Date().toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDom();closeFc();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDom();closeFc();closeBB();}});
 
 // ─── AUTH ───
 // ─── ธีมสว่าง/มืด ───
@@ -3175,6 +3232,7 @@ function xEc(){
 
 // ═══════════ FORECAST ═══════════
 async function loadFc(){
+  renderBBForecast();
   document.getElementById('fcTb').innerHTML='<tr><td colspan="16"><div class="loading"><span class="spin"></span>กำลังโหลด...</div></td></tr>';
   const{data,error}=await selAll('forecast_income','*',[['category'],['seq_no']]);
   if(error){toast('โหลดไม่สำเร็จ',true);return;}
@@ -3485,6 +3543,7 @@ function stampUpdated(elId){
   if(el)el.textContent='🕐 อัปเดตล่าสุด '+new Date().toLocaleString('th-TH',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'short'});
 }
 async function loadKpi(){
+  renderBBSummary('kpiBB');
   const[{data:dom},{data:es},{data:ec},{data:dc},{data:ic},{data:fc},{data:stk}]=await Promise.all([
     selAll('sales_domestic','year,qty_mts,total,applicant_name'),
     selAll('export_tapioca_starch','year,qty_mts,total,currency,applicant_name'),
@@ -3594,6 +3653,7 @@ function rKpi(){
 
 // ═══════════ FINANCIAL OVERVIEW (รวม Forecast + PO Financing + Stock) ═══════════
 async function loadFinOverview(){
+  renderBBSummary('finBB');
   const[{data:fc},{data:pf},{data:br},{data:stk}]=await Promise.all([
     selAll('forecast_income','*'),
     selAll('po_financing','*'),
@@ -3674,6 +3734,7 @@ function rFinStock(rows){
 }
 
 async function loadDash(){
+  renderBBSummary('dashBB');
   const[{data:dom},{data:fc},{data:es},{data:ec},{data:dc},{data:ic}]=await Promise.all([
     selAll('sales_domestic','year,total,qty_mts,packing_kgs,loading_date,factory1_name,factory2_name,factory3_name,factory4_name,shipping_name,survey_name,fumigation_name'),
     selAll('forecast_income','*'),
@@ -4635,7 +4696,7 @@ async function exportAllData(){
   btn.disabled=true;btn.textContent='⏳ กำลังรวบรวมข้อมูล...';
   status.textContent='';
   try{
-    const tables=['sales_domestic','export_tapioca_starch','export_tapioca_chip','domestic_coffee','import_coffee','forecast_income','po_financing','po_financing_bank_report','stock_items','profiles'];
+    const tables=['sales_domestic','export_tapioca_starch','export_tapioca_chip','domestic_coffee','import_coffee','forecast_income','po_financing','po_financing_bank_report','bank_balances','stock_items','profiles'];
     const results={};
     const counts=[];
     for(const t of tables){
@@ -4970,6 +5031,97 @@ function openPartner(type,name){
   const sr=document.getElementById('ptnSr');if(sr)sr.value='';
   PTN_SEL=name?ptnKey(name):null;
   go('partners');
+}
+
+
+// ═══════════ เงินในธนาคาร · ฝากเข้าบัญชี / HOLD ไว้รอแลก (bank_balances) ═══════════
+// แสดงอย่างเดียว ไม่นำไปบวก/หักกับยอดหนี้สิน · USD กับ CNY แยกกันเสมอ ไม่รวมข้ามสกุล
+const BB_BANKS=[{bank:'SCB',color:'var(--purple)'},{bank:'TTB',color:'var(--orange)'}];
+let BB_ROWS=null, BB_ERR=null;
+async function loadBB(){
+  const{data,error}=await selAll('bank_balances','*');
+  if(error){BB_ERR=error;BB_ROWS=[];return BB_ROWS;}
+  BB_ERR=null;BB_ROWS=data||[];return BB_ROWS;
+}
+function bbGet(bank){
+  const r=(BB_ROWS||[]).find(x=>x.bank===bank)||{bank};
+  const n=v=>+v||0;
+  return {...r,usd_deposit:n(r.usd_deposit),usd_hold:n(r.usd_hold),cny_deposit:n(r.cny_deposit),cny_hold:n(r.cny_hold)};
+}
+function bbTotal(){
+  const t={usd_deposit:0,usd_hold:0,cny_deposit:0,cny_hold:0};
+  BB_BANKS.forEach(({bank})=>{const r=bbGet(bank);Object.keys(t).forEach(k=>t[k]+=r[k]);});
+  return t;
+}
+function bbWhen(r){
+  if(!r.updated_at)return 'ยังไม่เคยบันทึกยอด';
+  const d=new Date(r.updated_at);
+  return 'อัปเดตล่าสุด '+d.toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})+' น.'+(r.updated_by_email?' · โดย '+EA(r.updated_by_email):'');
+}
+function bbCurLine(label,cls,dep,hold){
+  return `<div class="bbCur"><div class="bbCurTop"><span class="bbCurLbl ${cls}">${label}</span><span class="bbCurVal ${cls}">${N(dep+hold,2)}</span></div>
+    <div class="bbCurSub"><span>ฝากเข้าบัญชี <b>${N(dep,2)}</b></span><span>HOLD <b class="bbHold">${N(hold,2)}</b></span></div></div>`;
+}
+// การ์ดสรุป 3 ใบ (SCB / TTB / รวมทุกธนาคาร) ใช้ใน KPI · Dashboard · Financial Overview
+async function renderBBSummary(elId){
+  const el=document.getElementById(elId);if(!el)return;
+  await loadBB();
+  if(BB_ERR){el.innerHTML=`<div class="bbNote">ยังแสดงยอดเงินฝาก/HOLD ไม่ได้ (${E(BB_ERR.message||'')})</div>`;return;}
+  const card=(title,color,r,foot)=>`<div class="bbCard" style="border-top-color:${color}">
+      <div class="bbCardH">${title}</div>
+      ${bbCurLine('USD','cUsd',r.usd_deposit,r.usd_hold)}
+      ${bbCurLine('CNY','cCny',r.cny_deposit,r.cny_hold)}
+      ${foot?`<div class="bbFoot">${foot}</div>`:''}
+    </div>`;
+  el.innerHTML=`<div class="bbGrid">${BB_BANKS.map(b=>{const r=bbGet(b.bank);return card('ธนาคาร '+b.bank,b.color,r,bbWhen(r));}).join('')}
+      ${card('รวมทุกธนาคาร','var(--green)',bbTotal(),'แยกสกุลเงิน ไม่รวม USD กับ CNY')}</div>
+    <div class="bbNote">แสดงเพื่อให้เห็นเงินต่างประเทศในธนาคารที่รอแลก · ไม่นำไปบวกหรือหักกับยอดหนี้สิน · <a href="javascript:void(0)" onclick="go('fc')">แก้ไขยอดได้ที่หน้า Forecast Income →</a></div>`;
+}
+// ส่วนแก้ไขยอดในหน้า Forecast Income
+async function renderBBForecast(){
+  const el=document.getElementById('fcBB');if(!el)return;
+  await loadBB();
+  if(BB_ERR){el.innerHTML=`<div class="bbNote">ยังแสดงยอดเงินฝาก/HOLD ไม่ได้ (${E(BB_ERR.message||'')})</div>`;return;}
+  const row=(lbl,v,cls,unit)=>`<div class="bbRow"><span>${lbl}</span><b class="${cls}">${N(v,2)} <small>${unit}</small></b></div>`;
+  el.innerHTML=`<div class="bbGrid bbGrid2">${BB_BANKS.map(({bank,color})=>{const r=bbGet(bank);return `<div class="bbCard" style="border-top-color:${color}">
+      <div class="bbCardH" style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span style="color:${color}">ธนาคาร ${bank}</span>
+        <button class="btn btn-o btn-sm gate-write" onclick="openBB('${bank}')">✏ แก้ไขยอด</button></div>
+      ${row(`เงิน USD ที่ฝากเข้า บช. ${bank}`,r.usd_deposit,'cUsd','USD')}
+      ${row(`เงิน USD ที่ HOLD ไว้ที่ ${bank}`,r.usd_hold,'cUsd','USD')}
+      ${row(`เงิน CNY ที่ฝากเข้า บช. ${bank}`,r.cny_deposit,'cCny','CNY')}
+      ${row(`เงิน CNY ที่ HOLD ไว้ที่ ${bank}`,r.cny_hold,'cCny','CNY')}
+      <div class="bbTot"><span>รวม USD <b class="cUsd">${N(r.usd_deposit+r.usd_hold,2)}</b></span><span>รวม CNY <b class="cCny">${N(r.cny_deposit+r.cny_hold,2)}</b></span></div>
+      ${r.note?`<div class="bbFoot">📝 ${E(r.note)}</div>`:''}
+      <div class="bbFoot">${bbWhen(r)}</div>
+    </div>`;}).join('')}</div>
+    <div class="bbNote">ตัวเลขนี้กรอกเองในหน้านี้ ไม่ได้ดึงจากธนาคาร · ผู้บริหารเห็นสรุปได้ในหน้า KPI / Dashboard / Financial Overview</div>`;
+}
+function openBB(bank){
+  const r=bbGet(bank);
+  document.getElementById('bb_bank').value=bank;
+  document.getElementById('mBBT').textContent='แก้ไขยอดเงินในธนาคาร '+bank;
+  ['usd_deposit','usd_hold','cny_deposit','cny_hold'].forEach(k=>document.getElementById('bb_'+k).value=r[k]||0);
+  document.getElementById('bb_note').value=r.note||'';
+  document.getElementById('mBB').classList.add('show');
+  setTimeout(()=>document.getElementById('bb_usd_deposit').focus(),50);
+}
+function closeBB(){document.getElementById('mBB').classList.remove('show');}
+let BB_SAVING=false;
+async function saveBB(){
+  if(BB_SAVING)return;
+  const bank=document.getElementById('bb_bank').value;
+  const p={bank,note:document.getElementById('bb_note').value.trim()||null,updated_at:new Date().toISOString(),updated_by_email:U?.email||null};
+  for(const k of ['usd_deposit','usd_hold','cny_deposit','cny_hold']){
+    const raw=document.getElementById('bb_'+k).value.trim();
+    const v=raw===''?0:Number(raw);
+    if(!isFinite(v)||v<0){toast('กรุณากรอกตัวเลขที่ถูกต้อง (ไม่ติดลบ)',true);document.getElementById('bb_'+k).focus();return;}
+    p[k]=R2(v);
+  }
+  BB_SAVING=true;
+  const{error}=await sb.from('bank_balances').upsert(p,{onConflict:'bank'});
+  BB_SAVING=false;
+  if(error){toast('บันทึกไม่สำเร็จ: '+error.message,true);return;}
+  toast('✅ บันทึกยอดธนาคาร '+bank+' เรียบร้อย');closeBB();renderBBForecast();
 }
 
 // ═══════════ PO FINANCING (SCB / TTB) ═══════════
