@@ -282,6 +282,29 @@ tbody tr:hover td{background:var(--panel2);}
 .rankList .rk{width:18px;height:18px;border-radius:5px;background:var(--panel3);color:var(--dim);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .rankList .rn{flex:1;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .rankList .rv{color:var(--blue);font-weight:700;font-size:11px;flex-shrink:0;}
+/* ─── Forecast อัตโนมัติจากสัญญาขาย ─── */
+.afcHint{font-size:11.5px;color:var(--dim);background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:9px 12px;margin-bottom:12px;}
+.afcGrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:12px;}
+.afcCard{background:var(--panel);border:1px solid var(--border);border-top:3px solid var(--green);border-radius:var(--r);padding:10px 12px;min-height:92px;}
+.afcH{font-size:11.5px;font-weight:700;margin-bottom:6px;}
+.afcCurRow{display:flex;justify-content:space-between;align-items:baseline;gap:6px;}
+.afcCurRow b{font-size:15px;font-weight:800;}
+.afcCur{font-size:10.5px;font-weight:800;}
+.afcCur.cTHB{color:var(--green);} .afcCur.cUSD{color:var(--blue);} .afcCur.cCNY{color:var(--red);}
+.afcEmpty{font-size:11px;color:var(--dim2);}
+.afcSub{font-size:10.5px;color:var(--dim);margin-top:4px;}
+.afcTotLbl{font-size:12px;font-weight:700;margin:4px 0 8px;}
+.afcTotGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:16px;}
+.afcTot{background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:var(--r);padding:10px 14px;}
+.afcTotUSD{border-left-color:var(--blue);} .afcTotCNY{border-left-color:var(--red);}
+.afcTotZero{opacity:.55;}
+.afcTotCur{font-size:10.5px;font-weight:700;color:var(--dim);}
+.afcTotTHB .afcTotCur{color:var(--green);} .afcTotUSD .afcTotCur{color:var(--blue);} .afcTotCNY .afcTotCur{color:var(--red);}
+.afcTotVal{font-size:21px;font-weight:800;margin-top:2px;}
+.afcMini{font-size:10px;font-weight:700;}
+.afcMini.ok{color:var(--green);} .afcMini.wait{color:var(--amber);}
+@media(max-width:1100px){.afcGrid{grid-template-columns:repeat(3,minmax(0,1fr));}}
+@media(max-width:900px){.afcGrid{grid-template-columns:repeat(2,minmax(0,1fr));}.afcTotGrid{grid-template-columns:minmax(0,1fr);}}
 /* ─── เงินในธนาคาร ฝาก / HOLD ─── */
 .bbGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:8px;}
 .bbGrid.bbGrid2{grid-template-columns:repeat(2,minmax(0,1fr));}
@@ -746,6 +769,8 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
   <div class="kGrid" id="kpiRiskCard"></div>
   <div class="sLbl">🏦 เงินในธนาคาร · ฝากเข้าบัญชี + HOLD ไว้รอแลก (SCB / TTB · แยกสกุลเงิน)</div>
   <div id="kpiBB"></div>
+  <div class="sLbl">📅 ประมาณการเงินเข้ารอบ 4 สัปดาห์ + เกินกำหนด (ดึงจากสัญญาขายอัตโนมัติ · แยกสกุลเงิน)</div>
+  <div id="kpiAfc"></div>
 </div>
 
 <div class="pg" id="pg-finoverview">
@@ -756,9 +781,13 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
 
   <div class="sLbl">🏦 เงินในธนาคาร · ฝากเข้าบัญชี + HOLD ไว้รอแลก (SCB / TTB · แยกสกุลเงิน)</div>
   <div id="finBB"></div>
+  <div class="sLbl">📅 ประมาณการเงินเข้ารอบ 4 สัปดาห์ + เกินกำหนด (ดึงจากสัญญาขายอัตโนมัติ · แยกสกุลเงิน)</div>
+  <div id="finAfc"></div>
+  <div id="finFcOld">
 
-  <div class="sLbl" style="cursor:pointer" onclick="go('fc')">⏰ Forecast - รายรับ <span style="font-size:11px;color:var(--blue);font-weight:400">(คลิกดูรายละเอียด →)</span></div>
+  <div class="sLbl" style="cursor:pointer" onclick="go('fc')">⏰ Forecast ที่บันทึกเอง (ระบบเดิม) <span style="font-size:11px;color:var(--blue);font-weight:400">(คลิกดูรายละเอียด →)</span></div>
   <div class="kGrid" id="finFcKpi"></div>
+  </div>
 
   <div class="sLbl" style="cursor:pointer" onclick="go('pofin')">🏦 ภาระหนี้ PO Financing · SCB / TTB <span style="font-size:11px;color:var(--blue);font-weight:400">(คลิกดูรายละเอียด →)</span></div>
   <div class="phS" style="margin:-6px 0 12px;font-weight:600;">ภาระหนี้เงินสด — แยกยอด KS AGRO บันทึก กับ ยอดธนาคารแจ้ง (ไม่รวมข้ามสกุลเงิน)</div>
@@ -797,6 +826,8 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
   </div>
   <div class="sLbl">🏦 เงินในธนาคาร · ฝากเข้าบัญชี + HOLD ไว้รอแลก (SCB / TTB · แยกสกุลเงิน)</div>
   <div id="dashBB"></div>
+  <div class="sLbl">📅 ประมาณการเงินเข้ารอบ 4 สัปดาห์ + เกินกำหนด (ดึงจากสัญญาขายอัตโนมัติ · แยกสกุลเงิน)</div>
+  <div id="dashAfc"></div>
   <div class="sLbl">🏠 ขายในประเทศ (THB)</div>
   <div class="kGrid" id="dashKpiDom"></div>
   <div class="sLbl">🚢 ส่งออกแป้งมันสำปะหลัง — Export Starch (USD/CNY)</div>
@@ -1094,9 +1125,15 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
       <button class="btn btn-p gate-write" onclick="openFc()">＋ เพิ่มรายการ</button>
     </div>
   </div>
-  <div class="kGrid" id="fcKpi"></div>
+  <div class="afcHint">💡 หน้านี้ดึงรายการที่ยังไม่ "เงินเข้าแล้ว" จากสัญญาขายทุกหมวดให้อัตโนมัติ — เพิ่ม / แก้ไข / เปลี่ยนสถานะที่หน้าบันทึกการขายที่เดียว หน้านี้จะอัปเดตเอง ไม่ต้องคีย์ซ้ำ · กด "เก็บเข้าคลัง" เพื่อซ่อนรายการจากหน้านี้ได้ (ไม่กระทบข้อมูลในสัญญาขาย)</div>
+  <div class="sLbl">📅 ประมาณการเงินเข้ารอบ 4 สัปดาห์ + เกินกำหนด (ดึงจากสัญญาขายอัตโนมัติ · แยกสกุลเงิน)</div>
+  <div id="fcAuto"></div>
   <div class="sLbl">🏦 เงินในธนาคาร · ฝากเข้าบัญชี / HOLD ไว้รอแลก</div>
   <div id="fcBB"></div>
+  <div class="sLbl">📋 รายการรอรับเงินจากสัญญาขาย</div>
+  <div id="afcTable"></div>
+  <div class="sLbl" style="margin-top:26px">📝 Forecast ที่บันทึกเอง (ระบบเดิม · ใช้กรณีรายการพิเศษที่ไม่มีในสัญญาขาย)</div>
+  <div class="kGrid" id="fcKpi"></div>
   <div style="display:flex;background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:3px;gap:2px;width:fit-content;margin-bottom:14px;" id="fcCT"></div>
   <!-- Date range picker -->
   <div style="background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
@@ -1876,6 +1913,7 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
       <div class="fld"><label>PRICE CIF</label><input type="number" step="any" id="e_price_cif"></div>
       <div class="fld"><label>Total</label><input type="number" step="any" id="e_total"></div>
       <div class="fld"><label>Invoice No.</label><input id="e_invoice_no"></div>
+      <div class="fld"><label>เลขที่ใบขนฯ</label><input id="e_customs_no"></div>
       <div class="fld s2"><label>Payment Term</label><input id="e_payment_term" placeholder="เช่น LC, TT 20% DEPOSIT..."></div>
       <div class="fld"><label>L/C NO.</label><input id="e_lc_no"></div>
       <div class="fld"><label>L/C Last Shipment Date</label><input type="date" id="e_lc_last_shipment_date"></div>
@@ -1885,7 +1923,9 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
 
     <div class="sLbl">ข้อมูลเรือ / ท่าเรือ / วันที่</div>
     <div class="fg">
-      <div class="fld s2"><label>M.Vessel Name</label><input id="e_vessel_name"></div>
+      <div class="fld"><label>Booking No.</label><input id="e_booking_no"></div>
+      <div class="fld"><label>Bill of Lading No.</label><input id="e_bl_no"></div>
+      <div class="fld"><label>M.Vessel Name</label><input id="e_vessel_name"></div>
       <div class="fld"><label>Loading Date</label><input type="date" id="e_loading_date"></div>
       <div class="fld"><label>Closing Date</label><input type="date" id="e_closing_date"></div>
       <div class="fld"><label>Loading Ground</label><input id="e_loading_ground"></div>
@@ -1962,9 +2002,6 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
       <div class="fld"><label>ส่งเอกสาร</label><input id="e_doc_delivery_name"></div>
       <div class="fld"><label>ค่าส่งเอกสาร (บาท)</label><input type="number" step="any" id="e_doc_delivery_cost"></div>
       <div class="fld"><label>DHL No.</label><input id="e_dhl_no"></div>
-      <div class="fld"><label>ใบขนฯ เลขที่</label><input id="e_customs_no"></div>
-      <div class="fld"><label>Booking No.</label><input id="e_booking_no"></div>
-      <div class="fld"><label>Bill of Lading No.</label><input id="e_bl_no"></div>
     </div>
   </div>
   <div class="mF">
@@ -2002,6 +2039,7 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
       <div class="fld"><label>PRICE CIF</label><input type="number" step="any" id="c_price_cif"></div>
       <div class="fld"><label>Total</label><input type="number" step="any" id="c_total"></div>
       <div class="fld"><label>Invoice No.</label><input id="c_invoice_no"></div>
+      <div class="fld"><label>เลขที่ใบขนฯ</label><input id="c_customs_no"></div>
       <div class="fld s2"><label>Payment Term</label><input id="c_payment_term"></div>
       <div class="fld"><label>L/C NO.</label><input id="c_lc_no"></div>
       <div class="fld"><label>L/C Last Shipment Date</label><input type="date" id="c_lc_last_shipment_date"></div>
@@ -2011,7 +2049,9 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
 
     <div class="sLbl">ข้อมูลเรือ / ท่าเรือ / วันที่</div>
     <div class="fg">
-      <div class="fld s2"><label>M.Vessel Name</label><input id="c_vessel_name"></div>
+      <div class="fld"><label>Booking No.</label><input id="c_booking_no"></div>
+      <div class="fld"><label>Bill of Lading No.</label><input id="c_bl_no"></div>
+      <div class="fld"><label>M.Vessel Name</label><input id="c_vessel_name"></div>
       <div class="fld"><label>Loading Date</label><input type="date" id="c_loading_date"></div>
       <div class="fld"><label>Closing Date</label><input type="date" id="c_closing_date"></div>
       <div class="fld"><label>Loading Ground</label><input id="c_loading_ground"></div>
@@ -2079,9 +2119,6 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
       <div class="fld"><label>บริการบรรจุ</label><input id="c_packing_service_name"></div>
       <div class="fld"><label>ส่งเอกสาร</label><input id="c_doc_delivery_name"></div>
       <div class="fld"><label>DHL No.</label><input id="c_dhl_no"></div>
-      <div class="fld"><label>ใบขนฯ เลขที่</label><input id="c_customs_no"></div>
-      <div class="fld"><label>Booking No.</label><input id="c_booking_no"></div>
-      <div class="fld"><label>Bill of Lading No.</label><input id="c_bl_no"></div>
     </div>
   </div>
   <div class="mF">
@@ -3232,13 +3269,14 @@ function xEc(){
 
 // ═══════════ FORECAST ═══════════
 async function loadFc(){
-  renderBBForecast();
+  renderBBForecast();AFC_ITEMS=null;renderAfcSummary('fcAuto').then(renderAfcTable);
   document.getElementById('fcTb').innerHTML='<tr><td colspan="16"><div class="loading"><span class="spin"></span>กำลังโหลด...</div></td></tr>';
   const{data,error}=await selAll('forecast_income','*',[['category'],['seq_no']]);
   if(error){toast('โหลดไม่สำเร็จ',true);return;}
   FR=(data||[]).sort((a,b)=>{const na=seqNum(a.seq_no),nb=seqNum(b.seq_no);if(na!==nb)return na-nb;return (a.sales_contract||'').localeCompare(b.sales_contract||'',undefined,{numeric:true,sensitivity:'base'});});buildFcCT();rFcKpi();rFc();
 }
 async function loadFcBadge(){
+  try{await loadAfc();return;}catch(e){}
   const{data}=await selAll('forecast_income','forecast_received_date,received_date');
   if(!data)return;
   const today=new Date();today.setHours(0,0,0,0);
@@ -3543,7 +3581,7 @@ function stampUpdated(elId){
   if(el)el.textContent='🕐 อัปเดตล่าสุด '+new Date().toLocaleString('th-TH',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'short'});
 }
 async function loadKpi(){
-  renderBBSummary('kpiBB');
+  renderBBSummary('kpiBB');AFC_ITEMS=null;renderAfcSummary('kpiAfc');
   const[{data:dom},{data:es},{data:ec},{data:dc},{data:ic},{data:fc},{data:stk}]=await Promise.all([
     selAll('sales_domestic','year,qty_mts,total,applicant_name'),
     selAll('export_tapioca_starch','year,qty_mts,total,currency,applicant_name'),
@@ -3653,7 +3691,7 @@ function rKpi(){
 
 // ═══════════ FINANCIAL OVERVIEW (รวม Forecast + PO Financing + Stock) ═══════════
 async function loadFinOverview(){
-  renderBBSummary('finBB');
+  renderBBSummary('finBB');AFC_ITEMS=null;renderAfcSummary('finAfc');
   const[{data:fc},{data:pf},{data:br},{data:stk}]=await Promise.all([
     selAll('forecast_income','*'),
     selAll('po_financing','*'),
@@ -3666,6 +3704,7 @@ async function loadFinOverview(){
   stampUpdated('finUpdated');
 }
 function rFinFc(F){
+  {const act=F.filter(r=>!r.archived);const w=document.getElementById('finFcOld');if(w)w.style.display=act.length?'':'none';}
   const today=new Date();today.setHours(0,0,0,0);const lim=new Date();lim.setHours(0,0,0,0);lim.setDate(lim.getDate()+28);
   const rows=F.filter(r=>!r.archived&&!['received','cancelled'].includes(fcSt(r)));
   const pend=rows.filter(r=>fcPendingAmt(r,today,lim)>0);
@@ -3734,7 +3773,7 @@ function rFinStock(rows){
 }
 
 async function loadDash(){
-  renderBBSummary('dashBB');
+  renderBBSummary('dashBB');AFC_ITEMS=null;renderAfcSummary('dashAfc');
   const[{data:dom},{data:fc},{data:es},{data:ec},{data:dc},{data:ic}]=await Promise.all([
     selAll('sales_domestic','year,total,qty_mts,packing_kgs,loading_date,factory1_name,factory2_name,factory3_name,factory4_name,shipping_name,survey_name,fumigation_name'),
     selAll('forecast_income','*'),
@@ -5033,6 +5072,149 @@ function openPartner(type,name){
   go('partners');
 }
 
+
+
+// ═══════════ Forecast อัตโนมัติจากสัญญาขาย (ไม่ต้องคีย์ซ้ำ) ═══════════
+// ดึงทุกรายการที่ยังไม่ "เงินเข้าแล้ว" และไม่ "ยกเลิก" จาก 5 หมวดการขาย
+// ยอดคงเหลือสุทธิ = มูลค่าสัญญา − เงินที่รับแล้ว (เช่น เงินมัดจำ) · แยกสกุลเงินเสมอ ไม่รวมข้ามสกุล
+const AFC_CAT={
+  es:{t:'export_tapioca_starch',lbl:'ขายแป้งมันส่งออก',cls:'bdg-b'},
+  ec:{t:'export_tapioca_chip',lbl:'ขายมันเส้นส่งออก',cls:'bdg-o'},
+  dom:{t:'sales_domestic',lbl:'ขายแป้งมันในประเทศ',cls:'bdg-g'},
+  dc:{t:'domestic_coffee',lbl:'ขายกาแฟในประเทศ',cls:'bdg-a'},
+  ic:{t:'import_coffee',lbl:'นำเข้ากาแฟ',cls:'bdg-p'}
+};
+const AFC_CURS=['THB','USD','CNY'];
+let AFC_ITEMS=null, AFC_LOADING=null, AFC_SHOW_ARCH=false;
+function afcIso(v){if(!v)return null;const s=String(v).trim();const m=s.match(/^(\d{4})-(\d\d)-(\d\d)/);if(m)return `${m[1]}-${m[2]}-${m[3]}`;const t=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);if(t)return `${t[3]}-${t[2].padStart(2,'0')}-${t[1].padStart(2,'0')}`;return null;}
+function afcDay(iso){const[y,m,d]=iso.split('-').map(Number);return new Date(y,m-1,d);}
+function afcStatusText(r){return String(r.status_remark||r.dom_status_remark||r.status||'').trim();}
+function afcIsPaid(s){return /^เงินเข้าแล้ว/.test(s)||(s.includes('เงินเข้าแล้ว')&&!/รอเงิน|ค้าง|บางส่วน/.test(s));}
+function afcReceived(cat,r){
+  if(cat==='dc')return (+r.receive_amount1||0)+(+r.receive_amount2||0)||(+r.received_amount||0);
+  if(cat==='ic')return (r.deposit_paid?(+r.deposit_value_thb||0):0)+(r.balance_paid?(+r.balance_total||0):0)||(+r.received_amount||0);
+  return +r.received_amount||0;
+}
+function afcBuild(byCat){
+  const today=new Date();today.setHours(0,0,0,0);
+  const out=[];
+  Object.entries(byCat).forEach(([cat,rows])=>{
+    (rows||[]).forEach(r=>{
+      const st=afcStatusText(r);
+      if(/ยกเลิก/.test(st)||/ยกเลิก/.test(r.invoice_no||''))return;
+      if(afcIsPaid(st))return;
+      const total=+r.total||0, rec=afcReceived(cat,r), net=Math.max(0,Math.round((total-rec)*100)/100);
+      if(!total&&!net)return;
+      const cur=(cat==='dom'||cat==='dc'||cat==='ic')?'THB':(cat==='ec'?(r.currency||'USD'):(r.currency||'USD')).toUpperCase();
+      const advDone=!!r.advance_date;
+      const exp=afcIso(r.forecast_received_date)||afcIso(r.balance_forecast_date)||(!advDone?afcIso(r.advance_forecast_date):null)||afcIso(r.loading_date);
+      const overdue=!!exp&&afcDay(exp)<today&&net>0;
+      out.push({cat,r,id:r.id,applicant:r.applicant_name||'',contract:r.sales_contract||r.contact_no||'',invoice:r.invoice_no||'',
+        qty:+r.qty_mts||0,total,rec,net,cur,exp,overdue,status:st,archived:!!r.fc_archived,
+        adv:+r.advance_payment||0,advDate:r.advance_date||null,bal:+r.balance_payment||0,balDate:r.balance_date||null,
+        loading:afcIso(r.loading_date),bank:r.bank||''});
+    });
+  });
+  return out.sort((a,b)=>(a.exp||'9999').localeCompare(b.exp||'9999'));
+}
+async function loadAfc(force){
+  if(AFC_ITEMS&&!force)return AFC_ITEMS;
+  if(AFC_LOADING)return AFC_LOADING;
+  AFC_LOADING=(async()=>{
+    const keys=Object.keys(AFC_CAT);
+    const res=await Promise.all(keys.map(k=>fetchAllRows(AFC_CAT[k].t)));
+    const err=res.find(x=>x.error);if(err){AFC_LOADING=null;throw err.error;}
+    const byCat={};keys.forEach((k,i)=>byCat[k]=res[i].data||[]);
+    // ให้กดดูรายละเอียดสัญญาได้ทันที
+    DR=byCat.dom;ES=byCat.es;ECD=byCat.ec;DCR=byCat.dc;ICR=byCat.ic;
+    AFC_ITEMS=afcBuild(byCat);AFC_LOADING=null;
+    afcBadge();
+    return AFC_ITEMS;
+  })();
+  return AFC_LOADING;
+}
+function afcWeeks(){
+  const t=new Date();t.setHours(0,0,0,0);
+  const mon=new Date(t);mon.setDate(t.getDate()-((t.getDay()+6)%7));
+  const fmt=(a,b)=>a.getMonth()===b.getMonth()?`${a.getDate()}-${b.getDate()}/${b.getMonth()+1}/${b.getFullYear()}`:`${a.getDate()}/${a.getMonth()+1}-${b.getDate()}/${b.getMonth()+1}/${b.getFullYear()}`;
+  return [0,1,2,3].map(i=>{const s=new Date(mon);s.setDate(mon.getDate()+7*i);const e=new Date(s);e.setDate(s.getDate()+6);const fri=new Date(s);fri.setDate(s.getDate()+4);
+    return {s,e,lbl:['สัปดาห์นี้','สัปดาห์หน้า','สัปดาห์ที่ 3','สัปดาห์ที่ 4'][i]+` (${fmt(s,fri)})`};});
+}
+function afcSumByCur(list){const m={};list.forEach(x=>{m[x.cur]=(m[x.cur]||0)+x.net;});return m;}
+function afcCurLines(m,empty){
+  const ks=AFC_CURS.filter(c=>m[c]).concat(Object.keys(m).filter(c=>!AFC_CURS.includes(c)&&m[c]));
+  if(!ks.length)return `<div class="afcEmpty">${empty||'— ไม่มียอดครบรับ —'}</div>`;
+  return ks.map(c=>`<div class="afcCurRow"><span class="afcCur c${c}">${c}</span><b>${N(m[c],2)}</b></div>`).join('');
+}
+// สรุป: รอบ 4 สัปดาห์ + เกินกำหนด + เงินรอเข้าทั้งหมด (ใช้ใน Forecast / KPI / Dashboard / Financial Overview)
+async function renderAfcSummary(elId){
+  const el=document.getElementById(elId);if(!el)return;
+  if(!AFC_ITEMS)el.innerHTML='<div class="loading"><span class="spin"></span>กำลังคำนวณจากสัญญาขาย...</div>';
+  let items;try{items=await loadAfc();}catch(e){el.innerHTML=`<div class="bbNote">โหลดข้อมูลไม่สำเร็จ: ${E(e.message||'')}</div>`;return;}
+  const act=items.filter(x=>!x.archived&&x.net>0);
+  const weeks=afcWeeks();
+  const wk=weeks.map(w=>{const l=act.filter(x=>x.exp&&!x.overdue&&afcDay(x.exp)>=w.s&&afcDay(x.exp)<=w.e);return{w,l};});
+  const over=act.filter(x=>x.overdue);
+  const tot=afcSumByCur(act);
+  const cnt=c=>act.filter(x=>x.cur===c).length;
+  el.innerHTML=`
+    <div class="afcGrid">
+      ${wk.map(({w,l})=>`<div class="afcCard" style="border-top-color:var(--green)"><div class="afcH">${w.lbl}</div>${afcCurLines(afcSumByCur(l))}<div class="afcSub">${l.length} รายการ</div></div>`).join('')}
+      <div class="afcCard" style="border-top-color:var(--red)"><div class="afcH" style="color:var(--red)">เกินกำหนด (Overdue)</div>${afcCurLines(afcSumByCur(over),'— ไม่มีรายการเกินกำหนด —')}<div class="afcSub">${over.length} รายการ</div></div>
+    </div>
+    <div class="afcTotLbl">💰 เงินที่รอเข้าทั้งหมด (สุทธิ หักที่ได้รับแล้ว เช่น เงินมัดจำ)</div>
+    <div class="afcTotGrid">${AFC_CURS.map(c=>`<div class="afcTot afcTot${c}${tot[c]?'':' afcTotZero'}"><div class="afcTotCur">${{THB:'บาท (THB)',USD:'ดอลลาร์ (USD)',CNY:'หยวน (CNY)'}[c]}</div><div class="afcTotVal">${N(tot[c]||0,c==='THB'?0:2)}</div><div class="afcSub">${cnt(c)} รายการ</div></div>`).join('')}</div>`;
+}
+// ตารางรายการในหน้า Forecast Income
+async function renderAfcTable(){
+  const el=document.getElementById('afcTable');if(!el)return;
+  let items;try{items=await loadAfc();}catch(e){el.innerHTML=`<div class="bbNote">โหลดข้อมูลไม่สำเร็จ: ${E(e.message||'')}</div>`;return;}
+  const list=items.filter(x=>AFC_SHOW_ARCH||!x.archived);
+  const nArch=items.filter(x=>x.archived).length;
+  const dd=v=>{const i=afcIso(v);return i?D(i):(v?E(v):'—');};
+  const stBdg=x=>{
+    if(x.overdue)return '<span class="bdg bdg-r">เกินกำหนด</span>';
+    const s=(x.status||'รอเงินเข้า').split(',')[0].trim();
+    return `<span class="bdg ${/เกิน/.test(s)?'bdg-r':/รอเงิน/.test(s)?'bdg-a':'bdg-wait'}" title="${EA(x.status)}">${E(s.length>18?s.slice(0,18)+'…':s)}</span>`;
+  };
+  el.innerHTML=`
+    <div class="tb" style="margin-bottom:8px"><span style="font-size:11.5px;color:var(--dim)">กดที่แถวเพื่อดูรายละเอียดสัญญา · รับเงินครบแล้วให้ไปเปลี่ยนสถานะเป็น "เงินเข้าแล้ว" ที่หน้าบันทึกการขาย รายการจะหายจากหน้านี้เอง</span><div class="sp"></div>
+      <label style="font-size:11.5px;color:var(--dim);display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" ${AFC_SHOW_ARCH?'checked':''} onchange="AFC_SHOW_ARCH=this.checked;renderAfcTable()"> แสดงรายการที่เก็บเข้าคลัง (${nArch})</label>
+      <button class="btn btn-o btn-sm" onclick="refreshAfc()">⟳ รีเฟรช</button></div>
+    <div class="tCard"><div class="tWrap"><table>
+      <thead><tr><th>#</th><th>ประเภท</th><th>ลูกค้า/ผู้ซื้อ</th><th>Contract</th><th>Invoice</th><th>QTY MTS</th><th>มูลค่าสัญญา</th><th>Advance (มัดจำ)</th><th>Balance (ส่วนที่เหลือ)</th><th>คงเหลือสุทธิที่จะรับ</th><th>สกุล</th><th>CFS Loading</th><th>คาดว่าเงินเข้า</th><th>วันที่ยื่นธนาคาร</th><th>สถานะ</th><th class="gate-write">คลังข้อมูล</th></tr></thead>
+      <tbody>${list.length?list.map((x,i)=>`<tr style="cursor:pointer;${x.archived?'opacity:.5':''}" onclick="if(!event.target.closest('button'))viewDetail('${x.cat}','${x.id}')">
+        <td style="color:var(--dim)">${i+1}</td>
+        <td><span class="bdg ${AFC_CAT[x.cat].cls}">${AFC_CAT[x.cat].lbl}</span></td>
+        <td class="td-trunc" style="max-width:200px" title="${EA(x.applicant)}">${E(x.applicant)}</td>
+        <td>${E(x.contract)}</td><td>${E(x.invoice)}</td>
+        <td>${x.qty?N(x.qty,2):'—'}</td>
+        <td>${N(x.total,2)}</td>
+        <td>${x.adv?`${N(x.adv,2)}<div class="afcMini ${x.advDate?'ok':'wait'}">${x.advDate?'✓ รับแล้ว '+D(x.advDate):'รอรับ'}</div>`:'—'}</td>
+        <td>${x.bal?`${N(x.bal,2)}<div class="afcMini ${x.balDate?'ok':'wait'}">${x.balDate?'✓ รับแล้ว '+D(x.balDate):'รอรับ'}</div>`:'—'}</td>
+        <td style="font-weight:800;color:var(--green)">${N(x.net,2)}</td>
+        <td><span class="afcCur c${x.cur}">${x.cur}</span></td>
+        <td>${x.loading?D(x.loading):'—'}</td>
+        <td style="font-weight:700;${x.overdue?'color:var(--red)':''}">${x.exp?D(x.exp):'—'}</td>
+        <td>${dd(x.bank)}</td>
+        <td>${stBdg(x)}</td>
+        <td class="gate-write"><button class="btn btn-o btn-sm" onclick="afcArchive('${x.cat}','${x.id}',${!x.archived})">${x.archived?'↩ นำออกจากคลัง':'📦 เก็บเข้าคลัง'}</button></td>
+      </tr>`).join(''):'<tr><td colspan="16"><div class="empty"><div class="ei">🎉</div><p>ไม่มีรายการรอรับเงิน</p></div></td></tr>'}</tbody>
+    </table></div><div class="tFoot"><span>แสดง ${list.length} รายการ</span></div></div>`;
+}
+async function afcArchive(cat,id,val){
+  const{error}=await sb.from(AFC_CAT[cat].t).update({fc_archived:val}).eq('id',id);
+  if(error){toast('บันทึกไม่สำเร็จ: '+error.message,true);return;}
+  const x=(AFC_ITEMS||[]).find(i=>i.id===id);if(x){x.archived=val;x.r.fc_archived=val;}
+  toast(val?'📦 เก็บเข้าคลังแล้ว (ข้อมูลในสัญญาขายไม่เปลี่ยน)':'↩ นำออกจากคลังแล้ว');
+  renderAfcTable();renderAfcSummary('fcAuto');afcBadge();
+}
+async function refreshAfc(){AFC_ITEMS=null;await loadAfc(true);renderAfcSummary('fcAuto');renderAfcTable();}
+function afcBadge(){
+  const el=document.getElementById('fcBadge');if(!el||!AFC_ITEMS)return;
+  const over=AFC_ITEMS.filter(x=>!x.archived&&x.overdue).length;
+  if(over>0){el.textContent=over+'!';el.style.display='';el.title=over+' รายการเกินกำหนดรับเงิน';}else el.style.display='none';
+}
 
 // ═══════════ เงินในธนาคาร · ฝากเข้าบัญชี / HOLD ไว้รอแลก (bank_balances) ═══════════
 // แสดงอย่างเดียว ไม่นำไปบวก/หักกับยอดหนี้สิน · USD กับ CNY แยกกันเสมอ ไม่รวมข้ามสกุล
