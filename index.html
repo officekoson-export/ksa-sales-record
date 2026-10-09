@@ -2498,7 +2498,7 @@ function calcComm(p){
   if(!isNaN(rate)&&!isNaN(qty))document.getElementById(p+'_total_comm').value=R2(rate*qty);
 }
 function D(s){if(!s)return'—';return new Date(s).toLocaleDateString('th-TH',{day:'2-digit',month:'short',year:'2-digit'});}
-function E(s){if(!s&&s!==0)return'<span style="color:var(--dim2)">—</span>';return String(s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));}
+function E(s){if(!s&&s!==0)return'<span style="color:var(--dim2)">—</span>';return String(s).replace(/[<>&"']/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));}
 
 // ═══════════ ดูรายละเอียดสัญญา (คลิกที่แถว) + พิมพ์/ดาวน์โหลดเฉพาะรายการนั้น ═══════════
 const VIEW_CFG={
@@ -3946,7 +3946,7 @@ function freqCount(arr,keys){
   return Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,6);
 }
 function renderTopList(id,list,unit='MTS'){
-  document.getElementById(id).innerHTML=list.length?list.map(([name,val],i)=>`<li><span class="rk">${i+1}</span><span class="rn">${name}</span><span class="rv">${N(val,2)} ${unit}</span></li>`).join(''):'<li style="color:var(--dim);border:none;">ยังไม่มีข้อมูล</li>';
+  document.getElementById(id).innerHTML=list.length?list.map(([name,val],i)=>`<li><span class="rk">${i+1}</span><span class="rn">${E(name)}</span><span class="rv">${N(val,2)} ${unit}</span></li>`).join(''):'<li style="color:var(--dim);border:none;">ยังไม่มีข้อมูล</li>';
 }
 function buildRsYP(elId,cat,rows){
   const cur=cat==='ES'?RSY_ES:cat==='EC'?RSY_EC:RSY_DOM;
@@ -4392,7 +4392,7 @@ function rPk(){
   domG.forEach(([k,v])=>rows.push({cat:'Domestic',pk:k+' kgs',mts:v,pct:domMts?v/domMts*100:0}));
   esG.forEach(([k,v])=>rows.push({cat:'Export Starch',pk:k+' kgs',mts:v,pct:esMts?v/esMts*100:0}));
   if(ecMts)rows.push({cat:'Export Chip',pk:'BULK',mts:ecMts,pct:100});
-  document.getElementById('pkTb').innerHTML=rows.length?rows.map(r=>`<tr><td>${r.cat}</td><td>${r.pk}</td><td>${N(r.mts,2)}</td><td>${N(r.pct,1)}%</td></tr>`).join(''):'<tr><td colspan="4" style="color:var(--dim);text-align:center">ไม่มีข้อมูล</td></tr>';
+  document.getElementById('pkTb').innerHTML=rows.length?rows.map(r=>`<tr><td>${E(r.cat)}</td><td>${E(r.pk)}</td><td>${N(r.mts,2)}</td><td>${N(r.pct,1)}%</td></tr>`).join(''):'<tr><td colspan="4" style="color:var(--dim);text-align:center">ไม่มีข้อมูล</td></tr>';
 }
 
 // ═══════════ CURRENCY ANALYSIS ═══════════
@@ -4571,7 +4571,7 @@ function stockGroup(rows){
 function stockRowsHtml(groups){
   if(!groups.length)return '<tr><td colspan="4" style="color:var(--dim);text-align:center">ไม่มีข้อมูล</td></tr>';
   let totQty=0,totAmt=0;
-  const rows=groups.map(g=>{totQty+=g.qty;totAmt+=g.amount;return `<tr><td>${g.label}</td><td>${N(g.qty,2)}</td><td>$${N(g.price,2)}</td><td>$${N(g.amount,2)}</td></tr>`;}).join('');
+  const rows=groups.map(g=>{totQty+=g.qty;totAmt+=g.amount;return `<tr><td>${E(g.label)}</td><td>${N(g.qty,2)}</td><td>$${N(g.price,2)}</td><td>$${N(g.amount,2)}</td></tr>`;}).join('');
   return rows+`<tr style="font-weight:700;border-top:2px solid var(--border2)"><td>—</td><td>${N(totQty,2)}</td><td>TOTAL USD</td><td>$${N(totAmt,2)}</td></tr>`;
 }
 function rStock(){
