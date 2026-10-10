@@ -282,6 +282,16 @@ tbody tr:hover td{background:var(--panel2);}
 .rankList .rk{width:18px;height:18px;border-radius:5px;background:var(--panel3);color:var(--dim);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .rankList .rn{flex:1;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .rankList .rv{color:var(--blue);font-weight:700;font-size:11px;flex-shrink:0;}
+/* ─── การรับเงิน: ครั้งเดียว / 2 งวด ─── */
+.payMode{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+.payMode label{display:flex;align-items:center;gap:7px;padding:8px 12px;border:1px solid var(--border2);border-radius:var(--r);background:var(--panel2);font-size:12.5px;cursor:pointer;}
+.payMode label:has(input:checked){border-color:var(--blue);background:var(--blue-bg);font-weight:700;}
+.payMode small{color:var(--dim);font-weight:500;}
+.payCalc{font-size:11.5px;color:var(--dim);margin-top:8px;display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;}
+.payCalc b{color:var(--text);}
+.payCalc .warn{color:var(--amber);font-weight:700;}
+.payCalc button{padding:4px 10px;font-size:11px;}
+.mbg[data-mode="view"] .payCalc button{display:none;}
 /* ─── Forecast อัตโนมัติจากสัญญาขาย ─── */
 .afcHint{font-size:11.5px;color:var(--dim);background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:9px 12px;margin-bottom:12px;}
 .afcGrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:12px;}
@@ -1570,6 +1580,35 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
       <div class="fld s3"><label>สถานะ / หมายเหตุ 📌</label><input id="d_dom_status_remark" placeholder="เช่น เงินเข้าแล้ว, รอวางบิล, รอส่งของ, ยกเลิก..."></div>
     </div>
 
+    <div class="sLbl">การรับเงิน</div>
+    <div class="payMode" id="d_paymode">
+      <label><input type="radio" name="d_paymode" value="single" onchange="payModeChange('d',true)"> 💳 ชำระครั้งเดียว <small>(L/C · TT 100% · เครดิต)</small></label>
+      <label><input type="radio" name="d_paymode" value="split" onchange="payModeChange('d',true)"> 💰 แบ่ง 2 งวด <small>(มัดจำ + ส่วนที่เหลือ)</small></label>
+    </div>
+    <div id="d_paysplit" style="display:none">
+    <div class="fg2" style="margin-top:0">
+      <div class="fBox"><h4>💰 งวดที่ 1 · เงินมัดจำ (Advance)</h4><div class="fi">
+        <div class="fld"><label>ยอดมัดจำ</label><input type="number" step="any" id="d_advance_payment" oninput="payCalc('d')"></div>
+        <div class="fld"><label>วันที่คาดว่าจะได้รับ</label><input type="date" id="d_advance_forecast_date"></div>
+        <div class="fld"><label>วันที่ได้รับเงินจริง</label><input type="date" id="d_advance_date" oninput="payCalc('d')"></div>
+        <div class="fld"><label>ค่าธรรมเนียมธนาคาร</label><input type="number" step="any" id="d_advance_bank_fee" oninput="payCalc('d')"></div>
+      </div></div>
+      <div class="fBox"><h4>💵 งวดที่ 2 · ส่วนที่เหลือ (Balance)</h4><div class="fi">
+        <div class="fld"><label>ยอดส่วนที่เหลือ</label><input type="number" step="any" id="d_balance_payment" oninput="payCalc('d')"></div>
+        <div class="fld"><label>วันที่คาดว่าจะได้รับ</label><input type="date" id="d_balance_forecast_date"></div>
+        <div class="fld"><label>วันที่ได้รับเงินจริง</label><input type="date" id="d_balance_date" oninput="payCalc('d')"></div>
+        <div class="fld"><label>ค่าธรรมเนียมธนาคาร</label><input type="number" step="any" id="d_balance_bank_fee" oninput="payCalc('d')"></div>
+      </div></div>
+    </div>
+    <div class="payCalc" id="d_paycalc"></div>
+    </div>
+    <div class="fg" style="margin-top:10px">
+      <div class="fld"><label>วันที่คาดว่าเงินเข้า (Expected)</label><input type="date" id="d_forecast_received_date"></div>
+      <div class="fld"><label>ยอดเงินที่ได้รับแล้ว (Received Amount)</label><input type="number" step="any" id="d_received_amount" oninput="payCalc('d')"></div>
+      <div class="fld"><label>วันที่ได้รับเงิน (Received Date)</label><input type="date" id="d_received_date"></div>
+      <div class="fld"><label>ส่วนต่าง / ค่าธรรมเนียม (Diff Amount)</label><input type="number" step="any" id="d_diff_amount"></div>
+    </div>
+
     <div class="sLbl">ต้นทุนวัตถุดิบจากโรงแป้ง</div>
     <div class="fg2">
       <div class="fBox"><h4>🏭 โรงแป้ง #1</h4><div class="fi">
@@ -1670,11 +1709,32 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
     </div>
 
     <div class="sLbl">การรับเงิน</div>
-    <div class="fg">
-      <div class="fld"><label>วันที่รับเงินงวด #1</label><input type="date" id="dc_receive_date1"></div>
-      <div class="fld"><label>ยอดรับเงินงวด #1</label><input type="number" step="any" id="dc_receive_amount1"></div>
-      <div class="fld"><label>วันที่รับเงินงวด #2</label><input type="date" id="dc_receive_date2"></div>
-      <div class="fld"><label>ยอดรับเงินงวด #2</label><input type="number" step="any" id="dc_receive_amount2"></div>
+    <div class="payMode" id="dc_paymode">
+      <label><input type="radio" name="dc_paymode" value="single" onchange="payModeChange('dc',true)"> 💳 ชำระครั้งเดียว <small>(L/C · TT 100% · เครดิต)</small></label>
+      <label><input type="radio" name="dc_paymode" value="split" onchange="payModeChange('dc',true)"> 💰 แบ่ง 2 งวด <small>(มัดจำ + ส่วนที่เหลือ)</small></label>
+    </div>
+    <div id="dc_paysplit" style="display:none">
+    <div class="fg2" style="margin-top:0">
+      <div class="fBox"><h4>💰 งวดที่ 1 · เงินมัดจำ (Advance)</h4><div class="fi">
+        <div class="fld"><label>ยอดมัดจำ</label><input type="number" step="any" id="dc_advance_payment" oninput="payCalc('dc')"></div>
+        <div class="fld"><label>วันที่คาดว่าจะได้รับ</label><input type="date" id="dc_advance_forecast_date"></div>
+        <div class="fld"><label>วันที่ได้รับเงินจริง</label><input type="date" id="dc_advance_date" oninput="payCalc('dc')"></div>
+        <div class="fld"><label>ค่าธรรมเนียมธนาคาร</label><input type="number" step="any" id="dc_advance_bank_fee" oninput="payCalc('dc')"></div>
+      </div></div>
+      <div class="fBox"><h4>💵 งวดที่ 2 · ส่วนที่เหลือ (Balance)</h4><div class="fi">
+        <div class="fld"><label>ยอดส่วนที่เหลือ</label><input type="number" step="any" id="dc_balance_payment" oninput="payCalc('dc')"></div>
+        <div class="fld"><label>วันที่คาดว่าจะได้รับ</label><input type="date" id="dc_balance_forecast_date"></div>
+        <div class="fld"><label>วันที่ได้รับเงินจริง</label><input type="date" id="dc_balance_date" oninput="payCalc('dc')"></div>
+        <div class="fld"><label>ค่าธรรมเนียมธนาคาร</label><input type="number" step="any" id="dc_balance_bank_fee" oninput="payCalc('dc')"></div>
+      </div></div>
+    </div>
+    <div class="payCalc" id="dc_paycalc"></div>
+    </div>
+    <div class="fg" style="margin-top:10px">
+      <div class="fld"><label>วันที่คาดว่าเงินเข้า (Expected)</label><input type="date" id="dc_forecast_received_date"></div>
+      <div class="fld"><label>ยอดเงินที่ได้รับแล้ว (Received Amount)</label><input type="number" step="any" id="dc_received_amount" oninput="payCalc('dc')"></div>
+      <div class="fld"><label>วันที่ได้รับเงิน (Received Date)</label><input type="date" id="dc_received_date"></div>
+      <div class="fld"><label>ส่วนต่าง / ค่าธรรมเนียม (Diff Amount)</label><input type="number" step="any" id="dc_diff_amount"></div>
     </div>
 
     <div class="sLbl">การจัดส่ง</div>
@@ -1748,18 +1808,39 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
       <div class="fld s3"><label>สถานะ / หมายเหตุ 📌</label><input id="ic_status_remark"></div>
     </div>
 
-    <div class="sLbl">การชำระเงิน (มัดจำ + ยอดคงเหลือ)</div>
-    <div class="fg">
-      <div class="fld"><label>วันที่มัดจำ (T/T Deposit)</label><input type="date" id="ic_deposit_date"></div>
-      <div class="fld"><label>ยอดมัดจำ (THB)</label><input type="number" step="any" id="ic_deposit_value_thb"></div>
-      <div class="fld"><label>Exchange Rate #1</label><input type="number" step="any" id="ic_exchange_rate1"></div>
-      <div class="fld"><label>ยอดมัดจำ (USD)</label><input type="number" step="any" id="ic_deposit_total_usd"></div>
-      <div class="fld"><label>สถานะมัดจำ</label><select id="ic_deposit_paid"><option value="false">⏳ ยังไม่จ่าย</option><option value="true">✅ จ่ายแล้ว</option></select></div>
-      <div class="fld"><label>วันที่ชำระยอดคงเหลือ</label><input type="date" id="ic_balance_date"></div>
-      <div class="fld"><label>ยอดคงเหลือ (THB)</label><input type="number" step="any" id="ic_balance_total"></div>
-      <div class="fld"><label>Exchange Rate #2</label><input type="number" step="any" id="ic_exchange_rate2"></div>
-      <div class="fld"><label>ยอดคงเหลือ (USD)</label><input type="number" step="any" id="ic_balance_total_usd2"></div>
-      <div class="fld"><label>สถานะยอดคงเหลือ</label><select id="ic_balance_paid"><option value="false">⏳ ยังไม่จ่าย</option><option value="true">✅ จ่ายแล้ว</option></select></div>
+    <div class="sLbl">การชำระเงิน (มัดจำ + ส่วนที่เหลือ)</div>
+    <div class="payMode" id="ic_paymode">
+      <label><input type="radio" name="ic_paymode" value="single" onchange="payModeChange('ic',true)"> 💳 ชำระครั้งเดียว <small>(L/C · TT 100% · เครดิต)</small></label>
+      <label><input type="radio" name="ic_paymode" value="split" onchange="payModeChange('ic',true)"> 💰 แบ่ง 2 งวด <small>(มัดจำ + ส่วนที่เหลือ)</small></label>
+    </div>
+    <div id="ic_paysplit" style="display:none">
+    <div class="fg2" style="margin-top:0">
+      <div class="fBox"><h4>💰 งวดที่ 1 · เงินมัดจำ (Advance)</h4><div class="fi">
+        <div class="fld"><label>ยอดมัดจำ</label><input type="number" step="any" id="ic_advance_payment" oninput="payCalc('ic')"></div>
+        <div class="fld"><label>วันที่คาดว่าจะได้รับ</label><input type="date" id="ic_advance_forecast_date"></div>
+        <div class="fld"><label>วันที่ได้รับเงินจริง</label><input type="date" id="ic_advance_date" oninput="payCalc('ic')"></div>
+        <div class="fld"><label>ค่าธรรมเนียมธนาคาร</label><input type="number" step="any" id="ic_advance_bank_fee" oninput="payCalc('ic')"></div>
+      </div></div>
+      <div class="fBox"><h4>💵 งวดที่ 2 · ส่วนที่เหลือ (Balance)</h4><div class="fi">
+        <div class="fld"><label>ยอดส่วนที่เหลือ</label><input type="number" step="any" id="ic_balance_payment" oninput="payCalc('ic')"></div>
+        <div class="fld"><label>วันที่คาดว่าจะได้รับ</label><input type="date" id="ic_balance_forecast_date"></div>
+        <div class="fld"><label>วันที่ได้รับเงินจริง</label><input type="date" id="ic_balance_date" oninput="payCalc('ic')"></div>
+        <div class="fld"><label>ค่าธรรมเนียมธนาคาร</label><input type="number" step="any" id="ic_balance_bank_fee" oninput="payCalc('ic')"></div>
+      </div></div>
+    </div>
+    <div class="payCalc" id="ic_paycalc"></div>
+    </div>
+    <div class="fg" style="margin-top:10px">
+      <div class="fld"><label>วันที่คาดว่าเงินเข้า (Expected)</label><input type="date" id="ic_forecast_received_date"></div>
+      <div class="fld"><label>ยอดเงินที่ได้รับแล้ว (Received Amount)</label><input type="number" step="any" id="ic_received_amount" oninput="payCalc('ic')"></div>
+      <div class="fld"><label>วันที่ได้รับเงิน (Received Date)</label><input type="date" id="ic_received_date"></div>
+      <div class="fld"><label>ส่วนต่าง / ค่าธรรมเนียม (Diff Amount)</label><input type="number" step="any" id="ic_diff_amount"></div>
+    </div>
+    <div class="fg" style="margin-top:10px">
+      <div class="fld"><label>Exchange Rate งวด 1</label><input type="number" step="any" id="ic_exchange_rate1"></div>
+      <div class="fld"><label>ยอดงวด 1 (USD)</label><input type="number" step="any" id="ic_deposit_total_usd"></div>
+      <div class="fld"><label>Exchange Rate งวด 2</label><input type="number" step="any" id="ic_exchange_rate2"></div>
+      <div class="fld"><label>ยอดงวด 2 (USD)</label><input type="number" step="any" id="ic_balance_total_usd2"></div>
     </div>
 
     <div class="sLbl">การนำเข้า / จัดส่ง</div>
@@ -1939,11 +2020,32 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
     </div>
 
     <div class="sLbl">การรับเงิน</div>
-    <div class="fg">
-      <div class="fld"><label>Expected Received Payment</label><input type="date" id="e_forecast_received_date"></div>
-      <div class="fld"><label>Received Amount</label><input type="number" step="any" id="e_received_amount"></div>
-      <div class="fld"><label>Diff Amount</label><input type="number" step="any" id="e_diff_amount"></div>
-      <div class="fld"><label>Received Date</label><input type="date" id="e_received_date"></div>
+    <div class="payMode" id="e_paymode">
+      <label><input type="radio" name="e_paymode" value="single" onchange="payModeChange('e',true)"> 💳 ชำระครั้งเดียว <small>(L/C · TT 100% · เครดิต)</small></label>
+      <label><input type="radio" name="e_paymode" value="split" onchange="payModeChange('e',true)"> 💰 แบ่ง 2 งวด <small>(มัดจำ + ส่วนที่เหลือ)</small></label>
+    </div>
+    <div id="e_paysplit" style="display:none">
+    <div class="fg2" style="margin-top:0">
+      <div class="fBox"><h4>💰 งวดที่ 1 · เงินมัดจำ (Advance)</h4><div class="fi">
+        <div class="fld"><label>ยอดมัดจำ</label><input type="number" step="any" id="e_advance_payment" oninput="payCalc('e')"></div>
+        <div class="fld"><label>วันที่คาดว่าจะได้รับ</label><input type="date" id="e_advance_forecast_date"></div>
+        <div class="fld"><label>วันที่ได้รับเงินจริง</label><input type="date" id="e_advance_date" oninput="payCalc('e')"></div>
+        <div class="fld"><label>ค่าธรรมเนียมธนาคาร</label><input type="number" step="any" id="e_advance_bank_fee" oninput="payCalc('e')"></div>
+      </div></div>
+      <div class="fBox"><h4>💵 งวดที่ 2 · ส่วนที่เหลือ (Balance)</h4><div class="fi">
+        <div class="fld"><label>ยอดส่วนที่เหลือ</label><input type="number" step="any" id="e_balance_payment" oninput="payCalc('e')"></div>
+        <div class="fld"><label>วันที่คาดว่าจะได้รับ</label><input type="date" id="e_balance_forecast_date"></div>
+        <div class="fld"><label>วันที่ได้รับเงินจริง</label><input type="date" id="e_balance_date" oninput="payCalc('e')"></div>
+        <div class="fld"><label>ค่าธรรมเนียมธนาคาร</label><input type="number" step="any" id="e_balance_bank_fee" oninput="payCalc('e')"></div>
+      </div></div>
+    </div>
+    <div class="payCalc" id="e_paycalc"></div>
+    </div>
+    <div class="fg" style="margin-top:10px">
+      <div class="fld"><label>วันที่คาดว่าเงินเข้า (Expected)</label><input type="date" id="e_forecast_received_date"></div>
+      <div class="fld"><label>ยอดเงินที่ได้รับแล้ว (Received Amount)</label><input type="number" step="any" id="e_received_amount" oninput="payCalc('e')"></div>
+      <div class="fld"><label>วันที่ได้รับเงิน (Received Date)</label><input type="date" id="e_received_date"></div>
+      <div class="fld"><label>ส่วนต่าง / ค่าธรรมเนียม (Diff Amount)</label><input type="number" step="any" id="e_diff_amount"></div>
     </div>
 
     <div class="sLbl">ต้นทุนวัตถุดิบจากโรงแป้ง</div>
@@ -2064,11 +2166,32 @@ body:not([data-role="admin"]) .admin-only{display:none !important;}
     </div>
 
     <div class="sLbl">การรับเงิน</div>
-    <div class="fg">
-      <div class="fld"><label>Expected Received Payment</label><input type="date" id="c_forecast_received_date"></div>
-      <div class="fld"><label>Received Amount</label><input type="number" step="any" id="c_received_amount"></div>
-      <div class="fld"><label>Diff Amount</label><input type="number" step="any" id="c_diff_amount"></div>
-      <div class="fld"><label>Received Date</label><input type="date" id="c_received_date"></div>
+    <div class="payMode" id="c_paymode">
+      <label><input type="radio" name="c_paymode" value="single" onchange="payModeChange('c',true)"> 💳 ชำระครั้งเดียว <small>(L/C · TT 100% · เครดิต)</small></label>
+      <label><input type="radio" name="c_paymode" value="split" onchange="payModeChange('c',true)"> 💰 แบ่ง 2 งวด <small>(มัดจำ + ส่วนที่เหลือ)</small></label>
+    </div>
+    <div id="c_paysplit" style="display:none">
+    <div class="fg2" style="margin-top:0">
+      <div class="fBox"><h4>💰 งวดที่ 1 · เงินมัดจำ (Advance)</h4><div class="fi">
+        <div class="fld"><label>ยอดมัดจำ</label><input type="number" step="any" id="c_advance_payment" oninput="payCalc('c')"></div>
+        <div class="fld"><label>วันที่คาดว่าจะได้รับ</label><input type="date" id="c_advance_forecast_date"></div>
+        <div class="fld"><label>วันที่ได้รับเงินจริง</label><input type="date" id="c_advance_date" oninput="payCalc('c')"></div>
+        <div class="fld"><label>ค่าธรรมเนียมธนาคาร</label><input type="number" step="any" id="c_advance_bank_fee" oninput="payCalc('c')"></div>
+      </div></div>
+      <div class="fBox"><h4>💵 งวดที่ 2 · ส่วนที่เหลือ (Balance)</h4><div class="fi">
+        <div class="fld"><label>ยอดส่วนที่เหลือ</label><input type="number" step="any" id="c_balance_payment" oninput="payCalc('c')"></div>
+        <div class="fld"><label>วันที่คาดว่าจะได้รับ</label><input type="date" id="c_balance_forecast_date"></div>
+        <div class="fld"><label>วันที่ได้รับเงินจริง</label><input type="date" id="c_balance_date" oninput="payCalc('c')"></div>
+        <div class="fld"><label>ค่าธรรมเนียมธนาคาร</label><input type="number" step="any" id="c_balance_bank_fee" oninput="payCalc('c')"></div>
+      </div></div>
+    </div>
+    <div class="payCalc" id="c_paycalc"></div>
+    </div>
+    <div class="fg" style="margin-top:10px">
+      <div class="fld"><label>วันที่คาดว่าเงินเข้า (Expected)</label><input type="date" id="c_forecast_received_date"></div>
+      <div class="fld"><label>ยอดเงินที่ได้รับแล้ว (Received Amount)</label><input type="number" step="any" id="c_received_amount" oninput="payCalc('c')"></div>
+      <div class="fld"><label>วันที่ได้รับเงิน (Received Date)</label><input type="date" id="c_received_date"></div>
+      <div class="fld"><label>ส่วนต่าง / ค่าธรรมเนียม (Diff Amount)</label><input type="number" step="any" id="c_diff_amount"></div>
     </div>
 
     <div class="sLbl">ต้นทุนวัตถุดิบจากโรงแป้ง</div>
@@ -2751,8 +2874,8 @@ function rDom(){
   </tr>`;}).join('');
 }
 
-const DF=['year','seq_no','broker_name','comm_rate','comm_currency','total_comm','applicant_name','contact_no','packing_kgs','qty_partial','qty_mts','price_fob','price_cfr','price_cif','total','invoice_no','payment_term','vessel_name','loading_date','delivery_date','delivery_place','unit_conts','dom_status_remark','factory1_name','factory1_po','factory1_price','factory1_total','factory1_before_vat','factory1_vat','factory2_name','factory2_po','factory2_price','factory2_total','factory2_before_vat','factory2_vat','factory3_name','factory3_po','factory3_price','factory3_total','factory3_before_vat','factory3_vat','factory4_name','factory4_po','factory4_price','factory4_total','factory4_before_vat','factory4_vat','packing_material_name','packing_material_cost','pallet','pallet_cost','agent_name','freight_cost','survey_name','fumigation_name','survey_cost','shipping_name','shipping_cost','insurance_name','insurance_cost','packing_service_name','packing_service_cost','doc_delivery_name','doc_delivery_cost'];
-const DN=['qty_mts','price_fob','price_cfr','price_cif','total','comm_rate','total_comm','factory1_price','factory1_total','factory1_before_vat','factory1_vat','factory2_price','factory2_total','factory2_before_vat','factory2_vat','factory3_price','factory3_total','factory3_before_vat','factory3_vat','factory4_price','factory4_total','factory4_before_vat','factory4_vat','packing_material_cost','pallet_cost','freight_cost','survey_cost','shipping_cost','insurance_cost','packing_service_cost','doc_delivery_cost'];
+const DF=['year','seq_no','broker_name','comm_rate','comm_currency','total_comm','applicant_name','contact_no','packing_kgs','qty_partial','qty_mts','price_fob','price_cfr','price_cif','total','invoice_no','payment_term','vessel_name','loading_date','delivery_date','delivery_place','unit_conts','dom_status_remark','factory1_name','factory1_po','factory1_price','factory1_total','factory1_before_vat','factory1_vat','factory2_name','factory2_po','factory2_price','factory2_total','factory2_before_vat','factory2_vat','factory3_name','factory3_po','factory3_price','factory3_total','factory3_before_vat','factory3_vat','factory4_name','factory4_po','factory4_price','factory4_total','factory4_before_vat','factory4_vat','packing_material_name','packing_material_cost','pallet','pallet_cost','agent_name','freight_cost','survey_name','fumigation_name','survey_cost','shipping_name','shipping_cost','insurance_name','insurance_cost','packing_service_name','packing_service_cost','doc_delivery_name','doc_delivery_cost','forecast_received_date','received_amount','received_date','diff_amount','advance_payment','advance_forecast_date','advance_date','advance_bank_fee','balance_payment','balance_forecast_date','balance_date','balance_bank_fee'];
+const DN=['qty_mts','price_fob','price_cfr','price_cif','total','comm_rate','total_comm','factory1_price','factory1_total','factory1_before_vat','factory1_vat','factory2_price','factory2_total','factory2_before_vat','factory2_vat','factory3_price','factory3_total','factory3_before_vat','factory3_vat','factory4_price','factory4_total','factory4_before_vat','factory4_vat','packing_material_cost','pallet_cost','freight_cost','survey_cost','shipping_cost','insurance_cost','packing_service_cost','doc_delivery_cost','received_amount','diff_amount','advance_payment','advance_bank_fee','balance_payment','balance_bank_fee'];
 
 function openDom(){
   document.getElementById('mDomT').textContent='เพิ่มรายการ — Domestic Tapioca Starch';
@@ -2760,7 +2883,7 @@ function openDom(){
   DF.forEach(f=>{const el=document.getElementById('d_'+f);if(el)el.value='';});
   document.getElementById('d_year').value=new Date().getFullYear();
   document.getElementById('d_comm_currency').value='THB';
-  document.getElementById('mDom').classList.add('show');
+  document.getElementById('mDom').classList.add('show');payModeInit('d',null,'split');
 }
 function closeDom(){document.getElementById('mDom').classList.remove('show');}
 function editDom(id){
@@ -2770,9 +2893,10 @@ function editDom(id){
   document.getElementById('d_id').value=r.id;
   DF.forEach(f=>{const el=document.getElementById('d_'+f);if(el)el.value=(DN.includes(f)?R2(r[f]):r[f])??'';});
   document.getElementById('d_comm_currency').value=r.comm_currency||'THB';
-  document.getElementById('mDom').classList.add('show');
+  document.getElementById('mDom').classList.add('show');payModeInit('d',r,'split');
 }
 async function saveDom(){
+  payBeforeSave('d');
   const id=document.getElementById('d_id').value;
   if(!document.getElementById('d_applicant_name').value.trim()){toast('กรุณากรอกชื่อลูกค้า',true);return;}
   const p={currency:'THB'};
@@ -2858,8 +2982,8 @@ function rDc(){
   </tr>`;}).join('');
 }
 
-const DCF=['year','seq_no','broker_name','comm_rate','total_comm','contact_date','shipment_date','applicant_name','contact_no','packing_kgs','qty_partial','qty_mts','price_fob','price_cfr','price_cif','total','invoice_no','payment_term','exchange_rate','status_remark','receive_date1','receive_amount1','receive_date2','receive_amount2','delivery_by','truck_no','delivery_document','delivery_place','delivery_date1','delivery_qty1','delivery_date2','delivery_qty2','delivery_date3','delivery_qty3','import_agent_name','import_service_cost','packing_material_cost','pallet_name','pallet_cost','survey_name','survey_cost','insurance_name','insurance_cost','packing_service_name','remark'];
-const DCN=['comm_rate','total_comm','packing_kgs','qty_mts','price_fob','price_cfr','price_cif','total','exchange_rate','receive_amount1','receive_amount2','delivery_qty1','delivery_qty2','delivery_qty3','import_service_cost','packing_material_cost','pallet_cost','survey_cost','insurance_cost'];
+const DCF=['year','seq_no','broker_name','comm_rate','total_comm','contact_date','shipment_date','applicant_name','contact_no','packing_kgs','qty_partial','qty_mts','price_fob','price_cfr','price_cif','total','invoice_no','payment_term','exchange_rate','status_remark','receive_date1','receive_amount1','receive_date2','receive_amount2','delivery_by','truck_no','delivery_document','delivery_place','delivery_date1','delivery_qty1','delivery_date2','delivery_qty2','delivery_date3','delivery_qty3','import_agent_name','import_service_cost','packing_material_cost','pallet_name','pallet_cost','survey_name','survey_cost','insurance_name','insurance_cost','packing_service_name','remark','forecast_received_date','received_amount','received_date','diff_amount','advance_payment','advance_forecast_date','advance_date','advance_bank_fee','balance_payment','balance_forecast_date','balance_date','balance_bank_fee'];
+const DCN=['comm_rate','total_comm','packing_kgs','qty_mts','price_fob','price_cfr','price_cif','total','exchange_rate','receive_amount1','receive_amount2','delivery_qty1','delivery_qty2','delivery_qty3','import_service_cost','packing_material_cost','pallet_cost','survey_cost','insurance_cost','received_amount','diff_amount','advance_payment','advance_bank_fee','balance_payment','balance_bank_fee'];
 
 function openDc(){
   document.getElementById('mDcT').textContent='เพิ่มรายการ — Domestic Coffee';
@@ -2867,7 +2991,7 @@ function openDc(){
   DCF.forEach(f=>{const el=document.getElementById('dc_'+f);if(el)el.value='';});
   document.getElementById('dc_year').value=new Date().getFullYear();
   document.getElementById('dc_currency').value='THB';
-  document.getElementById('mDc').classList.add('show');
+  document.getElementById('mDc').classList.add('show');payModeInit('dc',null,'split');
 }
 function closeDc(){document.getElementById('mDc').classList.remove('show');}
 function editDc(id){
@@ -2877,9 +3001,10 @@ function editDc(id){
   document.getElementById('dc_id').value=r.id;
   DCF.forEach(f=>{const el=document.getElementById('dc_'+f);if(el)el.value=(DCN.includes(f)?R2(r[f]):r[f])??'';});
   document.getElementById('dc_currency').value=r.currency||'THB';
-  document.getElementById('mDc').classList.add('show');
+  document.getElementById('mDc').classList.add('show');payModeInit('dc',r,'split');
 }
 async function saveDc(){
+  payBeforeSave('dc');
   const id=document.getElementById('dc_id').value;
   if(!document.getElementById('dc_applicant_name').value.trim()){toast('กรุณากรอกชื่อลูกค้า',true);return;}
   const p={currency:document.getElementById('dc_currency').value||'THB'};
@@ -2934,8 +3059,8 @@ function rIcKpi(){
   const today=new Date();today.setHours(0,0,0,0);const lim=new Date();lim.setHours(0,0,0,0);lim.setDate(lim.getDate()+7);
   let dueSoonThb=0,dueSoonCnt=0,overdueThb=0,overdueCnt=0;
   r.forEach(x=>{
-    [['deposit_date','deposit_value_thb','deposit_paid'],['balance_date','balance_total','balance_paid']].forEach(([dF,vF,pF])=>{
-      if(x[pF]||!x[dF])return; // จ่ายแล้ว หรือไม่มีกำหนดวันที่ ข้าม
+    [['advance_forecast_date','advance_payment','advance_date'],['balance_forecast_date','balance_payment','balance_date']].forEach(([dF,vF,pF])=>{
+      if(x[pF]||!x[dF])return; // จ่ายแล้ว (มีวันที่จ่ายจริง) หรือไม่มีวันครบกำหนด ข้าม
       const d=new Date(x[dF]);
       const amt=Number(x[vF]||0);
       if(d<today){overdueThb+=amt;overdueCnt++;}
@@ -2950,8 +3075,8 @@ function rIcKpi(){
 function icPayStatus(r){
   const parts=[];
   const today=new Date();
-  [['มัดจำ','deposit_date','deposit_paid'],['คงเหลือ','balance_date','balance_paid']].forEach(([lbl,dF,pF])=>{
-    if(!r[dF])return;
+  [['มัดจำ','advance_forecast_date','advance_date'],['คงเหลือ','balance_forecast_date','balance_date']].forEach(([lbl,dF,pF])=>{
+    if(!r[dF]&&!r[pF])return;
     if(r[pF]){parts.push(`<span style="color:var(--green)">✅ ${lbl}จ่ายแล้ว</span>`);return;}
     const overdue=new Date(r[dF])<today;
     parts.push(overdue?`<span style="color:var(--red)">⚠️ ${lbl}เลยกำหนด</span>`:`<span style="color:var(--amber)">⏳ ${lbl}รอจ่าย</span>`);
@@ -2985,8 +3110,8 @@ function rIc(){
   </tr>`;}).join('');
 }
 
-const ICF=['year','seq_no','broker_name','comm_rate','total_comm','contact_date','shipment_date','applicant_name','contact_no','packing_kgs','qty_partial','qty_mts','price_fob','price_cfr','price_cif','total','invoice_no','payment_term','status_remark','deposit_date','deposit_value_thb','exchange_rate1','deposit_total_usd','deposit_paid','balance_date','balance_total','exchange_rate2','balance_total_usd2','balance_paid','delivery_by','customs_no','from_origin','pass_border','loading_date','delivery_place','delivery_date1','delivery_date2','delivery_date3','final_delivery_date','factory1_name','factory1_po','factory1_price','factory1_total','factory1_before_vat','factory1_vat','factory2_name','factory2_po','factory2_price','factory2_total','factory2_before_vat','factory2_vat','factory3_name','factory3_po','factory3_price','factory3_total','factory3_before_vat','factory3_vat','factory4_name','factory4_po','factory4_price','factory4_total','factory4_before_vat','factory4_vat','packing_name','import_agent_name','import_service_cost','packing_material_cost','pallet_cost','sack_cost','agent_name','freight_cost','survey_name','fumigation_name','survey_fumigation_cost','shipping_name','shipping_cost','insurance_name','insurance_cost','transport_company','transport_cost','doc_delivery_cost','dhl_no','booking_no','bl_truck_no'];
-const ICN=['comm_rate','total_comm','packing_kgs','qty_mts','price_fob','price_cfr','price_cif','total','deposit_value_thb','exchange_rate1','deposit_total_usd','balance_total','exchange_rate2','balance_total_usd2','factory1_price','factory1_total','factory1_before_vat','factory1_vat','factory2_price','factory2_total','factory2_before_vat','factory2_vat','factory3_price','factory3_total','factory3_before_vat','factory3_vat','factory4_price','factory4_total','factory4_before_vat','factory4_vat','import_service_cost','packing_material_cost','pallet_cost','sack_cost','freight_cost','survey_fumigation_cost','shipping_cost','insurance_cost','transport_cost','doc_delivery_cost'];
+const ICF=['year','seq_no','broker_name','comm_rate','total_comm','contact_date','shipment_date','applicant_name','contact_no','packing_kgs','qty_partial','qty_mts','price_fob','price_cfr','price_cif','total','invoice_no','payment_term','status_remark','deposit_date','deposit_value_thb','exchange_rate1','deposit_total_usd','deposit_paid','balance_date','balance_total','exchange_rate2','balance_total_usd2','balance_paid','delivery_by','customs_no','from_origin','pass_border','loading_date','delivery_place','delivery_date1','delivery_date2','delivery_date3','final_delivery_date','factory1_name','factory1_po','factory1_price','factory1_total','factory1_before_vat','factory1_vat','factory2_name','factory2_po','factory2_price','factory2_total','factory2_before_vat','factory2_vat','factory3_name','factory3_po','factory3_price','factory3_total','factory3_before_vat','factory3_vat','factory4_name','factory4_po','factory4_price','factory4_total','factory4_before_vat','factory4_vat','packing_name','import_agent_name','import_service_cost','packing_material_cost','pallet_cost','sack_cost','agent_name','freight_cost','survey_name','fumigation_name','survey_fumigation_cost','shipping_name','shipping_cost','insurance_name','insurance_cost','transport_company','transport_cost','doc_delivery_cost','dhl_no','booking_no','bl_truck_no','forecast_received_date','received_amount','received_date','diff_amount','advance_payment','advance_forecast_date','advance_date','advance_bank_fee','balance_payment','balance_forecast_date','balance_bank_fee'];
+const ICN=['comm_rate','total_comm','packing_kgs','qty_mts','price_fob','price_cfr','price_cif','total','deposit_value_thb','exchange_rate1','deposit_total_usd','balance_total','exchange_rate2','balance_total_usd2','factory1_price','factory1_total','factory1_before_vat','factory1_vat','factory2_price','factory2_total','factory2_before_vat','factory2_vat','factory3_price','factory3_total','factory3_before_vat','factory3_vat','factory4_price','factory4_total','factory4_before_vat','factory4_vat','import_service_cost','packing_material_cost','pallet_cost','sack_cost','freight_cost','survey_fumigation_cost','shipping_cost','insurance_cost','transport_cost','doc_delivery_cost','received_amount','diff_amount','advance_payment','advance_bank_fee','balance_payment','balance_bank_fee'];
 const ICB=['deposit_paid','balance_paid'];
 
 function openIc(){
@@ -2995,9 +3120,7 @@ function openIc(){
   ICF.forEach(f=>{const el=document.getElementById('ic_'+f);if(el)el.value='';});
   document.getElementById('ic_year').value=new Date().getFullYear();
   document.getElementById('ic_currency').value='THB';
-  document.getElementById('ic_deposit_paid').value='false';
-  document.getElementById('ic_balance_paid').value='false';
-  document.getElementById('mIc').classList.add('show');
+  document.getElementById('mIc').classList.add('show');payModeInit('ic',null,'split');
 }
 function closeIc(){document.getElementById('mIc').classList.remove('show');}
 function editIc(id){
@@ -3007,13 +3130,16 @@ function editIc(id){
   document.getElementById('ic_id').value=r.id;
   ICF.forEach(f=>{const el=document.getElementById('ic_'+f);if(!el)return;if(ICB.includes(f)){el.value=r[f]?'true':'false';return;}el.value=(ICN.includes(f)?R2(r[f]):r[f])??'';});
   document.getElementById('ic_currency').value=r.currency||'THB';
-  document.getElementById('mIc').classList.add('show');
+  document.getElementById('mIc').classList.add('show');payModeInit('ic',r,'split');
 }
 async function saveIc(){
+  payBeforeSave('ic');
   const id=document.getElementById('ic_id').value;
   if(!document.getElementById('ic_applicant_name').value.trim()){toast('กรุณากรอกชื่อผู้ขาย/ต้นทาง',true);return;}
   const p={currency:document.getElementById('ic_currency').value||'THB'};
   ICF.forEach(f=>{const el=document.getElementById('ic_'+f);if(!el)return;if(ICB.includes(f)){p[f]=el.value==='true';return;}let v=el.value===''?null:el.value;if(ICN.includes(f)&&v!==null)v=R2(parseFloat(v));if(f==='year'&&v)v=parseInt(v);p[f]=v;});
+  p.deposit_value_thb=p.advance_payment??null;p.deposit_date=p.advance_date||p.advance_forecast_date||null;p.deposit_paid=!!p.advance_date;
+  p.balance_total=p.balance_payment??null;p.balance_paid=!!p.balance_date;
   p.updated_by=U.id;p.updated_by_email=U.email;
   let err;
   if(id){({error:err}=await sb.from('import_coffee').update(p).eq('id',id));}
@@ -3112,15 +3238,15 @@ function rEs(){
       <td style="width:56px"><div class="ra"><button class="ib e gate-write" onclick="editEs('${r.id}')">✏</button><button class="ib d gate-delete" onclick="delEs('${r.id}')">🗑</button></div></td>
     </tr>`;}).join('');
 }
-const EF=['year','seq_no','broker_name','comm_rate','comm_currency','total_comm','applicant_name','sales_contract','packing_kgs','qty_partial','qty_mts','currency','price_fob','price_cfr','price_cif','total','invoice_no','payment_term','lc_no','lc_last_shipment_date','lc_expiry_date','exchange_rate','vessel_name','loading_date','closing_date','loading_ground','etd','eta','port','bank','unit_conts','delivery_date','status_remark','forecast_received_date','received_amount','diff_amount','received_date','factory1_name','factory1_po','factory1_price','factory1_total','factory1_before_vat','factory1_vat','factory2_name','factory2_po','factory2_price','factory2_total','factory2_before_vat','factory2_vat','factory3_name','factory3_po','factory3_price','factory3_total','factory3_before_vat','factory3_vat','factory4_name','factory4_po','factory4_price','factory4_total','factory4_before_vat','factory4_vat','shipping_name','shipping_cost','survey_name','fumigation_name','survey_cost','agent_name','freight_cost','packing_material_name','packing_material_cost','pallet','pallet_cost','insurance_name','insurance_cost','packing_service_name','packing_service_cost','doc_delivery_name','doc_delivery_cost','dhl_no','customs_no','booking_no','bl_no'];
-const EN=['qty_mts','price_fob','price_cfr','price_cif','total','comm_rate','total_comm','exchange_rate','received_amount','diff_amount','factory1_price','factory1_total','factory1_before_vat','factory1_vat','factory2_price','factory2_total','factory2_before_vat','factory2_vat','factory3_price','factory3_total','factory3_before_vat','factory3_vat','factory4_price','factory4_total','factory4_before_vat','factory4_vat','packing_material_cost','pallet_cost','freight_cost','survey_cost','shipping_cost','insurance_cost','packing_service_cost','doc_delivery_cost'];
+const EF=['year','seq_no','broker_name','comm_rate','comm_currency','total_comm','applicant_name','sales_contract','packing_kgs','qty_partial','qty_mts','currency','price_fob','price_cfr','price_cif','total','invoice_no','payment_term','lc_no','lc_last_shipment_date','lc_expiry_date','exchange_rate','vessel_name','loading_date','closing_date','loading_ground','etd','eta','port','bank','unit_conts','delivery_date','status_remark','forecast_received_date','received_amount','diff_amount','received_date','factory1_name','factory1_po','factory1_price','factory1_total','factory1_before_vat','factory1_vat','factory2_name','factory2_po','factory2_price','factory2_total','factory2_before_vat','factory2_vat','factory3_name','factory3_po','factory3_price','factory3_total','factory3_before_vat','factory3_vat','factory4_name','factory4_po','factory4_price','factory4_total','factory4_before_vat','factory4_vat','shipping_name','shipping_cost','survey_name','fumigation_name','survey_cost','agent_name','freight_cost','packing_material_name','packing_material_cost','pallet','pallet_cost','insurance_name','insurance_cost','packing_service_name','packing_service_cost','doc_delivery_name','doc_delivery_cost','dhl_no','customs_no','booking_no','bl_no','advance_payment','advance_forecast_date','advance_date','advance_bank_fee','balance_payment','balance_forecast_date','balance_date','balance_bank_fee'];
+const EN=['qty_mts','price_fob','price_cfr','price_cif','total','comm_rate','total_comm','exchange_rate','received_amount','diff_amount','factory1_price','factory1_total','factory1_before_vat','factory1_vat','factory2_price','factory2_total','factory2_before_vat','factory2_vat','factory3_price','factory3_total','factory3_before_vat','factory3_vat','factory4_price','factory4_total','factory4_before_vat','factory4_vat','packing_material_cost','pallet_cost','freight_cost','survey_cost','shipping_cost','insurance_cost','packing_service_cost','doc_delivery_cost','advance_payment','advance_bank_fee','balance_payment','balance_bank_fee'];
 function openEs(){
   document.getElementById('mEsT').textContent='เพิ่มรายการ — Export Tapioca Starch';
   document.getElementById('e_id').value='';
   EF.forEach(f=>{const el=document.getElementById('e_'+f);if(el)el.value='';});
   document.getElementById('e_year').value=new Date().getFullYear();
   document.getElementById('e_comm_currency').value='USD';
-  document.getElementById('mEs').classList.add('show');
+  document.getElementById('mEs').classList.add('show');payModeInit('e',null,'single');
 }
 function closeEs(){document.getElementById('mEs').classList.remove('show');}
 function editEs(id){
@@ -3130,9 +3256,10 @@ function editEs(id){
   document.getElementById('e_id').value=r.id;
   EF.forEach(f=>{const el=document.getElementById('e_'+f);if(el)el.value=(EN.includes(f)?R2(r[f]):r[f])??'';});
   document.getElementById('e_comm_currency').value=r.comm_currency||'USD';
-  document.getElementById('mEs').classList.add('show');
+  document.getElementById('mEs').classList.add('show');payModeInit('e',r,'single');
 }
 async function saveEs(){
+  payBeforeSave('e');
   const id=document.getElementById('e_id').value;
   if(!document.getElementById('e_applicant_name').value.trim()){toast('กรุณากรอกชื่อลูกค้า',true);return;}
   if(!document.getElementById('e_currency').value){toast('กรุณาเลือกสกุลเงิน (USD/CNY)',true);return;}
@@ -3220,8 +3347,8 @@ function rEc(){
       <td style="width:56px"><div class="ra"><button class="ib e gate-write" onclick="editEc('${r.id}')">✏</button><button class="ib d gate-delete" onclick="delEc('${r.id}')">🗑</button></div></td>
     </tr>`;}).join('');
 }
-const CF=['year','seq_no','broker_name','comm_rate','comm_currency','total_comm','applicant_name','sales_contract','qty_mts','currency','price_fob','price_cfr','price_cif','total','invoice_no','payment_term','lc_no','lc_last_shipment_date','lc_expiry_date','exchange_rate','vessel_name','loading_date','closing_date','loading_ground','etd','eta','port','bank','delivery_date','status_remark','forecast_received_date','received_amount','diff_amount','received_date','factory1_name','factory1_po','factory1_price','factory1_total','factory1_before_vat','factory1_vat','factory2_name','factory2_po','factory2_price','factory2_total','factory2_before_vat','factory2_vat','factory3_name','factory3_po','factory3_price','factory3_total','factory3_before_vat','factory3_vat','factory4_name','factory4_po','factory4_price','factory4_total','factory4_before_vat','factory4_vat','shipping_name','survey_name','fumigation_name','agent_name','packing_material_name','pallet','insurance_name','packing_service_name','doc_delivery_name','dhl_no','customs_no','booking_no','bl_no'];
-const CN=['qty_mts','price_fob','price_cfr','price_cif','total','comm_rate','total_comm','exchange_rate','received_amount','diff_amount','factory1_price','factory1_total','factory1_before_vat','factory1_vat','factory2_price','factory2_total','factory2_before_vat','factory2_vat','factory3_price','factory3_total','factory3_before_vat','factory3_vat','factory4_price','factory4_total','factory4_before_vat','factory4_vat'];
+const CF=['year','seq_no','broker_name','comm_rate','comm_currency','total_comm','applicant_name','sales_contract','qty_mts','currency','price_fob','price_cfr','price_cif','total','invoice_no','payment_term','lc_no','lc_last_shipment_date','lc_expiry_date','exchange_rate','vessel_name','loading_date','closing_date','loading_ground','etd','eta','port','bank','delivery_date','status_remark','forecast_received_date','received_amount','diff_amount','received_date','factory1_name','factory1_po','factory1_price','factory1_total','factory1_before_vat','factory1_vat','factory2_name','factory2_po','factory2_price','factory2_total','factory2_before_vat','factory2_vat','factory3_name','factory3_po','factory3_price','factory3_total','factory3_before_vat','factory3_vat','factory4_name','factory4_po','factory4_price','factory4_total','factory4_before_vat','factory4_vat','shipping_name','survey_name','fumigation_name','agent_name','packing_material_name','pallet','insurance_name','packing_service_name','doc_delivery_name','dhl_no','customs_no','booking_no','bl_no','advance_payment','advance_forecast_date','advance_date','advance_bank_fee','balance_payment','balance_forecast_date','balance_date','balance_bank_fee'];
+const CN=['qty_mts','price_fob','price_cfr','price_cif','total','comm_rate','total_comm','exchange_rate','received_amount','diff_amount','factory1_price','factory1_total','factory1_before_vat','factory1_vat','factory2_price','factory2_total','factory2_before_vat','factory2_vat','factory3_price','factory3_total','factory3_before_vat','factory3_vat','factory4_price','factory4_total','factory4_before_vat','factory4_vat','advance_payment','advance_bank_fee','balance_payment','balance_bank_fee'];
 function openEc(){
   document.getElementById('mEcT').textContent='เพิ่มรายการ — Export Tapioca Chip';
   document.getElementById('c_id').value='';
@@ -3229,7 +3356,7 @@ function openEc(){
   document.getElementById('c_year').value=new Date().getFullYear();
   document.getElementById('c_currency').value='USD';
   document.getElementById('c_comm_currency').value='USD';
-  document.getElementById('mEc').classList.add('show');
+  document.getElementById('mEc').classList.add('show');payModeInit('c',null,'single');
 }
 function closeEc(){document.getElementById('mEc').classList.remove('show');}
 function editEc(id){
@@ -3239,9 +3366,10 @@ function editEc(id){
   document.getElementById('c_id').value=r.id;
   CF.forEach(f=>{const el=document.getElementById('c_'+f);if(el)el.value=(CN.includes(f)?R2(r[f]):r[f])??'';});
   document.getElementById('c_comm_currency').value=r.comm_currency||'USD';
-  document.getElementById('mEc').classList.add('show');
+  document.getElementById('mEc').classList.add('show');payModeInit('c',r,'single');
 }
 async function saveEc(){
+  payBeforeSave('c');
   const id=document.getElementById('c_id').value;
   if(!document.getElementById('c_applicant_name').value.trim()){toast('กรุณากรอกชื่อลูกค้า',true);return;}
   const p={packing_kgs:'BULK'};
@@ -5074,6 +5202,53 @@ function openPartner(type,name){
 
 
 
+
+// ═══════════ การรับเงิน: ชำระครั้งเดียว / แบ่ง 2 งวด (มัดจำ + ส่วนที่เหลือ) ═══════════
+const PAY_FIELDS=['advance_payment','advance_forecast_date','advance_date','advance_bank_fee','balance_payment','balance_forecast_date','balance_date','balance_bank_fee'];
+function payModeInit(x,r,deflt){
+  const has=r&&(r.advance_payment!=null&&r.advance_payment!==''||r.balance_payment!=null&&r.balance_payment!=='');
+  const mode=r?(has?'split':'single'):deflt;
+  const box=document.getElementById(x+'_paymode');if(!box)return;
+  box.dataset.switched='';
+  box.querySelectorAll('input').forEach(i=>i.checked=i.value===mode);
+  payModeChange(x,false);
+}
+function payMode(x){return document.querySelector(`#${x}_paymode input:checked`)?.value||'single';}
+function payModeChange(x,byUser){
+  if(byUser)document.getElementById(x+'_paymode').dataset.switched='1';
+  document.getElementById(x+'_paysplit').style.display=payMode(x)==='split'?'':'none';
+  payCalc(x);
+}
+function payNum(id){const v=document.getElementById(id)?.value;return v===''||v==null?null:Number(v);}
+function payCalc(x){
+  const el=document.getElementById(x+'_paycalc');if(!el||payMode(x)!=='split'){if(el)el.innerHTML='';return;}
+  const total=payNum(x+'_total')||0, adv=payNum(x+'_advance_payment')||0, bal=payNum(x+'_balance_payment')||0;
+  const advIn=!!document.getElementById(x+'_advance_date').value, balIn=!!document.getElementById(x+'_balance_date').value;
+  const got=(advIn?adv:0)+(balIn?bal:0);
+  const sum=adv+bal, diff=Math.round((total-sum)*100)/100;
+  el.innerHTML=`<span>มูลค่าสัญญา <b>${N(total,2)}</b></span><span>รวม 2 งวด <b>${N(sum,2)}</b></span>`+
+    (total&&Math.abs(diff)>=0.01?`<span class="warn">⚠ ต่างจากมูลค่าสัญญา ${N(diff,2)}</span>`:'')+
+    `<span>รับแล้วตามวันที่ในงวด <b>${N(got,2)}</b></span>`+
+    (total&&adv&&!bal?`<button type="button" class="btn btn-o btn-sm" onclick="payFillBalance('${x}')">ส่วนที่เหลือ = Total − มัดจำ</button>`:'')+
+    (got?`<button type="button" class="btn btn-o btn-sm" onclick="payFillReceived('${x}')">↻ ใส่ยอด/วันที่รับเงินจาก 2 งวด</button>`:'');
+}
+function payFillBalance(x){
+  const total=payNum(x+'_total')||0, adv=payNum(x+'_advance_payment')||0;
+  document.getElementById(x+'_balance_payment').value=R2(total-adv);payCalc(x);
+}
+function payFillReceived(x){
+  const adv=payNum(x+'_advance_payment')||0, bal=payNum(x+'_balance_payment')||0;
+  const ad=document.getElementById(x+'_advance_date').value, bd=document.getElementById(x+'_balance_date').value;
+  document.getElementById(x+'_received_amount').value=R2((ad?adv:0)+(bd?bal:0));
+  document.getElementById(x+'_received_date').value=[ad,bd].filter(Boolean).sort().pop()||'';
+  payCalc(x);toast('ใส่ยอดและวันที่รับเงินจาก 2 งวดแล้ว — ตรวจสอบก่อนกดบันทึก');
+}
+// เปลี่ยนจาก "2 งวด" เป็น "ครั้งเดียว" เอง → ล้างข้อมูลงวดตอนบันทึก (ถ้าไม่ได้เปลี่ยนเอง จะไม่แตะข้อมูลเดิม)
+function payBeforeSave(x){
+  const box=document.getElementById(x+'_paymode');if(!box)return;
+  if(box.dataset.switched&&payMode(x)==='single')PAY_FIELDS.forEach(f=>{const el=document.getElementById(x+'_'+f);if(el)el.value='';});
+}
+
 // ═══════════ Forecast อัตโนมัติจากสัญญาขาย (ไม่ต้องคีย์ซ้ำ) ═══════════
 // ดึงทุกรายการที่ยังไม่ "เงินเข้าแล้ว" และไม่ "ยกเลิก" จาก 5 หมวดการขาย
 // ยอดคงเหลือสุทธิ = มูลค่าสัญญา − เงินที่รับแล้ว (เช่น เงินมัดจำ) · แยกสกุลเงินเสมอ ไม่รวมข้ามสกุล
@@ -5091,8 +5266,9 @@ function afcDay(iso){const[y,m,d]=iso.split('-').map(Number);return new Date(y,m
 function afcStatusText(r){return String(r.status_remark||r.dom_status_remark||r.status||'').trim();}
 function afcIsPaid(s){return /^เงินเข้าแล้ว/.test(s)||(s.includes('เงินเข้าแล้ว')&&!/รอเงิน|ค้าง|บางส่วน/.test(s));}
 function afcReceived(cat,r){
-  if(cat==='dc')return (+r.receive_amount1||0)+(+r.receive_amount2||0)||(+r.received_amount||0);
-  if(cat==='ic')return (r.deposit_paid?(+r.deposit_value_thb||0):0)+(r.balance_paid?(+r.balance_total||0):0)||(+r.received_amount||0);
+  if(r.received_amount!=null&&r.received_amount!=='')return +r.received_amount||0;
+  if(cat==='dc')return (+r.receive_amount1||0)+(+r.receive_amount2||0);
+  if(cat==='ic')return (r.deposit_paid?(+r.deposit_value_thb||0):0)+(r.balance_paid?(+r.balance_total||0):0);
   return +r.received_amount||0;
 }
 function afcBuild(byCat){
